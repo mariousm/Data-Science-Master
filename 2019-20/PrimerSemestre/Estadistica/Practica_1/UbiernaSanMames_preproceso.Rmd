@@ -1,0 +1,93 @@
+---
+title: "A1 - Preprocesado de datos"
+author: "Mario Ubierna San Mamés"
+date: '`r format(Sys.Date(),"%e de %B, %Y")`'
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+******
+# Carga del archivo
+******  
+<p> Realizamos la lectura del fichero </p>
+```{r}
+df = read.csv(file="./data/fifa_raw.csv", sep=",")
+df_copy = df # Realizamos una copia del dataframe original, para así modificar la copia de éste y mantener los datos originales
+head(df_copy)
+```
+
+<p> Usamos la función str() para analizar el tipo de datos que R ha interpretado y observar los valores resumen de cada variable </p>
+```{r}
+str(df_copy)
+```
+
+
+
+******
+# Verficar duplicación de registros
+******
+<p> Verificamos si hay registros duplicados con el valor ID. En caso de duplicación, seleccionamos el registro con menor número de NA en las variables </p>
+```{r}
+nRows = nrow(df_copy) # Número de registros (filas) que hay en el df
+nUniques = length(unique(df_copy[["ID"]])) # Número de valores únicos de ID en el df
+
+cat("El número de registros duplicados con el valor ID son: ", nRows - nUniques)
+```
+<p> Como podemos observar no hay duplicados por el campo ID, esto no significa que no pueda haber valores duplicados en otras columnas</p>
+
+
+
+******
+# Normalización de los datos cuantitativos
+******
+
+## Rating
+<p> Verificar que la variable Rating esté entre 0 y 100. </p>
+```{r}
+nMinRating = min(df_copy$Rating) # Valor de rating mínimo
+nMaxRating = max(df_copy$Rating) # Valor de rating máximo
+
+cat("El valor mínimo de rating es: ", nMinRating)
+cat("El valor máximo de rating es: ", nMaxRating)
+```
+<p> Como podemos observar el valor mínimo y máximo están dentro del intervalo [0,100] </p>
+
+## Height
+<p> La variable Height se ha de expresar en cm con 3 dígitos sin decimales. Para facilitar la lectura y tratamiento del fichero deben ser numéricas, por lo tanto se debe quitar el símbolo en cm </p>
+```{r}
+# Método que nos permite hacer la conversión tanto para la variable Height como Weight
+heiWeiFromCharToNumeric = function(value) {
+  
+  if (!is.na(value) & is.character(value)) {
+    lstPairValues = strsplit(value, "[[:space:]]+")
+    
+    if (toupper(lstPairValues[[1]][2]) == "M") return(as.numeric(gsub(",", ".", lstPairValues[[1]][1])) * 100)
+    if (toupper(lstPairValues[[1]][2]) == "CM") return(as.numeric(lstPairValues[[1]][1]))
+    if (toupper(lstPairValues[[1]][2]) == "KG") return(as.numeric())
+    
+  } else {
+    return(NA)
+  }
+   
+}
+                                
+ df_copy$Height = unlist(lapply(df_copy$Height, heiWeiFromCharToNumeric))
+ head(df_copy$Height)
+```
+
+## Weight
+<p> La variable Weight se ha de expresar en kg con 2 dígitos sin decimales. Si hay decimales, se ha de truncar el valor. Para facilitar la lectura y tratamiento del fichero debn ser numéricas, por lo tanto se debe quitar el símbolo de kg. </p>
+```{r}
+unique(df$Height)
+unique(df_copy$Height)
+```
+
