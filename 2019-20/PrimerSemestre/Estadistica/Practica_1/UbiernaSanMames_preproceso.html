@@ -188,6 +188,12 @@ pre code {
 <li><a href="#work_rate"><span class="toc-section-number">4.3</span> Work_Rate</a></li>
 <li><a href="#resumen-1"><span class="toc-section-number">4.4</span> Resumen</a></li>
 </ul></li>
+<li><a href="#posibles-inconsistencias-y-variables-tipo-fecha"><span class="toc-section-number">5</span> Posibles inconsistencias y variables tipo fecha</a>
+<ul>
+<li><a href="#club_joining"><span class="toc-section-number">5.1</span> Club_Joining</a></li>
+<li><a href="#contract_expiry-club_joining"><span class="toc-section-number">5.2</span> Contract_Expiry &gt;= Club_Joining?</a></li>
+<li><a href="#revisar-si-la-edad-corresponde-a-la-fecha-de-nacimiento"><span class="toc-section-number">5.3</span> Revisar si la edad corresponde a la fecha de nacimiento</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -612,6 +618,99 @@ En este apartado podemos observar de forma general los cambios realizados en est
 ## 4         31          25          37
 ## 5         95          90          89
 ## 6         87          85          90</code></pre>
+<hr />
+</div>
+</div>
+<div id="posibles-inconsistencias-y-variables-tipo-fecha" class="section level1" number="5">
+<h1 number="5"><span class="header-section-number">5</span> Posibles inconsistencias y variables tipo fecha</h1>
+<hr />
+<div id="club_joining" class="section level2" number="5.1">
+<h2 number="5.1"><span class="header-section-number">5.1</span> Club_Joining</h2>
+<p>
+Verificar que la variable Club_Joining está en el rango de los años 1990 a 2017. En caso de haber algún registro que no cumpla la condición, indicar el número de registro, Name y Club_Joining.
+</p>
+<p>
+Lo primero que debemos hacer es convertir las columnas Club_Joining y Contract_Expiry a tipo date, cabe destacar que de Contract_Expiry conocemos solo el año no el mes y el día en el que acaba el contrato, por lo tanto, he considerado que al indicar el año se refiere a todo el año natural, es decir, hasta el 31 de Diciembre del año X
+</p>
+<pre class="r"><code>df_copy$Club_Joining = as.Date(df_copy$Club_Joining, format = &quot;%m/%d/%Y&quot;)
+df_copy$Contract_Expiry = as.Date(paste(&quot;1231&quot;, as.character(df_copy$Contract_Expiry)), format = &quot;%m%d%Y&quot;)
+
+str(df_copy$Club_Joining)</code></pre>
+<pre><code>##  Date[1:17588], format: &quot;2009-07-01&quot; &quot;2004-07-01&quot; &quot;2013-07-01&quot; &quot;2014-07-11&quot; &quot;2011-07-01&quot; ...</code></pre>
+<pre class="r"><code>str(df_copy$Contract_Expiry)</code></pre>
+<pre><code>##  Date[1:17588], format: &quot;2021-12-31&quot; &quot;2018-12-31&quot; &quot;2021-12-31&quot; &quot;2021-12-31&quot; &quot;2021-12-31&quot; ...</code></pre>
+<p>
+Una vez que hemos convertido los atributos correspondietes a Date, puedemos realizar el ejercicio:
+</p>
+<pre class="r"><code>dMinClubJoining = min(df_copy$Club_Joining, na.rm = TRUE) # Fecha de Club_Joining mínima
+dMaxClubJoining = max(df_copy$Club_Joining, na.rm = TRUE) # Fecha de Club_Joining máxima
+
+cat(&quot;La fecha mínima de Club_Joining es: &quot;, as.character(dMinClubJoining))</code></pre>
+<pre><code>## La fecha mínima de Club_Joining es:  1991-06-01</code></pre>
+<pre class="r"><code>cat(&quot;La fecha máxima de Club_Joining es: &quot;, as.character(dMaxClubJoining))</code></pre>
+<pre><code>## La fecha máxima de Club_Joining es:  2017-03-24</code></pre>
+<p>
+Como podemos observar, la fecha mínima y la fecha máxima están dentro de los valores que se nos piden entre [1990,2017]. Sin embargo, he tenido que usar na.rm = True, ya que hay un registro cuya fecha está vacía. Dicho registro es el siguiente:
+</p>
+<pre class="r"><code>summary(df_copy$Club_Joining)</code></pre>
+<pre><code>##         Min.      1st Qu.       Median         Mean      3rd Qu.         Max. 
+## &quot;1991-06-01&quot; &quot;2014-07-01&quot; &quot;2015-07-27&quot; &quot;2015-01-23&quot; &quot;2016-07-01&quot; &quot;2017-03-24&quot; 
+##         NA&#39;s 
+##          &quot;1&quot;</code></pre>
+<pre class="r"><code>df_copy[is.na(df_copy$Club_Joining), c(&quot;ID&quot;, &quot;Name&quot;, &quot;Club_Joining&quot;)]</code></pre>
+<pre><code>##      ID          Name Club_Joining
+## 384 384 Didier Drogba         &lt;NA&gt;</code></pre>
+</div>
+<div id="contract_expiry-club_joining" class="section level2" number="5.2">
+<h2 number="5.2"><span class="header-section-number">5.2</span> Contract_Expiry &gt;= Club_Joining?</h2>
+<p>
+Verificar que el año de expiración del contrato (Contract_Expiry) no es inferior al año de inicio del contrato (Club_Joining). En caso de haber algún registro que no cumple la condición, indicar el número de registro, Name, Club_Joining y Contract_Expiry
+</p>
+<pre class="r"><code>df_copy[df_copy$Contract_Expiry &lt; df_copy$Club_Joining, c(&quot;ID&quot;, &quot;Name&quot;, &quot;Club_Joining&quot;, &quot;Contract_Expiry&quot;)]</code></pre>
+<pre><code>##    ID Name Club_Joining Contract_Expiry
+## NA NA &lt;NA&gt;         &lt;NA&gt;            &lt;NA&gt;</code></pre>
+<p>
+Como bien he mencionado antes, al calcular la fecha del Contract_Expiry consideramos hasta el 31 de Dicimebre, entonces al hacer la consulta para saber si algún registro no cumple que el Contract_Expiry &gt;= Club_Joining, observamos que no hay ningún registro que no la cumpla.
+</p>
+</div>
+<div id="revisar-si-la-edad-corresponde-a-la-fecha-de-nacimiento" class="section level2" number="5.3">
+<h2 number="5.3"><span class="header-section-number">5.3</span> Revisar si la edad corresponde a la fecha de nacimiento</h2>
+<p>
+Verificar que la edad (Age) en la fecha 1/1/2017 corresponde a la calculada con la fecha de nacimiento (Birth_Date). En caso de haber algún registro que no cumpla la condición, modificar la edad en función del valor obtenido con la fecha de nacimiento.
+</p>
+<p>
+Lo primero de todo es transformar de character a Date la variable Birth_Date:
+</p>
+<pre class="r"><code>df_copy$Birth_Date = as.Date(df_copy$Birth_Date, format = &quot;%m/%d/%Y&quot;)
+str(df_copy$Birth_Date)</code></pre>
+<pre><code>##  Date[1:17588], format: &quot;1985-02-05&quot; &quot;1987-06-24&quot; &quot;1992-02-05&quot; &quot;1987-01-24&quot; &quot;1986-03-27&quot; ...</code></pre>
+<p>
+Una vez cambiado el tipo de dato, podemos continuar con la resolución del ejercicio. Pero antes, a la hora de calcular los años puedes redondear hacia arriba o truncar el valor, he considerado que lo mejor es truncar el valor, ya que si redondeas hacia arriba estás atribuyendo una edad que todavía no ha cumplido por muy cerca que esté
+</p>
+<pre class="r"><code># Método que calcula la edad a 1/1/2017
+calculateAge = function(value) {
+  fecha = as.Date(&quot;01/01/2017&quot;, &quot;%m/%d/%Y&quot;)
+  nAge = as.integer((fecha - value) / 365)
+  nAge
+}</code></pre>
+<p>
+Calculamos las nuevas edades:
+</p>
+<pre class="r"><code>vAges = sapply(df_copy$Birth_Date, calculateAge) # Calculamos todas las edades
+head(vAges) # Nuevas edades</code></pre>
+<pre><code>## [1] 31 29 24 29 30 26</code></pre>
+<p>
+Comprobamos las edades pasadas:
+</p>
+<pre class="r"><code>head(df_copy$Age) # Edades pasadas</code></pre>
+<pre><code>## [1] 32 29 25 30 31 26</code></pre>
+<p>
+Realizamos el cambio de las nuevas edades por las pasadas:
+</p>
+<pre class="r"><code>vIndex = df_copy$Age != vAges # Obtenemos dónde hay que realizar el cambio de la edad
+df_copy$Age[vIndex] = vAges[vIndex] # Realizamos el cambio
+head(df_copy$Age) # Resultado</code></pre>
+<pre><code>## [1] 31 29 24 29 30 26</code></pre>
 </div>
 </div>
 
