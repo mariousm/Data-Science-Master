@@ -166,7 +166,7 @@ pre code {
 
 <h1 class="title toc-ignore">A1 - Preprocesado de datos</h1>
 <h4 class="author">Mario Ubierna San Mamés</h4>
-<h4 class="date">12 de marzo, 2021</h4>
+<h4 class="date">13 de marzo, 2021</h4>
 
 </div>
 
@@ -178,7 +178,10 @@ pre code {
 <ul>
 <li><a href="#rating"><span class="toc-section-number">3.1</span> Rating</a></li>
 <li><a href="#height"><span class="toc-section-number">3.2</span> Height</a></li>
+<li><a href="#weight"><span class="toc-section-number">3.3</span> Weight</a></li>
+<li><a href="#resumen"><span class="toc-section-number">3.4</span> Resumen</a></li>
 </ul></li>
+<li><a href="#normalización-de-los-datos-cualitativos"><span class="toc-section-number">4</span> Normalización de los datos cualitativos</a></li>
 </ul>
 </div>
 
@@ -356,23 +359,112 @@ Como podemos observar el valor mínimo y máximo están dentro del intervalo [0,
 <p>
 La variable Height se ha de expresar en cm con 3 dígitos sin decimales. Para facilitar la lectura y tratamiento del fichero deben ser numéricas, por lo tanto se debe quitar el símbolo en cm
 </p>
-<pre class="r"><code>heightFromCharToInteger = function(value) {
+<pre class="r"><code># Método que nos permite hacer la conversión tanto para la variable Height como Weight
+heiWeiFromCharToNumeric = function(value) {
   
   if (!is.na(value) &amp; is.character(value)) {
     lstPairValues = strsplit(value, &quot;[[:space:]]+&quot;)
     
-    if (lstPairValues[[1]][2] == &quot;m&quot;) return(as.integer(as.numeric(gsub(&quot;,&quot;, &quot;.&quot;, lstPairValues[[1]][1])) * 100))
-    if (lstPairValues[[1]][2] == &quot;cm&quot;) return(as.integer(as.numeric(lstPairValues[[1]][1])))
+    if (toupper(lstPairValues[[1]][2]) == &quot;M&quot;) return(as.integer(as.numeric(gsub(&quot;,&quot;, &quot;.&quot;, lstPairValues[[1]][1])) * 100))
+    if (toupper(lstPairValues[[1]][2]) == &quot;CM&quot;) return(as.integer(as.numeric(lstPairValues[[1]][1])))
+    if (toupper(lstPairValues[[1]][2]) == &quot;KG&quot;) return(as.integer(gsub(&quot;,&quot;, &quot;.&quot;, lstPairValues[[1]][1])))
+    if (toupper(lstPairValues[[1]][2]) == &quot;GR&quot;) return(as.integer(as.numeric(lstPairValues[[1]][1]) / 1000))
+    
   } else {
     return(NA)
   }
    
 }
                                 
- df_copy$Height = unlist(lapply(df_copy$Height, heightFromCharToInteger))
- head(df_copy$Height)</code></pre>
-<pre><code>## [1] 185  NA 174 182 193  NA</code></pre>
+ df_copy$Height = sapply(df_copy$Height, heiWeiFromCharToNumeric)
+ str(df_copy$Height)</code></pre>
+<pre><code>##  int [1:17588] 185 NA 174 182 193 NA 185 183 NA 199 ...</code></pre>
 </div>
+<div id="weight" class="section level2" number="3.3">
+<h2 number="3.3"><span class="header-section-number">3.3</span> Weight</h2>
+<p>
+La variable Weight se ha de expresar en kg con 2 dígitos sin decimales. Si hay decimales, se ha de truncar el valor. Para facilitar la lectura y tratamiento del fichero debn ser numéricas, por lo tanto se debe quitar el símbolo de kg.
+</p>
+<pre class="r"><code># Hacemos uso de la función anterior para realizar la conversión
+df_copy$Weight = sapply(df_copy$Weight, heiWeiFromCharToNumeric)
+str(df_copy$Weight)</code></pre>
+<pre><code>##  int [1:17588] NA 72 68 85 NA 82 NA 74 95 91 ...</code></pre>
+</div>
+<div id="resumen" class="section level2" number="3.4">
+<h2 number="3.4"><span class="header-section-number">3.4</span> Resumen</h2>
+<p>
+En este apartado podemos observar de forma general los cambios realizados en este apartado
+</p>
+<pre class="r"><code>head(df_copy)</code></pre>
+<pre><code>##   ID              Name Nationality National_Position National_Kit
+## 1  1 Cristiano Ronaldo    Portugal                LS            7
+## 2  2      Lionel Messi   Argentina                RW           10
+## 3  3            Neymar      Brazil                LW           10
+## 4  4      Luis SuÃ¡rez     Uruguay                LS            9
+## 5  5      Manuel Neuer     Germany                GK            1
+## 6  6            De Gea       Spain                GK            1
+##             Club Club_Position Club_Kit Club_Joining Contract_Expiry Rating
+## 1    Real Madrid            LW        7   07/01/2009            2021     94
+## 2   FC Barcelona            RW       10   07/01/2004            2018     93
+## 3   FC Barcelona            LW       11   07/01/2013            2021     92
+## 4   FC Barcelona            ST        9   07/11/2014            2021     92
+## 5      FC Bayern            GK        1   07/01/2011            2021     92
+## 6 Manchester Utd            GK        1   07/01/2011            2019     90
+##   Height Weight Preffered_Foot Birth_Date Age Preffered_Position
+## 1    185     NA              2 02/05/1985  32              LW/ST
+## 2     NA     72              1 06/24/1987  29                 RW
+## 3    174     68              2 02/05/1992  25                 LW
+## 4    182     85              2 01/24/1987  30                 ST
+## 5    193     NA              2 03/27/1986  31                 GK
+## 6     NA     82              2 11/07/1990  26                 GK
+##         Work_Rate Weak_foot Skill_Moves Ball_Control Dribbling Marking
+## 1      High / Low         4           5           93        92      22
+## 2 Medium / Medium         4           4           95        97      13
+## 3   High / Medium         5           5           95        96      21
+## 4   High / Medium         4           4           91        86      30
+## 5 Medium / Medium         4           1           48        30      10
+## 6 Medium / Medium         3           1           31        13      13
+##   Sliding_Tackle Standing_Tackle Aggression Reactions Attacking_Position
+## 1             23              31         63        96                 94
+## 2             26              28         48        95                 93
+## 3             33              24         56        88                 90
+## 4             38              45         78        93                 92
+## 5             11              10         29        85                 12
+## 6             13              21         38        88                 12
+##   Interceptions Vision Composure Crossing Short_Pass Long_Pass Acceleration
+## 1            29     85        86       84         83        77           91
+## 2            22     90        94       77         88        87           92
+## 3            36     80        80       75         81        75           93
+## 4            41     84        83       77         83        64           88
+## 5            30     70        70       15         55        59           58
+## 6            30     68        60       17         31        32           56
+##   Speed Stamina Strength Balance Agility Jumping Heading Shot_Power Finishing
+## 1    92      92       80      63      90      95      85         92        93
+## 2    87      74       59      95      90      68      71         85        95
+## 3    90      79       49      82      96      61      62         78        89
+## 4    77      89       76      60      86      69      77         87        94
+## 5    61      44       83      35      52      78      25         25        13
+## 6    56      25       64      43      57      67      21         31        13
+##   Long_Shots Curve Freekick_Accuracy Penalties Volleys GK_Positioning GK_Diving
+## 1         90    81                76        85      88             14         7
+## 2         88    89                90        74      85             14         6
+## 3         77    79                84        81      83             15         9
+## 4         86    86                84        85      88             33        27
+## 5         16    14                11        47      11             91        89
+## 6         12    21                19        40      13             86        88
+##   GK_Kicking GK_Handling GK_Reflexes
+## 1         15          11          11
+## 2         15          11           8
+## 3         15           9          11
+## 4         31          25          37
+## 5         95          90          89
+## 6         87          85          90</code></pre>
+<hr />
+</div>
+</div>
+<div id="normalización-de-los-datos-cualitativos" class="section level1" number="4">
+<h1 number="4"><span class="header-section-number">4</span> Normalización de los datos cualitativos</h1>
+<hr />
 </div>
 
 

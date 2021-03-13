@@ -20,7 +20,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ******  
 <p> Realizamos la lectura del fichero </p>
 ```{r}
-df = read.csv(file="./data/fifa_raw.csv", sep=",")
+df = read.csv(file="./data/fifa_raw.csv", sep=",", encoding="UTF-8") #Hay que hacer el encoding ya que de lo contrario leía mal los datos, por ejemplo Luis Suárez no identifica bien el caracter con tilde
+
 df_copy = df # Realizamos una copia del dataframe original, para así modificar la copia de éste y mantener los datos originales
 head(df_copy)
 ```
@@ -70,9 +71,10 @@ heiWeiFromCharToNumeric = function(value) {
   if (!is.na(value) & is.character(value)) {
     lstPairValues = strsplit(value, "[[:space:]]+")
     
-    if (toupper(lstPairValues[[1]][2]) == "M") return(as.numeric(gsub(",", ".", lstPairValues[[1]][1])) * 100)
-    if (toupper(lstPairValues[[1]][2]) == "CM") return(as.numeric(lstPairValues[[1]][1]))
-    if (toupper(lstPairValues[[1]][2]) == "KG") return(as.numeric())
+    if (toupper(lstPairValues[[1]][2]) == "M") return(as.integer(as.numeric(gsub(",", ".", lstPairValues[[1]][1])) * 100))
+    if (toupper(lstPairValues[[1]][2]) == "CM") return(as.integer(as.numeric(lstPairValues[[1]][1])))
+    if (toupper(lstPairValues[[1]][2]) == "KG") return(as.integer(gsub(",", ".", lstPairValues[[1]][1])))
+    if (toupper(lstPairValues[[1]][2]) == "GR") return(as.integer(as.numeric(lstPairValues[[1]][1]) / 1000))
     
   } else {
     return(NA)
@@ -80,14 +82,56 @@ heiWeiFromCharToNumeric = function(value) {
    
 }
                                 
- df_copy$Height = unlist(lapply(df_copy$Height, heiWeiFromCharToNumeric))
- head(df_copy$Height)
+ df_copy$Height = sapply(df_copy$Height, heiWeiFromCharToNumeric)
+ str(df_copy$Height)
 ```
 
 ## Weight
 <p> La variable Weight se ha de expresar en kg con 2 dígitos sin decimales. Si hay decimales, se ha de truncar el valor. Para facilitar la lectura y tratamiento del fichero debn ser numéricas, por lo tanto se debe quitar el símbolo de kg. </p>
 ```{r}
-unique(df$Height)
-unique(df_copy$Height)
+# Hacemos uso de la función anterior para realizar la conversión
+df_copy$Weight = sapply(df_copy$Weight, heiWeiFromCharToNumeric)
+str(df_copy$Weight)
 ```
+
+## Resumen
+<p> En este apartado podemos observar de forma general los cambios realizados en este apartado </p>
+```{r}
+head(df_copy)
+```
+
+
+
+******
+# Normalización de los datos cualitativos
+******
+
+## Name y Nationality
+<p> Las variable Name y Nationality no han de tener espacios en blanco antes o después de su valor. El valor para estas variables han de ser mayúsculas en la primera letra de cada palabra, tal como "Lionel Messi" </p>
+```{r}
+# Método que elimina los espacios en blanco del principio y del final
+trim = function (x) gsub("^\\s+|\\s+$", "", x)
+
+# Método convierte el valor de entrada en un nuevo valor en el que la primera letra de cada palabra empieza por mayúscula.
+firstLettertoUpperCase = function(value) {
+  
+  cValue = trim(value)
+  lstValues = strsplit(cValue, "[^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜ]+]*")[[1]]
+  paste(toupper(substring(lstValues, 1,1)), tolower(substring(lstValues, 2)), sep="", collapse=" ")
+}
+```
+
+```{r}
+# Hacemos uso de la función anterior para que transforme el dato Name
+df_copy$Name = sapply(df_copy$Name, firstLettertoUpperCase)
+str(df_copy$Name)
+```
+
+```{r}
+# Hacemos uso de la función anterior para que transforme el dato de Nationality
+df_copy$Nationality = sapply(df_copy$Nationality, firstLettertoUpperCase)
+str(df_copy$Nationality)
+```
+
+
 
