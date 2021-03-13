@@ -116,7 +116,7 @@ trim = function (x) gsub("^\\s+|\\s+$", "", x)
 firstLettertoUpperCase = function(value) {
   
   cValue = trim(value)
-  lstValues = strsplit(cValue, "[^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜ]+]*")[[1]]
+  lstValues = strsplit(cValue, "[^[a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F0-9]+]*")[[1]] #Código Unicode de los caracteres latín
   paste(toupper(substring(lstValues, 1,1)), tolower(substring(lstValues, 2)), sep="", collapse=" ")
 }
 ```
@@ -131,6 +131,48 @@ str(df_copy$Name)
 # Hacemos uso de la función anterior para que transforme el dato de Nationality
 df_copy$Nationality = sapply(df_copy$Nationality, firstLettertoUpperCase)
 str(df_copy$Nationality)
+```
+
+## Preffered_Foot
+<p> La variable Preffered_Foot ha de tener los valores Left y Right que corresponde a los valores actuales de 1 y 2, respectivamente </p>
+```{r}
+df_copy$Preffered_Foot[df_copy$Preffered_Foot == 1] = "Left"
+df_copy$Preffered_Foot[df_copy$Preffered_Foot == 2] = "Right"
+str(df_copy$Preffered_Foot)
+```
+
+## Work_Rate
+<p> La variable Work_Rate se basa en la combinación de dos de estas tres categorías: Low, Medium y High. Verificar que se cumple y en caso contrario, hay que corregirlo. Puedes encontrar los nombres de las categorías cortado con tres letras. </p>
+```{r}
+unique(df_copy$Work_Rate)
+```
+<p> Como podemos apreciar en la anterior ejecución vemos que se cumple, es decir, la variable Work_Rate se basa en una combinación de dos de esas tres categorías. Para que haya una uniformidad en los datos voy a cambiar el nombre acortado por el nombre no abreviado. </p>
+```{r}
+df_copy$Work_Rate = df$Work_Rate
+# Método que completa las abreviaturas de la variable Work_Rate por su nombre completo
+transformWorkRate = function(value) {
+  lstValues = strsplit(value, "\\s+")
+  cReturn = ""
+  
+  for (element in lstValues[[1]]) {
+    if (toupper(element) == "LOW") cReturn = paste(cReturn, "Low", sep = "", collapse = NULL)
+    if (toupper(element) == "MED" | toupper(element) == "MEDIUM") cReturn = paste(cReturn, "Medium", sep = "", collapse = NULL)
+    if (toupper(element) == "HIG" | toupper(element) == "HIGH") cReturn = paste(cReturn, "High", sep = "", collapse = NULL)
+    if (element == "/") cReturn = paste(cReturn, "/ ")
+  }
+  
+  cReturn
+}
+
+df_copy$Work_Rate = sapply(df_copy$Work_Rate, transformWorkRate)
+unique(df_copy$Work_Rate)
+```
+<p> Si comparamos los dos anteriores resultado vemos que hemos pasado de 11 categorías a 9, esto se debe a que había información abreviada que significa lo mismo que la información no abreviada. </p>
+
+## Resumen
+<p> En este apartado podemos observar de forma general los cambios realizados en este apartado </p>
+```{r}
+head(df_copy)
 ```
 
 

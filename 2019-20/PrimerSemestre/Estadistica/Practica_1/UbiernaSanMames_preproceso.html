@@ -181,7 +181,13 @@ pre code {
 <li><a href="#weight"><span class="toc-section-number">3.3</span> Weight</a></li>
 <li><a href="#resumen"><span class="toc-section-number">3.4</span> Resumen</a></li>
 </ul></li>
-<li><a href="#normalización-de-los-datos-cualitativos"><span class="toc-section-number">4</span> Normalización de los datos cualitativos</a></li>
+<li><a href="#normalización-de-los-datos-cualitativos"><span class="toc-section-number">4</span> Normalización de los datos cualitativos</a>
+<ul>
+<li><a href="#name-y-nationality"><span class="toc-section-number">4.1</span> Name y Nationality</a></li>
+<li><a href="#preffered_foot"><span class="toc-section-number">4.2</span> Preffered_Foot</a></li>
+<li><a href="#work_rate"><span class="toc-section-number">4.3</span> Work_Rate</a></li>
+<li><a href="#resumen-1"><span class="toc-section-number">4.4</span> Resumen</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -192,14 +198,15 @@ pre code {
 <p>
 Realizamos la lectura del fichero
 </p>
-<pre class="r"><code>df = read.csv(file=&quot;./data/fifa_raw.csv&quot;, sep=&quot;,&quot;)
+<pre class="r"><code>df = read.csv(file=&quot;./data/fifa_raw.csv&quot;, sep=&quot;,&quot;, encoding=&quot;UTF-8&quot;) #Hay que hacer el encoding ya que de lo contrario leía mal los datos, por ejemplo Luis Suárez no identifica bien el caracter con tilde
+
 df_copy = df # Realizamos una copia del dataframe original, para así modificar la copia de éste y mantener los datos originales
 head(df_copy)</code></pre>
 <pre><code>##   ID              Name Nationality National_Position National_Kit
 ## 1  1 Cristiano Ronaldo    Portugal                LS            7
 ## 2  2      Lionel Messi   Argentina                RW           10
 ## 3  3            Neymar      Brazil                LW           10
-## 4  4      Luis SuÃ¡rez     Uruguay                LS            9
+## 4  4       Luis Suárez     Uruguay                LS            9
 ## 5  5      Manuel Neuer     Germany                GK            1
 ## 6  6            De Gea       Spain                GK            1
 ##             Club Club_Position Club_Kit Club_Joining Contract_Expiry Rating
@@ -264,7 +271,7 @@ Usamos la función str() para analizar el tipo de datos que R ha interpretado y 
 <pre class="r"><code>str(df_copy)</code></pre>
 <pre><code>## &#39;data.frame&#39;:    17588 obs. of  54 variables:
 ##  $ ID                : int  1 2 3 4 5 6 7 8 9 10 ...
-##  $ Name              : chr  &quot;Cristiano Ronaldo&quot; &quot;Lionel Messi&quot; &quot;Neymar&quot; &quot;Luis SuÃ¡rez&quot; ...
+##  $ Name              : chr  &quot;Cristiano Ronaldo&quot; &quot;Lionel Messi&quot; &quot;Neymar&quot; &quot;Luis Suárez&quot; ...
 ##  $ Nationality       : chr  &quot;Portugal&quot; &quot;Argentina&quot; &quot;Brazil&quot; &quot;Uruguay&quot; ...
 ##  $ National_Position : chr  &quot;LS&quot; &quot;RW&quot; &quot;LW&quot; &quot;LS&quot; ...
 ##  $ National_Kit      : int  7 10 10 9 1 1 9 11 NA 1 ...
@@ -400,7 +407,7 @@ En este apartado podemos observar de forma general los cambios realizados en est
 ## 1  1 Cristiano Ronaldo    Portugal                LS            7
 ## 2  2      Lionel Messi   Argentina                RW           10
 ## 3  3            Neymar      Brazil                LW           10
-## 4  4      Luis SuÃ¡rez     Uruguay                LS            9
+## 4  4       Luis Suárez     Uruguay                LS            9
 ## 5  5      Manuel Neuer     Germany                GK            1
 ## 6  6            De Gea       Spain                GK            1
 ##             Club Club_Position Club_Kit Club_Joining Contract_Expiry Rating
@@ -465,6 +472,147 @@ En este apartado podemos observar de forma general los cambios realizados en est
 <div id="normalización-de-los-datos-cualitativos" class="section level1" number="4">
 <h1 number="4"><span class="header-section-number">4</span> Normalización de los datos cualitativos</h1>
 <hr />
+<div id="name-y-nationality" class="section level2" number="4.1">
+<h2 number="4.1"><span class="header-section-number">4.1</span> Name y Nationality</h2>
+<p>
+Las variable Name y Nationality no han de tener espacios en blanco antes o después de su valor. El valor para estas variables han de ser mayúsculas en la primera letra de cada palabra, tal como “Lionel Messi”
+</p>
+<pre class="r"><code># Método que elimina los espacios en blanco del principio y del final
+trim = function (x) gsub(&quot;^\\s+|\\s+$&quot;, &quot;&quot;, x)
+
+# Método convierte el valor de entrada en un nuevo valor en el que la primera letra de cada palabra empieza por mayúscula.
+firstLettertoUpperCase = function(value) {
+  
+  cValue = trim(value)
+  lstValues = strsplit(cValue, &quot;[^[a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F0-9]+]*&quot;)[[1]] #Código Unicode de los caracteres latín
+  paste(toupper(substring(lstValues, 1,1)), tolower(substring(lstValues, 2)), sep=&quot;&quot;, collapse=&quot; &quot;)
+}</code></pre>
+<pre class="r"><code># Hacemos uso de la función anterior para que transforme el dato Name
+df_copy$Name = sapply(df_copy$Name, firstLettertoUpperCase)
+str(df_copy$Name)</code></pre>
+<pre><code>##  chr [1:17588] &quot;Cristiano Ronaldo&quot; &quot;Lionel Messi&quot; &quot;Neymar&quot; &quot;Luis Suárez&quot; ...</code></pre>
+<pre class="r"><code># Hacemos uso de la función anterior para que transforme el dato de Nationality
+df_copy$Nationality = sapply(df_copy$Nationality, firstLettertoUpperCase)
+str(df_copy$Nationality)</code></pre>
+<pre><code>##  chr [1:17588] &quot;Portugal&quot; &quot;Argentina&quot; &quot;Brazil&quot; &quot;Uruguay&quot; &quot;Germany&quot; &quot;Spain&quot; ...</code></pre>
+</div>
+<div id="preffered_foot" class="section level2" number="4.2">
+<h2 number="4.2"><span class="header-section-number">4.2</span> Preffered_Foot</h2>
+<p>
+La variable Preffered_Foot ha de tener los valores Left y Right que corresponde a los valores actuales de 1 y 2, respectivamente
+</p>
+<pre class="r"><code>df_copy$Preffered_Foot[df_copy$Preffered_Foot == 1] = &quot;Left&quot;
+df_copy$Preffered_Foot[df_copy$Preffered_Foot == 2] = &quot;Right&quot;
+str(df_copy$Preffered_Foot)</code></pre>
+<pre><code>##  chr [1:17588] &quot;Right&quot; &quot;Left&quot; &quot;Right&quot; &quot;Right&quot; &quot;Right&quot; &quot;Right&quot; &quot;Right&quot; ...</code></pre>
+</div>
+<div id="work_rate" class="section level2" number="4.3">
+<h2 number="4.3"><span class="header-section-number">4.3</span> Work_Rate</h2>
+<p>
+La variable Work_Rate se basa en la combinación de dos de estas tres categorías: Low, Medium y High. Verificar que se cumple y en caso contrario, hay que corregirlo. Puedes encontrar los nombres de las categorías cortado con tres letras.
+</p>
+<pre class="r"><code>unique(df_copy$Work_Rate)</code></pre>
+<pre><code>##  [1] &quot;High / Low&quot;      &quot;Medium / Medium&quot; &quot;High / Medium&quot;   &quot;Medium / Low&quot;   
+##  [5] &quot;High / High&quot;     &quot;Med / Med&quot;       &quot;Medium / High&quot;   &quot;Low / High&quot;     
+##  [9] &quot;Low / Medium&quot;    &quot;Hig / Med&quot;       &quot;Low / Low&quot;</code></pre>
+<p>
+Como podemos apreciar en la anterior ejecución vemos que se cumple, es decir, la variable Work_Rate se basa en una combinación de dos de esas tres categorías. Para que haya una uniformidad en los datos voy a cambiar el nombre acortado por el nombre no abreviado.
+</p>
+<pre class="r"><code>df_copy$Work_Rate = df$Work_Rate
+# Método que completa las abreviaturas de la variable Work_Rate por su nombre completo
+transformWorkRate = function(value) {
+  lstValues = strsplit(value, &quot;\\s+&quot;)
+  cReturn = &quot;&quot;
+  
+  for (element in lstValues[[1]]) {
+    if (toupper(element) == &quot;LOW&quot;) cReturn = paste(cReturn, &quot;Low&quot;, sep = &quot;&quot;, collapse = NULL)
+    if (toupper(element) == &quot;MED&quot; | toupper(element) == &quot;MEDIUM&quot;) cReturn = paste(cReturn, &quot;Medium&quot;, sep = &quot;&quot;, collapse = NULL)
+    if (toupper(element) == &quot;HIG&quot; | toupper(element) == &quot;HIGH&quot;) cReturn = paste(cReturn, &quot;High&quot;, sep = &quot;&quot;, collapse = NULL)
+    if (element == &quot;/&quot;) cReturn = paste(cReturn, &quot;/ &quot;)
+  }
+  
+  cReturn
+}
+
+df_copy$Work_Rate = sapply(df_copy$Work_Rate, transformWorkRate)
+unique(df_copy$Work_Rate)</code></pre>
+<pre><code>## [1] &quot;High / Low&quot;      &quot;Medium / Medium&quot; &quot;High / Medium&quot;   &quot;Medium / Low&quot;   
+## [5] &quot;High / High&quot;     &quot;Medium / High&quot;   &quot;Low / High&quot;      &quot;Low / Medium&quot;   
+## [9] &quot;Low / Low&quot;</code></pre>
+<p>
+Si comparamos los dos anteriores resultado vemos que hemos pasado de 11 categorías a 9, esto se debe a que había información abreviada que significa lo mismo que la información no abreviada.
+</p>
+</div>
+<div id="resumen-1" class="section level2" number="4.4">
+<h2 number="4.4"><span class="header-section-number">4.4</span> Resumen</h2>
+<p>
+En este apartado podemos observar de forma general los cambios realizados en este apartado
+</p>
+<pre class="r"><code>head(df_copy)</code></pre>
+<pre><code>##   ID              Name Nationality National_Position National_Kit
+## 1  1 Cristiano Ronaldo    Portugal                LS            7
+## 2  2      Lionel Messi   Argentina                RW           10
+## 3  3            Neymar      Brazil                LW           10
+## 4  4       Luis Suárez     Uruguay                LS            9
+## 5  5      Manuel Neuer     Germany                GK            1
+## 6  6            De Gea       Spain                GK            1
+##             Club Club_Position Club_Kit Club_Joining Contract_Expiry Rating
+## 1    Real Madrid            LW        7   07/01/2009            2021     94
+## 2   FC Barcelona            RW       10   07/01/2004            2018     93
+## 3   FC Barcelona            LW       11   07/01/2013            2021     92
+## 4   FC Barcelona            ST        9   07/11/2014            2021     92
+## 5      FC Bayern            GK        1   07/01/2011            2021     92
+## 6 Manchester Utd            GK        1   07/01/2011            2019     90
+##   Height Weight Preffered_Foot Birth_Date Age Preffered_Position
+## 1    185     NA          Right 02/05/1985  32              LW/ST
+## 2     NA     72           Left 06/24/1987  29                 RW
+## 3    174     68          Right 02/05/1992  25                 LW
+## 4    182     85          Right 01/24/1987  30                 ST
+## 5    193     NA          Right 03/27/1986  31                 GK
+## 6     NA     82          Right 11/07/1990  26                 GK
+##         Work_Rate Weak_foot Skill_Moves Ball_Control Dribbling Marking
+## 1      High / Low         4           5           93        92      22
+## 2 Medium / Medium         4           4           95        97      13
+## 3   High / Medium         5           5           95        96      21
+## 4   High / Medium         4           4           91        86      30
+## 5 Medium / Medium         4           1           48        30      10
+## 6 Medium / Medium         3           1           31        13      13
+##   Sliding_Tackle Standing_Tackle Aggression Reactions Attacking_Position
+## 1             23              31         63        96                 94
+## 2             26              28         48        95                 93
+## 3             33              24         56        88                 90
+## 4             38              45         78        93                 92
+## 5             11              10         29        85                 12
+## 6             13              21         38        88                 12
+##   Interceptions Vision Composure Crossing Short_Pass Long_Pass Acceleration
+## 1            29     85        86       84         83        77           91
+## 2            22     90        94       77         88        87           92
+## 3            36     80        80       75         81        75           93
+## 4            41     84        83       77         83        64           88
+## 5            30     70        70       15         55        59           58
+## 6            30     68        60       17         31        32           56
+##   Speed Stamina Strength Balance Agility Jumping Heading Shot_Power Finishing
+## 1    92      92       80      63      90      95      85         92        93
+## 2    87      74       59      95      90      68      71         85        95
+## 3    90      79       49      82      96      61      62         78        89
+## 4    77      89       76      60      86      69      77         87        94
+## 5    61      44       83      35      52      78      25         25        13
+## 6    56      25       64      43      57      67      21         31        13
+##   Long_Shots Curve Freekick_Accuracy Penalties Volleys GK_Positioning GK_Diving
+## 1         90    81                76        85      88             14         7
+## 2         88    89                90        74      85             14         6
+## 3         77    79                84        81      83             15         9
+## 4         86    86                84        85      88             33        27
+## 5         16    14                11        47      11             91        89
+## 6         12    21                19        40      13             86        88
+##   GK_Kicking GK_Handling GK_Reflexes
+## 1         15          11          11
+## 2         15          11           8
+## 3         15           9          11
+## 4         31          25          37
+## 5         95          90          89
+## 6         87          85          90</code></pre>
+</div>
 </div>
 
 
