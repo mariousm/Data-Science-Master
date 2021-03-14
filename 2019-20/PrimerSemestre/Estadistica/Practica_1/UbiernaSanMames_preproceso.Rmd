@@ -105,7 +105,7 @@ str(df_copy$Weight)
 ```
 
 ## Resumen
-<p> En este apartado podemos observar de forma general los cambios realizados en este apartado </p>
+<p> Podemos observar de forma general los cambios realizados en este apartado </p>
 ```{r}
 head(df_copy)
 ```
@@ -180,7 +180,7 @@ unique(df_copy$Work_Rate)
 <p> Si comparamos los dos anteriores resultado vemos que hemos pasado de 11 categorías a 9, esto se debe a que había información abreviada que significa lo mismo que la información no abreviada. </p>
 
 ## Resumen
-<p> En este apartado podemos observar de forma general los cambios realizados en este apartado </p>
+<p> Podemos observar de forma general los cambios realizados en este apartado </p>
 ```{r}
 head(df_copy)
 ```
@@ -220,7 +220,7 @@ df_copy[is.na(df_copy$Club_Joining), c("ID", "Name", "Club_Joining")]
 
 <p> Por si acaso, si se condira que el 2017 no está incluido, tendríamos el siguiente número de jugadores que no lo cumplen: </p>
 ```{r}
-cat("El número de jugadores que se unieron a un equipo a partir del 2017 es: ", nrow(df_copy[df_copy$Club_Joining >= as.Date("01/01/2017", format = "%m/%d/%Y"), c("ID", "Name", "Club_Joining")]))
+cat("El número de jugadores que se unieron a un equipo a partir del 2017 son: ", nrow(df_copy[df_copy$Club_Joining >= as.Date("01/01/2017", format = "%m/%d/%Y"), c("ID", "Name", "Club_Joining")]))
 
 head(df_copy[df_copy$Club_Joining >= as.Date("01/01/2017", format = "%m/%d/%Y"), c("ID", "Name", "Club_Joining")])
 ```
@@ -316,3 +316,64 @@ boxplot(df_copy$Weight, main="Weight", color="gray")
 boxplot.stats(df_copy$Weight)$out
 ```
 <p> Al igual que sucedía con la variable Height, a priori según el box plot tenemos outliers, pero analizando con más detenimiento, esos valores son totalmente coherentes, ya que una persona puede pesar de 48 Kg a 110 Kg sin ningún problema. </p>
+
+
+
+******
+# Imputación de valores
+******
+<p> Buscar en las variables Weight y Height donde haya valores perdidos (NA) y realice una imputación de valores.
+
+Para realizar una imputación de valores necesita hacer una regresión lineal que tenga como variable a predecir la variable con la NAs. Esto significa que hay que realizar dos modelos de regresión lineal, uno para predecir los valores NAs en Weight a partir de la variable Height. El otro es precisamente al revés, predecir los valores NAs en Height a partir de Weight.
+
+La función para hacer regresión lineal es lm().
+
+Muestre el resultado de la imputación y de la variable explicativa en aquellos casos donde había un NA. </p>
+
+<p> Lo primero de todo es ver en qué registros hay NA para la variable Weight: </p>
+```{r}
+df_copy[is.na(df_copy$Weight), c("ID", "Name", "Weight", "Height")]
+indexWeights = df_copy$ID[is.na(df_copy$Weight)] # Ïndices de los registros que debemos cambiar el peso
+```
+
+<p> Registros en los que hay NA para la variable Height: </p>
+```{r}
+df_copy[is.na(df_copy$Height), c("ID", "Name", "Weight", "Height")]
+indexHeights = df_copy$ID[is.na(df_copy$Height)] # Ïndices de los registros que debemos cambiar la altura
+```
+
+<p> Una vez identificados los registros, podemos realizar la imputación de valores, pero primero lo vamos a hacer para la variable Weight, es decir, la variable independiente (x) = Height y la variable dependiente (y) = Weight </p>
+```{r}
+rlXHeightYWeight = lm(df_copy$Weight ~ df_copy$Height) # Creamos el modelo de regresión lineal
+predictionsWeight = trunc(predict(rlXHeightYWeight, as.list(df_copy$Height))) # Hacemos las predicciones
+df_copy$Weight[indexWeights] = predictionsWeight[indexWeights] # Imputamos los valores de las predicciones
+
+df_copy[indexWeights, c("ID", "Name", "Weight", "Height")] # Visualizamos los cambios
+```
+
+<p> En segundo lugar lo vamos a hacer para la variable Height, es decir, la variable independiente (x) = Weight y la variable dependiente (y) = Height </p>
+```{r}
+rlXWeightYHeight = lm(df_copy$Height ~ df_copy$Weight) # Creamos el modelo de regresión lineal
+predictionsHeight = trunc(predict(rlXWeightYHeight, as.list(df_copy$Weight))) # Hacemos las predicciones
+df_copy$Height[indexHeights] = predictionsHeight[indexHeights] # Imputamos los valores de las predicciones
+
+df_copy[indexHeights, c("ID", "Name", "Weight", "Height")] # Visualizamos los cambios
+```
+
+<p> Ahora, vamos a mostrar un resumen de cómo va el dataset, junto con el número de registros con Weight y Height con NA: </p>
+```{r}
+head(df_copy)
+cat("El número de registros que tienen NA como peso son: ", nrow(df_copy[is.na(df_copy$Weight), ]))
+cat("El número de registros que tienen NA como altura son: ", nrow(df_copy[is.na(df_copy$Height), ]))
+```
+
+
+
+******
+# Estudio descriptivo de las variables cuantitativas
+******
+<p> Realice un breve estudio descriptivo de las variables cuantitativas una vez depuradas. Hay que crear una tabla con medidas de tendencia central y de dispersión, tanto robustas como no robustas. Haga un breve comentario sobre los resultados obtenidos entre estos tipos de medidas en todas las variables. </p>
+```{r}
+
+```
+
