@@ -30,20 +30,30 @@ head(df_copy)
 ```{r}
 str(df_copy)
 ```
+<p> Como podemos observar en la anterior ejecución, no todos los datos están bien "categorizados", es decir, hay atributos como por ejmplo Nationality en el que ha categorizado la variable como character cuando lo mejor sería como factor, las fechas también están mal categorizadas, se las considera character cuando son Date, el dorsal de cada jugador se considera de tipo integer cuando debería ser un factor... 
 
+Se irán resolviendo estos problemas a medida que vamos haciendo la práctica, ya que en este punto solo se nos pide cargar el fichero y examinar el tipo de datos.
+</p>
 
 
 ******
 # Verficar duplicación de registros
 ******
-<p> Verificamos si hay registros duplicados con el valor ID. En caso de duplicación, seleccionamos el registro con menor número de NA en las variables </p>
+<p> Verificamos si hay registros duplicados con el valor ID. En caso de duplicación, seleccionamos el registro con menor número de NA en las variables 
+
+Puede haber registros duplicados si tienen el mismo ID: </p>
 ```{r}
 nRows = nrow(df_copy) # Número de registros (filas) que hay en el df
 nUniques = length(unique(df_copy[["ID"]])) # Número de valores únicos de ID en el df
 
 cat("El número de registros duplicados con el valor ID son: ", nRows - nUniques)
 ```
-<p> Como podemos observar no hay duplicados por el campo ID, esto no significa que no pueda haber valores duplicados en otras columnas</p>
+<p> Como podemos observar no hay duplicados por el campo ID, esto no significa que no pueda haber valores duplicados en otras columnas, es por ello que hacemos uso de la función duplicated() para saber si hay duplicados: </p>
+```{r}
+nUniques = length(duplicated(df_copy)) # Número de valores duplicados en el df
+
+cat("El número de registros duplicados son: ", nRows - nUniques)
+```
 
 
 
@@ -60,7 +70,7 @@ nMaxRating = max(df_copy$Rating) # Valor de rating máximo
 cat("El valor mínimo de rating es: ", nMinRating)
 cat("El valor máximo de rating es: ", nMaxRating)
 ```
-<p> Como podemos observar el valor mínimo y máximo están dentro del intervalo [0,100] </p>
+<p> Como podemos observar el valor mínimo y máximo están dentro del intervalo [0,100]. </p>
 
 ## Height
 <p> La variable Height se ha de expresar en cm con 3 dígitos sin decimales. Para facilitar la lectura y tratamiento del fichero deben ser numéricas, por lo tanto se debe quitar el símbolo en cm </p>
@@ -71,10 +81,10 @@ heiWeiFromCharToNumeric = function(value) {
   if (!is.na(value) & is.character(value)) {
     lstPairValues = strsplit(value, "[[:space:]]+")
     
-    if (toupper(lstPairValues[[1]][2]) == "M") return(as.integer(as.numeric(gsub(",", ".", lstPairValues[[1]][1])) * 100))
-    if (toupper(lstPairValues[[1]][2]) == "CM") return(as.integer(as.numeric(lstPairValues[[1]][1])))
-    if (toupper(lstPairValues[[1]][2]) == "KG") return(as.integer(gsub(",", ".", lstPairValues[[1]][1])))
-    if (toupper(lstPairValues[[1]][2]) == "GR") return(as.integer(as.numeric(lstPairValues[[1]][1]) / 1000))
+    if (toupper(lstPairValues[[1]][2]) == "M") return(trunc(as.numeric(gsub(",", ".", lstPairValues[[1]][1])) * 100))
+    if (toupper(lstPairValues[[1]][2]) == "CM") return(trunc(as.numeric(lstPairValues[[1]][1])))
+    if (toupper(lstPairValues[[1]][2]) == "KG") return(trunc(as.numeric(gsub(",", ".", lstPairValues[[1]][1]))))
+    if (toupper(lstPairValues[[1]][2]) == "GR") return(trunc(as.numeric(lstPairValues[[1]][1]) / 1000))
     
   } else {
     return(NA)
@@ -87,7 +97,7 @@ heiWeiFromCharToNumeric = function(value) {
 ```
 
 ## Weight
-<p> La variable Weight se ha de expresar en kg con 2 dígitos sin decimales. Si hay decimales, se ha de truncar el valor. Para facilitar la lectura y tratamiento del fichero debn ser numéricas, por lo tanto se debe quitar el símbolo de kg. </p>
+<p> La variable Weight se ha de expresar en kg con 3 dígitos sin decimales. Si hay decimales, se ha de truncar el valor. Para facilitar la lectura y tratamiento del fichero debn ser numéricas, por lo tanto se debe quitar el símbolo de kg. </p>
 ```{r}
 # Hacemos uso de la función anterior para realizar la conversión
 df_copy$Weight = sapply(df_copy$Weight, heiWeiFromCharToNumeric)
@@ -183,10 +193,10 @@ head(df_copy)
 
 ## Club_Joining
 <p> Verificar que la variable Club_Joining está en el rango de los años 1990 a 2017. En caso de haber algún registro que no cumpla la condición, indicar el número de registro, Name y Club_Joining. </p>
-<p> Lo primero que debemos hacer es convertir las columnas Club_Joining y Contract_Expiry a tipo date, cabe destacar que de Contract_Expiry conocemos solo el año no el mes y el día en el que acaba el contrato, por lo tanto, he considerado que al indicar el año se refiere a todo el año natural, es decir, hasta el 31 de Diciembre del año X</p>
+<p> Lo primero que debemos hacer es convertir las columnas Club_Joining y Contract_Expiry a tipo date, cabe destacar que de Contract_Expiry conocemos solo el año no el mes y el día en el que acaba el contrato, por lo tanto, según la FIFA los contratos se expiran el 30 de Junio del año X, es por ello que he considerado esa fecha como nueva fecha del Contract_Expiry: </p>
 ```{r}
 df_copy$Club_Joining = as.Date(df_copy$Club_Joining, format = "%m/%d/%Y")
-df_copy$Contract_Expiry = as.Date(paste("1231", as.character(df_copy$Contract_Expiry)), format = "%m%d%Y")
+df_copy$Contract_Expiry = as.Date(paste("0630", as.character(df_copy$Contract_Expiry)), format = "%m%d%Y")
 
 str(df_copy$Club_Joining)
 str(df_copy$Contract_Expiry)
@@ -201,11 +211,18 @@ cat("La fecha mínima de Club_Joining es: ", as.character(dMinClubJoining))
 cat("La fecha máxima de Club_Joining es: ", as.character(dMaxClubJoining))
 
 ```
-<p> Como podemos observar, la fecha mínima y la fecha máxima están dentro de los valores que se nos piden entre [1990,2017]. Sin embargo, he tenido que usar na.rm = True, ya que hay un registro cuya fecha está vacía. Dicho registro es el siguiente: </p>
+<p> Como podemos observar, la fecha mínima y la fecha máxima están dentro de los valores que se nos piden entre [1990,2017], es decir, desde 1990 hasta el 2017 incluido. Sin embargo, he tenido que usar na.rm = True, ya que hay un registro cuya fecha está vacía. Dicho registro es el siguiente: </p>
 ```{r}
 summary(df_copy$Club_Joining)
 
 df_copy[is.na(df_copy$Club_Joining), c("ID", "Name", "Club_Joining")]
+```
+
+<p> Por si acaso, si se condira que el 2017 no está incluido, tendríamos el siguiente número de jugadores que no lo cumplen: </p>
+```{r}
+cat("El número de jugadores que se unieron a un equipo a partir del 2017 es: ", nrow(df_copy[df_copy$Club_Joining >= as.Date("01/01/2017", format = "%m/%d/%Y"), c("ID", "Name", "Club_Joining")]))
+
+head(df_copy[df_copy$Club_Joining >= as.Date("01/01/2017", format = "%m/%d/%Y"), c("ID", "Name", "Club_Joining")])
 ```
 
 ## Contract_Expiry >= Club_Joining?
@@ -213,7 +230,7 @@ df_copy[is.na(df_copy$Club_Joining), c("ID", "Name", "Club_Joining")]
 ```{r}
 df_copy[df_copy$Contract_Expiry < df_copy$Club_Joining, c("ID", "Name", "Club_Joining", "Contract_Expiry")]
 ```
-<p> Como bien he mencionado antes, al calcular la fecha del Contract_Expiry consideramos hasta el 31 de Dicimebre, entonces al hacer la consulta para saber si algún registro no cumple que el Contract_Expiry >= Club_Joining, observamos que no hay ningún registro que no la cumpla. </p>
+<p> Como bien he mencionado antes, al calcular la fecha del Contract_Expiry consideramos hasta el 30 de Junio según dictamina la FIFA, entonces al hacer la consulta para saber si algún registro no cumple que el Contract_Expiry >= Club_Joining, observamos que no hay ningún registro que no la cumpla. </p>
 
 ## Revisar si la edad corresponde a la fecha de nacimiento
 <p> Verificar que la edad (Age) en la fecha 1/1/2017 corresponde a la calculada con la fecha de nacimiento (Birth_Date). En caso de haber algún registro que no cumpla la condición, modificar la edad en función del valor obtenido con la fecha de nacimiento. </p>
