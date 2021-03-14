@@ -268,3 +268,51 @@ df_copy$Age[vIndex] = vAges[vIndex] # Realizamos el cambio
 head(df_copy$Age) # Resultado
 ```
 
+## Resumen
+<p> Podemos observar de forma general los cambios realizados en este apartado: </p>
+```{r}
+head(df_copy)
+```
+
+
+
+******
+# Valores atípicos
+******
+
+## Height
+<p> Comprobamos que no haya valores atípicos en el Height: </p>
+```{r}
+library(ggplot2) # Importamos la librería ggplot2
+ggplot(mapping = aes(x=df_copy$Height)) + geom_density()
+```
+
+<p> Como podemos observar a priori no hay valores atípicos, ya que la altura se mueve en un intervalor adecuado. También podemos usar la función summary() y así que se vea de una forma numérica: </p>
+```{r}
+summary(df_copy$Height)
+```
+
+<p> Algo que destacar de la anterior ejecución, es que tenemos tres registros con valores NA, eso no significa que es un outlier, sino que más bien es un valor perdido, lo cual solucionaremos más adelante. Otra forma de ver valore atípicos es mediante la representación de un gráfico box plot: </p>
+```{r}
+boxplot(df_copy$Height, main="Height", color="gray")
+boxplot.stats(df_copy$Height)$out
+```
+
+<p> Tal y como podemos ver sí que tenemos outliers, sin embargo no se tratan de valores anormales ya que es totalmente válido que una persona mida 155 cm que mida 207 cm. Por lo tanto, aunque hay outliers en el Height no podemos consideran que sean valores atípicos. </p> 
+
+## Weight
+<p> Comprobamos que no haya valores atípicos en el Wight: </p>
+```{r}
+ggplot(mapping = aes(x=df_copy$Weight)) + geom_density()
+```
+<p> Tal y como podemos observar, se produce uan distribución coherente, no tenemos picos con un peso muy pequeño o muy grande, por lo que a priori no vamos a tener valores centinelas. </p>
+```{r}
+summary(df_copy$Weight)
+```
+
+<p> Ejecutando summary() tenemos un resumen para esta variable, lo más significativo es que tenemos tres registros cuyo peso es NA, pero esto no son outliers, sino que son valores perdidos. </p>
+```{r}
+boxplot(df_copy$Weight, main="Weight", color="gray")
+boxplot.stats(df_copy$Weight)$out
+```
+<p> Al igual que sucedía con la variable Height, a priori según el box plot tenemos outliers, pero analizando con más detenimiento, esos valores son totalmente coherentes, ya que una persona puede pesar de 48 Kg a 110 Kg sin ningún problema. </p>
