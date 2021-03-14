@@ -373,7 +373,43 @@ cat("El número de registros que tienen NA como altura son: ", nrow(df_copy[is.n
 # Estudio descriptivo de las variables cuantitativas
 ******
 <p> Realice un breve estudio descriptivo de las variables cuantitativas una vez depuradas. Hay que crear una tabla con medidas de tendencia central y de dispersión, tanto robustas como no robustas. Haga un breve comentario sobre los resultados obtenidos entre estos tipos de medidas en todas las variables. </p>
-```{r}
 
+<p> Para realizar este apartado, se considera exclusivamente las variables objeto de estudio que son cuantitativas (las variables que aparecen al comienzo del enunciado de la práctica), estas variables son:   </p>
+```{r}
+library(psych)
+
+calculateStadisticTable = function(values, nTrim = 0.05) {
+  nReturn = c()
+  
+  if (is.numeric(values)) {
+    # Calculamos la media
+    media = mean(values)
+    # Mediana
+    mediana = median(values)
+    # Media recortada
+    medRecortada = mean(values, trim = nTrim)
+    # Media winsorizada
+    medWindor = winsor.mean(values, trim = nTrim)
+    # Desviación estándar
+    desviacion = sd(values)
+    # RIC
+    ric = IQR(values)
+    # DAM
+    dam = mad(values)
+    
+    nReturn = c(media, mediana, medRecortada, medWindor, desviacion, ric, dam)
+  }
+  
+  return(nReturn)
+}
+# Rating Height Weight Age
+df_copy_numericCols = df_copy[, c("Rating", "Height", "Weight", "Age")]
+df_stadistic_table = sapply(df_copy_numericCols, calculateStadisticTable)
+rownames(df_stadistic_table) = c("Media", "Mediana", "Media Recortada", "Media Winsor", "Desviación", "RIC", "DAM")
+df_stadistic_table
 ```
+
+<p> Respecto a las medidas de tendencia central no robustas (media) y robustas (mediana, media recortada, media winsor) cabe destacar  que no hay apenas diferencia, por lo que podemos concluir que el rango de los datos está muy bien definido, es decir, aunque sí que hay outliers, éstos son coherentes como bien hemos mencionado en el apartado 6 sobre valores atípicos. Los valores que nos proporciona tampoco es algo que sea nuevo, es decir, sabemos que la mayoría de los jugadores tienen una calidad media de ahí un Rating de 66 (salvando el típico Messi o Cristiano), en cuanto a la altura y el peso son bastantes normales, los futbolistas no suelen pesar mucho (habría más lesiones) ni tampoco son demasiado altos como en el baloncesto (tienen ventaja los que tienen un punto de gravedad más bajo), y respecto a la edad, una carrear deportiva suele durar de los 20 a los 30 años (por norma general), por lo que una edad de 25 es lo más normal.
+
+Por otro lado, sobre las medidas de dispersión no robustas (desviación) y robustas (RIC, DAM) podemos concluir al igual que en el caso anterior, que los datos no están muy dispersos, es decir, las medidas de dispersión nos permiten hacernos una idea de lo ancha que es la campana de la distribución de una variable (cómo de alejados están los puntos respecto al promedio). Con execpción del Rating, que es verdad que su desviación es un poco más elevada ya que no nos olvidemos que su valor mínimo es 45 y su vamor máximo es 94, por lo que tener una desviación/DAM de 7 es un poco más significativa, ya que el rango de estos valores es más pequeño. Respecto al resto de atributos la desviación está dentro de un baremo más normal. </p>
 
