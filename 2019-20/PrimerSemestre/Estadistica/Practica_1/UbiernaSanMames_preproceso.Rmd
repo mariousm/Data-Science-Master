@@ -413,3 +413,105 @@ df_stadistic_table
 
 Por otro lado, sobre las medidas de dispersión no robustas (desviación) y robustas (RIC, DAM) podemos concluir al igual que en el caso anterior, que los datos no están muy dispersos, es decir, las medidas de dispersión nos permiten hacernos una idea de lo ancha que es la campana de la distribución de una variable (cómo de alejados están los puntos respecto al promedio). Con execpción del Rating, que es verdad que su desviación es un poco más elevada ya que no nos olvidemos que su valor mínimo es 45 y su vamor máximo es 94, por lo que tener una desviación/DAM de 7 es un poco más significativa, ya que el rango de estos valores es más pequeño. Respecto al resto de atributos la desviación está dentro de un baremo más normal. </p>
 
+
+
+******
+# Análisis de Componentes Principales (ACP)
+******
+<p> 
+Realizar el Análisis de Componentes Principales sobre las variables “Rating”, “Height”, “Weight” y “Age”. Representar el gráfico biplot de dos dimensiones. Hacer un breve comentario indicando el porcentaje de variabilidad explicada en cada componente principal, la variabilidad explicada en las dos primeras dimensiones y qué variable original está más asociada a cada una de las dos primeras componentes principales. Interpretar.
+
+Por ultimo, ¿hay algún punto más fuera de la nube de puntos?, si es así puedes mostrar los valores de las variables originales e indicar que tiene de especial este punto.
+
+Para responder a este apartado, puede usar la función prcomp y ggbiplot.
+</p>
+```{r}
+# Creamos un data frame exclusivo para este apartado.
+df_copy_ACP = df_copy[, c("Rating", "Height", "Weight", "Age")]
+```
+
+<p> Una vez creado el data frame, tenemos que elegiar si es la matriz de covarianzas o de correlaciones la que vamos a usar. En este caso, al ser variabels con diferentes magnitudes lo mejor es usar la matriz de correlaciones. A continuación podemos ver dicha matriz:  </p>
+```{r}
+cor(df_copy_ACP)
+```
+
+<p> Las conclusiones que podemos obtener son: 
+1 - El Rating está correlacionado con el Age
+2 - El Height y Weight están altamente correlacioandos positivamente, es decir, que ha medida que aumenta un atributo también aumenta el otro.
+3 - El Age aparte de estar corelacionado el Rating, también está un poco correlacionado con el Weight.
+
+Una vez analizada la matriz de correlaciones podemos realizar un análisis de los componente principales:
+</p>
+```{r}
+ACP.cor = prcomp(x=df_copy_ACP, center = TRUE, scale. = TRUE)
+summary(ACP.cor)
+```
+
+<p> 
+Con los resultados obtenidos vemos que la proporción de varianza es diferente para cada uno de los componentes, esto era de esperar, ya que viendo la matriz de correlaciones hay dos componentes claros, uno que en el que se relacionan el Rating y el Age y otro en el que se relacionan el Height y el Weight.
+
+Por lo tanto, seleccionado los dos primeros componentes podemos proyectar más o menos la misma información que en el dataset original, pero reduciendo la dimensionalidad de 4 a 2 (se nos indica en el enundado seleccionar solo los dos primeros compenentes). Como podemos observar, las dos primeras dimensiones representan la mayor parte de la varianza total con un 80,72%.
+
+Aunque se nos dictamina en este apartado seleccionar los dos primeros componentes, podríamos ver si es lo mejor haciendo uso de la regla de Kaiser-Guttman o un scree plot.
+</p>
+```{r}
+valores_propios = ACP.cor$sdev^2
+media_valores_propios = sum(valores_propios) / length(valores_propios)
+cat("Los valores propios son: ", valores_propios)
+cat("La media de los valores propios es: ", media_valores_propios)
+```
+
+<p> Como podemos apreciar, según Kaiser-Guttman hay que elegir como componentes princiales aquellos que cuyos valores propios superen la media de los mismos, en este caso solamente el componente 1 y componente 2 lo hacen, por lo que sí que es adecuado elegir estos dos componentes. 
+
+Lo siguiente que debemos realizar es un Biplot, el cual nos permite mostrar tanto los nuevos puntos muestrales como las variables originales, permitiéndonos así ver que variables son más relevantes.
+</p>
+
+```{r}
+library(ggbiplot)
+biplot_ACP = ggbiplot(ACP.cor, scale = 1, obs.scale = 1, varname.size=5, varname.adjust=0) +
+  ggtitle("ACP basado en la correlación")
+
+biplot_ACP
+```
+
+<p> Como poedmos apreciar en el anterior gráfico, la variable Weight y Height están más asociadas con el componente 1, aunque también es verdad qeu algo relacionadas con el componente 2 pero algo menos. Por otro lado, las variables Rating y Age están más asocidaas con el componente 2 y poco con el componente 1.
+
+Como podemos apreciar las nuevas proyecciones están prácticamente centralizadas, no podemos destinguir clusters claros y además las variables originales también están muy equilibradas, esto se debe a que como podemos apreciar solo hay una diferencia de un 14,1% de varianza entre ambos componentes, por lo que todo está muy igualado/equilibrado.
+
+Finalmente, podemos ver cuales son los outliers que tenemos:
+</p>
+```{r}
+ggbiplot(ACP.cor, scale = 1, obs.scale = 1, varname.size=5, varname.adjust=0) +
+  ggtitle("Análisis de los outliers")
+```
+
+<p> Tal y como apreciamos en el anterior gráfico, vemos que hay un punto muy alejado de la nube de puntos, este se encuentra cerca de la esquina inferior izquierda. Si ese punto se encuentra ahí es porque tiene una altura y peso característicos, al mostrar las labels tanto para el peso como para la altura obtenemos los siguientes valores: </p>
+```{r}
+ggbiplot(ACP.cor, scale = 1, obs.scale = 1, varname.size=5, varname.adjust=0, labels = df_copy_ACP$Weight) +
+  ggtitle("Análisis del outlier con su Weight")
+ggbiplot(ACP.cor, scale = 1, obs.scale = 1, varname.size=5, varname.adjust=0, labels = df_copy_ACP$Height) +
+  ggtitle("Análisis del outlier con su Height")
+ggbiplot(ACP.cor, scale = 1, obs.scale = 1, varname.size=5, varname.adjust=0, labels = df_copy_ACP$Rating) +
+  ggtitle("Análisis del outlier con su Rating")
+ggbiplot(ACP.cor, scale = 1, obs.scale = 1, varname.size=5, varname.adjust=0, labels = df_copy_ACP$Age) +
+  ggtitle("Análisis del outlier con su Age")
+```
+
+<p> Como vemos tiene un peso de 110kg y una altura de 207cm, como podemos ver tanto su peso como su altura son demasiado altos respecto a los demás. Por otro lado, tiene un rating de 67 y una edad de 29, las cuales son bastante comunes dentro del dataset.
+
+Por lo tanto, este punto es especial simplemente por las condiciones físicas que presenta, tanto en altura como en peso y se corresponde con el siguiente jugador:
+</p>
+```{r}
+df_copy[df_copy$Weight == 110 & df_copy$Height == 207,]
+```
+
+
+
+******
+# Archivo final
+******
+<p> Una vez realizado el preprocesamiento sobre el archivo, copie el resultado de los datos en un archivo llamado “fifa_clean.csv”. </p>
+```{r}
+write.csv(df_copy, file = "./data/fifa_clean.csv", row.names = FALSE)
+```
+
