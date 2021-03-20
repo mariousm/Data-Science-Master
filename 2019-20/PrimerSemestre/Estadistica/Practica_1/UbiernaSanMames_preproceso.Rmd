@@ -30,7 +30,7 @@ head(df_copy)
 ```{r}
 str(df_copy)
 ```
-<p> Como podemos observar en la anterior ejecución, no todos los datos están bien "categorizados", es decir, hay atributos como por ejmplo Nationality en el que ha categorizado la variable como character cuando lo mejor sería como factor, las fechas también están mal categorizadas, se las considera character cuando son Date, el dorsal de cada jugador se considera de tipo integer cuando debería ser un factor... 
+<p> Como podemos observar en la anterior ejecución, no todos los datos están bien "categorizados", es decir, hay atributos como por ejemplo las fechas están mal categorizadas, se las considera character cuando son Date, el dorsal de cada jugador se considera de tipo integer cuando debería ser un factor... 
 
 Se irán resolviendo estos problemas a medida que vamos haciendo la práctica, ya que en este punto solo se nos pide cargar el fichero y examinar el tipo de datos.
 </p>
@@ -287,7 +287,7 @@ library(ggplot2) # Importamos la librería ggplot2
 ggplot(mapping = aes(x=df_copy$Height)) + geom_density()
 ```
 
-<p> Como podemos observar a priori no hay valores atípicos, ya que la altura se mueve en un intervalor adecuado. También podemos usar la función summary() y así que se vea de una forma numérica: </p>
+<p> Como podemos observar a priori no hay valores atípicos, ya que la altura se mueve en un intervalo adecuado. También podemos usar la función summary() y así que se vea de una forma numérica: </p>
 ```{r}
 summary(df_copy$Height)
 ```
@@ -374,7 +374,7 @@ cat("El número de registros que tienen NA como altura son: ", nrow(df_copy[is.n
 ******
 <p> Realice un breve estudio descriptivo de las variables cuantitativas una vez depuradas. Hay que crear una tabla con medidas de tendencia central y de dispersión, tanto robustas como no robustas. Haga un breve comentario sobre los resultados obtenidos entre estos tipos de medidas en todas las variables. </p>
 
-<p> Para realizar este apartado, se considera exclusivamente las variables objeto de estudio que son cuantitativas (las variables que aparecen al comienzo del enunciado de la práctica), estas variables son:   </p>
+<p> Para realizar este apartado, se considera exclusivamente las variables objeto de estudio que son cuantitativas (las variables que aparecen al comienzo del enunciado de la práctica). </p>
 ```{r}
 library(psych)
 
