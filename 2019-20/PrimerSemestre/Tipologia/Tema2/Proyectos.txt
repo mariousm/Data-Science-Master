@@ -1,0 +1,50 @@
+Estadísticas jugadores NBA:
+https://www.nba.com/stats/players/traditional/?PerMode=Totals&sort=PTS&dir=-1
+
+- Análisis de equipos (predecir puntos/rebotes/tapones/robos/péridas por jugador)
+- Ver si un jugador es rentable en ataque/defensa para contratarlo
+- Al tener estadísticas por temporada podemos ver la evolución de cada jugador.
+- Calcular la efectividad de cada jugador (% de tiros)
+- ...
+
+
+
+Estadística sobre Streamers
+https://twitchtracker.com/channels/viewership
+
+- estimar la horas que va a estar stremeando/los subs/followers/viewes...
+- Realizar análisis para invertir en campañas promocionales.
+- Ver la evolución de cada streamer...
+- Análisis sobre el idioma o contenido de cada streamer.
+- Se puede hacer lo mismo para YouTube
+- ...
+
+
+
+Estadísticas IMDB:
+https://www.imdb.com/search/title/?genres=action&explore=title_type,genres&view=advanced
+
+- Estimar si un género va a tener una mayor valoración o no.
+- Predecir si un actor/director hace que una peli tenga más rating.
+- Ver si un actor funciona más en un género o en otro.
+- Ver si un actor/director generan más votos.
+- ...
+
+
+
+Estadísticas sobre las bolsa de valores (FB, Google, Apple...)
+https://es.investing.com/equities/facebook-inc-historical-data
+
+- Precedir la apertura y cierre de las acciones diarias.
+- Predecir el cómo irá la compañía en el futuro
+- ...
+
+
+
+Estadísticas Spotify
+https://spotifycharts.com/regional
+
+- Poca información: canción, artistas, streams.
+- Histórico de canciones (por ubicación, diario/semanal)
+- Precedir si un determinado artista va atener éxsito.
+- Ver si determiandas colaboraciones dan más reproducciones
