@@ -1,0 +1,352 @@
+---
+title: 'Minería de datos: PEC1'
+author: "Autor: Mario Ubierna San Mamés"
+date: "marzo 2021"
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: 75.584-PEC-header.html
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+******
+# Introducción
+******
+## Presentación
+Esta prueba de evaluación continuada cubre el módulo 1,2 y 8 del programa de la asignatura.  
+
+## Competencias
+Las competencias que se trabajan en esta prueba son:
+
+* Uso y aplicación de las TIC en el ámbito académico y profesional
+* Capacidad para innovar y generar nuevas ideas.
+* Capacidad para evaluar soluciones tecnológicas y elaborar propuestas de proyectos teniendo en cuenta los recursos, las alternativas disponibles y las condiciones de mercado.
+* Conocer las tecnologías de comunicaciones actuales y emergentes, así como saberlas aplicar convenientemente para diseñar y desarrollar soluciones basadas en sistemas y tecnologías de la información.
+* Aplicación de las técnicas específicas de ingeniería del software en las diferentes etapas del ciclo de vida de un proyecto.
+* Capacidad para aplicar las técnicas específicas de tratamiento, almacenamiento y administración de datos.
+* Capacidad para proponer y evaluar diferentes alternativas tecnológicas para resolver un problema concreto.
+* Capacidad de utilizar un lenguaje de programación.  
+* Capacidad para desarrollar en una herramienta IDE.  
+* Capacidad de plantear un proyecto de minería de datos.  
+
+## Objetivos
+* Asimilar correctamente el módulo 1 y 2.
+*	Qué es y qué no es MD.
+*	Ciclo de vida de los proyectos de MD.
+*	Diferentes tipologías de MD.
+* Conocer las técnicas propias de una fase de preparación de datos y objetivos a alcanzar.  
+
+## Descripción de la PEC a realizar
+La prueba está estructurada en 1 ejercicio teórico/práctico y 1 ejercicio práctico que pide que se desarrolle la fase de preparación en un juego de datos.  
+Deben responderse todos los ejercicios para poder superar la PEC.  
+
+## Recursos
+
+Para realizar esta práctica recomendamos como punto de partida la lectura de los siguientes documentos:
+
+* Módulo 1, 2 y 8 del material didáctico.
+* Ciclo de vida de un proyecto de minería de datos: https://es.wikipedia.org/wiki/cross_industry_standard_process_for_data_mining#Fases_principales
+* A lo aparta del enunciado de la actividad disponéis de unos materiales de ggplot2
+* El aula laboratorio de R para resolver dudas o problemas.
+* RStudio Cheat Sheet: Disponible en el aula Laboratorio de Minería de datos.
+* R Base Cheat Sheet: Disponible en el aula Laboratorio de Minería de datos.
+  
+
+## Formato y fecha de entrega
+El formato de entrega es: usernameestudiant-PAC1.html (pdf o word) y rmd.
+Fecha de Entrega: 31/03/2021.
+Se tiene que depositar la PEC en el buzón de entregas del aula.
+
+
+## Nota: Propiedad intelectual 
+
+A menudo es inevitable, al producir una obra multimedia, hacer uso de recursos creados por terceras personas. Es por lo tanto comprensible hacerlo en el marco de una práctica de los estudios de Informática, Multimedia y Telecomunicación de la UOC, siempre y cuando esto se documente claramente y no suponga plagio en la práctica. 
+
+Por lo tanto, al presentar una práctica que haga uso de recursos ajenos, se debe presentar junto con ella un documento en qué se detallen todos ellos, especificando el nombre de cada recurso, su autor, el lugar dónde se obtuvo y su estatus legal: si la obra está protegida por el copyright o se acoge a alguna otra licencia de uso (Creative Commons, licencia GNU, GPL ...). 
+El estudiante deberá asegurarse de que la licencia no impide específicamente su uso en el marco de la práctica. En caso de no encontrar la información correspondiente tendrá que asumir que la obra está protegida por copyright. 
+
+Deberéis, además, adjuntar los ficheros originales cuando las obras utilizadas sean digitales, y su código fuente si corresponde.  
+
+
+****
+# Ejemplo de solución del ejercicio 2
+****
+****
+## Objetivos
+****
+Como ejemplo, trabajaremos con el juego de datos "Titanic.csv" que recoge datos sobre el famoso crucero.
+
+Las actividades que llevaremos a cabo en esta práctica se realizan en las fases iniciales de un proyecto de minería de datos. Tienen como objetivo obtener un dominio de los datos con las que construiremos el modelo de minería. Tenemos que conocer los datos profundamente tanto en su formato como contenido. Tareas típicas en esta fase pueden ser la selección de características o variables, la preparación del juego de datos para posteriormente ser consumido por un algoritmo e intentar extraer el máximo conocimiento posible de los datos.
+
+Desarrollaremos un subconjunto de tareas mínimas y de ejemplo. Podemos incluir muchas más y mucho más profundas, como hemos visto al material docente.
+
+## Procesos iniciales con los datos
+
+Primero contacto con el juego de datos
+
+Instalamos y cargamos las librerías ggplot2 y dplry 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# https://cran.r-project.org/web/packages/ggplot2/index.html
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+# https://cran.r-project.org/web/packages/dplyr/index.html
+if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
+```
+
+Cargamos el fichero de datos
+
+```{r}
+totalData <- read.csv('titanic.csv',stringsAsFactors = FALSE)
+filas=dim(totalData)[1]
+```
+
+Cargamos los datos filtrados por tripulación para hacer estudios posteriores
+
+```{r}
+totalData_crew=subset(totalData, totalData$class=="engineering crew")
+```
+
+Verificamos la estructura del juego de datos principal
+
+```{r}
+str(totalData)
+```
+
+Vemos que tenemos 2207 registros que se corresponden a los viajeros y tripulación del Titánic y 11 variables que los caracterizan.
+
+Revisamos la descripción de las variables contenidas en el fichero y si los tipos de variable se corresponde al que hemos cargado:
+
+**name**
+    string with the name of the passenger.
+    
+**gender**
+    factor with levels male and female.
+    
+**age**
+    numeric value with the persons age on the day of the sinking. The age of babies (under 12 months) is given as a fraction of one year (1/month).
+    
+**class**
+    factor specifying the class for passengers or the type of service aboard for crew members.
+    
+**embarked**
+    factor with the persons place of of embarkment.
+    
+**country**
+    factor with the persons home country.
+    
+**ticketno**
+    numeric value specifying the persons ticket number (NA for crew members).
+    
+**fare**
+    numeric value with the ticket price (NA for crew members, musicians and employees of the shipyard company).
+    
+**sibsp**
+    ordered factor specifying the number if siblings/spouses aboard; adopted from Vanderbild data set.
+    
+**parch**
+    an ordered factor specifying the number of parents/children aboard; adopted from Vanderbild data set.
+    
+**survived**
+    a factor with two levels (no and yes) specifying whether the person has survived the sinking.
+
+Vamos ahora a sacar estadísticas básicas y después trabajamos los atributos con valores vacíos.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(totalData)
+```
+
+Estadísticas de valores vacíos
+
+```{r}
+colSums(is.na(totalData))
+colSums(totalData=="")
+```
+
+Asignamos valor "Desconocido" para los valores vacíos de la variable "country"
+
+```{r}
+totalData$country[is.na(totalData$country)] <- "Desconocido"
+```
+
+Asignamos la media para valores vacíos de la variable "age"
+
+```{r}
+totalData$age[is.na(totalData$age)] <- mean(totalData$age,na.rm=T)
+```
+
+De la información mostrada destacamos que el pasajero más joven tenía 6 meses y el más grande 74 años. La media de edad la tenían en 30 años. También podemos ver 891 sin billete. Revisaremos si se corresponde a la tripulación. También podemos observar el que se pagó por el billete. En este caso se entienden las discrepancias en la fiabilidad de este dato. Parece que los pasajeros que embarcaron a Southampton hacían transbordo de un barco que tenía la tripulación en huelga y por eso no pagaron lo que explicaría la diferencia. Recordemos que la tripulación no pagaba. Sibsp y parch también muestran datos interesantes del viajero con quien más familiares viajaba eran 8 hermanos o mujer y 9 hijos o padre/madre.
+
+Si observamos los NA (valores nulos) vemos que los datos están bastante bien. Decidimos sustituir el valor NA de country por Desconocido por una mayor legibilidad. También proponemos sustituir los NA de age por la media a pesar de que realmente no hace falta.
+
+Es curios como los valores NA de sibsp y parch nos permite deducir que viajaban muchas familias. De hecho, a simple vista, restante la tripulación la gente que viajaba sola era mínima. Este dato la podríamos contrastar también. Sería interesante relacionar la mortalidad del accidente con el tamaño de las familias que viajaban.
+
+Ahora añadiremos un campo nuevo a los datos. Este campo contendrá el valor de la edad discretizada con un método simple de intervalos de igual amplitud.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+summary(totalData[,"age"])
+```
+
+Discretizamos
+
+```{r}
+totalData["segmento_edad"] <- cut(totalData$age, breaks = c(0,10,20,30,40,50,60,70,100), labels = c("0-9", "10-19", "20-29", "30-39","40-49","50-59","60-69","70-79"))
+```
+
+Observamos los datos discretizados
+
+```{r}
+head(totalData)
+```
+
+Vemos como se agrupaban por edad
+
+```{r}
+plot(totalData$segmento_edad)
+```
+
+Ahora repetimos por el proceso, pero solo por el subconjunto de tripulación filtrado antes
+
+```{r}
+totalData_crew["segmento_edad"] <- cut(totalData_crew$age, breaks = c(0,10,20,30,40,50,60,70,100), labels = c("0-9", "10-19", "20-29", "30-39","40-49","50-59","60-69","70-79"))
+plot(totalData_crew$segmento_edad)
+```
+
+De la discretización de la edad observamos que realmente la gente que viajaba era muy joven. El segmento más grande es de 20 a 29 años. También vemos de la juventud de la tripulación.
+
+## Procesos de análisis visuales del juego de datos
+
+Nos proponemos analizar las relaciones entre las diferentes variables del juego de datos para ver si se relacionan y como.
+
+Visualizamos la relación entre las variables "gender" y "survived":
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data=totalData[1:filas,],aes(x=gender,fill=survived))+geom_bar()
+```
+
+Otro punto de vista. Survived como función de Embarked:
+
+```{r}
+ggplot(data = totalData[1:filas,],aes(x=embarked,fill=survived))+geom_bar(position="fill")+ylab("Frequència")
+```
+
+En la primera gráfica podemos observar fácilmente la cantidad de mujeres que viajaban respecto hombres y observar los que no sobrevivieron. Numéricamente el número de hombres y mujeres supervivientes es similar.
+
+A la segunda gráfica de forma porcentual observamos los puertos de embarque y los porcentajes de supervivencia en función del puerto. Se podría trabajar el puerto C (Cherburgo) para ver de explicar la diferencia en los datos. Quizás porcentualmente embarcaron más mujeres o niños... ¿O gente de primera clase?
+
+Obtenemos ahora una matriz de porcentajes de frecuencia.
+Vemos, por ejemplo, que la probabilidad de sobrevivir si se embarcó en "C" es de un 56.45%
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+t<-table(totalData[1:filas,]$embarked,totalData[1:filas,]$survived)
+for (i in 1:dim(t)[1]){
+    t[i,]<-t[i,]/sum(t[i,])*100
+}
+```
+
+Veamos ahora como en un mismo gráfico de frecuencias podemos trabajar con 3 variables: Embarked, Survived y class.
+
+Mostramos el gráfico de embarcados por Pclass:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = totalData[1:filas,],aes(x=embarked,fill=survived))+geom_bar(position="fill")+facet_wrap(~class)
+```
+
+Aquí ya podemos extraer mucha información. Como propuesta de mejora se podría hacer un gráfico similar trabajando solo la clase. Habría que unificar toda la tripulación a una única categoría.
+
+Comparamos ahora dos gráficos de frecuencias: Survived-SibSp y Survived-Parch
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = totalData[1:filas,],aes(x=sibsp,fill=survived))+geom_bar()
+ggplot(data = totalData[1:filas,],aes(x=parch,fill=survived))+geom_bar()
+```
+
+Vemos como la forma de estos dos gráficos es similar. Este hecho nos puede indicar presencia de correlaciones altas. Hecho previsible en función de la descripción de las variables.
+
+Veamos un ejemplo de construcción de una variable nueva: Tamaño de familia
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+totalData$FamilySize <- totalData$sibsp + totalData$parch +1;
+totalData1<-totalData[1:filas,]
+ggplot(data = totalData1[!is.na(totalData[1:filas,]$FamilySize),],aes(x=FamilySize,fill=survived))+geom_histogram(binwidth =1,position="fill")+ylab("Freqüència")
+```
+
+Se confirma el hecho de que los pasajeros viajaban mayoritariamente en familia. No podemos afirmar que el tamaño de la familia tuviera nada que ver con la posibilidad de sobrevivir pues nos tememos que estadísticamente el hecho de haber más familias de alrededor de cuatro miembros debería de ser habitual. Es un punto de partida para investigar más.
+
+Veamos ahora dos gráficos que nos compara los atributos Age y Survived.
+Observamos como el parámetro position="fill" nos da la proporción acumulada de un atributo dentro de otro.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(data = totalData1[!(is.na(totalData[1:filas,]$age)),],aes(x=age,fill=survived))+geom_histogram(binwidth =3)
+ggplot(data = totalData1[!is.na(totalData[1:filas,]$age),],aes(x=age,fill=survived))+geom_histogram(binwidth = 3,position="fill")+ylab("Frequencia")
+```
+
+Observamos como el parámetro position="fill" nos da la proporción acumulada de un atributo dentro de otro. Parece que los niños tuvieron más posibilidad de salvarse.
+
+## Conclusiones finales
+
+Los datos tienen una calidad correcta y están mayoritariamente muy informadas. Disponen de una variable de clase "survived" que las hace aptas por un clasificador.
+A parte de la mayor supervivencia de mujeres y niños y de pasajeros de primera clase podemos observar la juventud de los pasajeros y la tripulación. Se observa también una gran cantidad de personas que viajaban con sus familias.
+
+****
+# Ejercicios
+****
+
+## Ejercicio 1:
+
+Propón un proyecto completo de minería de datos. La respuesta tiene que coincidir con las fases típicas del ciclo de vida de un proyecto de minería de datos. No hay que desarrollar las tareas de cada fase. Para cada fase indica cuál es el objetivo de la fase y el producto que se obtendrá. Utiliza ejemplos de qué y cómo podrían ser las tareas. Si hay alguna característica que hace diferente el ciclo de vida de un proyecto de minería respecto a otros proyectos indícalo.
+
+
+> Escribe aquí la respuesta a la pregunta
+
+## Ejercicio 2:
+A partir del juego de datos disponible en el siguiente enlace http://archive.ics.uci.edu/ml/datasets/adult , realiza las tareas previas a la generación de un modelo de minería de datos explicados en el Módulo 2. Puedes utilizar de referencia el ejemplo del Titánic.
+
+Nota: Si lo deseas puedes utilizar otro conjunto de datos propio o de algún repositorio datos abiertos siempre que sea similar en diversidad de tipo de variables al propuesto.
+
+
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Cargamos el juego de datos
+
+# Redacta aquí el código R para el estudio del juego de datos
+```
+> Escribe aquí la respuesta a la pregunta
+
+
+***
+# Criterios de evaluación
+***
+
+Ejercicio 1
+
+Concepto y peso en la nota final
+
+El objetivo del proyecto está correctamente definido con suficiente concreción y se puede resolver con técnicas de minería de datos. 15%
+
+Las fases del ciclo de vida están correctamente expresadas. Los ejemplos son clarificadores. La justificación y argumentación de las decisiones que se han tomado. 20%
+
+Ejercicio 2
+
+Se carga la base de datos, se visualiza su estructura y se explica los hechos básicos que explican los datos. 5%
+
+Se estudia si existen atributos vacíos o en diferentes escalas que haya que normalizar. Si es el caso se adoptan medidas para tratar estos atributos. Se construye una nueva variable útil a partir de las existentes. Se discretiza algún atributo. 20%
+
+Se analizan los datos de forma visual y extraen conclusiones tangibles. Hay que elaborar un discurso coherente y con conclusiones claras. 30%
+
+Se trata en profundidad algún otro aspecto respecto a los datos presentado en el Módulo 2 10%
