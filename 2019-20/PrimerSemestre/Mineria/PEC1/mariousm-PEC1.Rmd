@@ -108,7 +108,7 @@ if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 Cargamos el fichero de datos
 
 ```{r}
-totalData <- read.csv('titanic.csv',stringsAsFactors = FALSE)
+totalData <- read.csv('./data/titanic.csv',stringsAsFactors = FALSE)
 filas=dim(totalData)[1]
 ```
 
