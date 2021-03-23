@@ -311,7 +311,60 @@ A parte de la mayor supervivencia de mujeres y niños y de pasajeros de primera 
 Propón un proyecto completo de minería de datos. La respuesta tiene que coincidir con las fases típicas del ciclo de vida de un proyecto de minería de datos. No hay que desarrollar las tareas de cada fase. Para cada fase indica cuál es el objetivo de la fase y el producto que se obtendrá. Utiliza ejemplos de qué y cómo podrían ser las tareas. Si hay alguna característica que hace diferente el ciclo de vida de un proyecto de minería respecto a otros proyectos indícalo.
 
 
-> Escribe aquí la respuesta a la pregunta
+Cuando hablamos de un proyecto de minería de datos, nos estamos refiriendo a las diferentes fases que nos encontramos en dicho proyecto desde el paso de los datos a la sabiduría de los mismos. Es por ello que se puede dividir el ciclo de vida de un proyecto de minería de datos en las siguientes fases, cabe destacar que no todos los proyectos tienen que seguir estas fases:
+
+
+### Definición de la tarea de data mining
+El principal objetivo de esta fase es el identificar qué se busca estudiar/dar respuesta con el proyecto. Esta fase es la más importante en el ciclo de vida, ya que si no conseguimos definir bien dicho objetivo, por mucho que el resto de fases estén perfectas no vamos a llegar a las conclusiones adecuadas.
+
+Por lo tanto, en este fase tenemos que analizar el problema a resolver y cómo lo vamos a resolver. En nuestro caso, el ejemplo que vamos a usar va a ser el estudio del cáncer da mama, es decir, saber si una persona tiene cáncer de mama o no a partir de las características de sus células (tamaño de las células, grosor de las paredes celulares...).
+
+Viendo el objetivo de nuestro caso de estudio, podemos identificar que es un problema de clasificación, es decir, indentificar si una persona está en uno de estos dos grupos bien definidos: si su cáncer es maligno, o si su cáncer es benigno. Por otro lado, este problema de clasificación es del tipo aprendizaje supervisado, hace referencia a que vamos a tener un conjunto de datos que ya están "clasificados", es decir, vamos a tener un dataset en el que para cada persona a parte de los datos correpondientes a la célula, vamos a saber si eso significa que el cáncer es benigno o maligno. De tal forma, que nos permita hacer uso de un algoritmo de clasificación, para que así clasifique de forma correcta, y posteriormente predecir si el cáncer de una persona es benigno o maligno.
+
+Al hacer uso de los algoritmos de clasifación podemos usar: árboles de decisión, redes neuronales y las reglas de clasificación.
+
+
+### Origen de los datos
+Una vez que tenemos claro el objetivo de nuestro proyecto de minería, tenemos que obtener los datos para así poder construir el modelo. A la hora de obtener dichos datos lo podemos hacer haciendo uso de: web scraping, de ficheros, de bases de datos, de repositorios de datos...
+
+Respecto a nuestro caso de estudio, vamos a considerar que somos un grupo de científicos dentro de un hospital y que dicha información es de fácil acceso a partir de un data warehouse, es decir, podemos obtener todos esos datos necesarios para poder alcanzar el objetivo del proyecto. Por otro lado, esos datos se irán consiguiendo a partir de los pacientes que acudirán a nuestro hospital.
+
+
+### Preparación de datos
+Cuando ya tenemos todos los datos necesarios para construir el modelo, nos podemos encontrar con varios inconvenientes, como por ejemplo: hay registros en lo que en determinados campos no hay un valor, columnas que son numéricas y la información viene en formato string, puede ser que un mismo atributo este medido en la misma magnitud pero en diferentes unidades como por ejemplo nanómetros y micrómetros...
+
+El objetivo de esta fase es solucionar todos estos problemas que nos vamos encontrando, de tal forma que los datos tengan la mayor calidad posible, para que así el modelo funcione correctamente.
+
+Dentro de esta fase podemos realizar la limpieza de los datos, es decir, eliminar aquellos datos que son innecesarios o redundantes. En nuestro caso, podría ser que hay registros de pacientes duplicados, o que hay registros en los que el valor del grosor de la columna de la cécula está indefinido...
+
+Por otro lado, podemos realizar la transformación de algunos datos, en nuestro caso, los datos numéricos pueden venir en formato string, y realmente si vamos a trabajar con ellos es mejor que sean numéricos. Además, podemos tener datos que estén medidos en diferentes escalas y si vamos a usar una red neuronal para realizar el modelo de clasificación, vamos a tener que normalizar los valores en el intervalo entre 0 y 1. También tenemos que etiquetar cada registro, es decir, indicar si un paciente con X datos tiene un cáncer de mama benigno o maligno, de tal forma que luego nos permita clasificar bien y poder predecir...
+
+Finalmente, puede ser que tengamos demasiada información, tanto a nivel de registros como a nivel de atributos, esto supone un gran coste de computación. Por lo tanto, tenemos que reducir la dimensionalidad del dataset, para que con menos datos obtengamos el mismo resultado o lo más parecido posible.
+
+A la hora de seleccionar menos registros, hay que tener cuidado ya que puede quedar una población muy sesgada, hay que ser preciso para poder representar la misma información con menos registros. Por otro lado, a la hora de reducir el número de atributos es lo que se denomina selección de variables, podemos hacer uso también del análisis de componentes princiaples para ver que componentes representan la mayor varianza posible con menos dimensiones.
+
+
+### La contrucción de modelos
+Una vez que ya tenemos el dataset con la mayor calidad posible, podemos construir el modelo para resolver el problema que nos hemos planteado. El objetivo de esta fase es seleccionar el modelo que mejor se adapte a nuestros datos, es decir dentro de nuestro caso, en la clasifcación podemos hacer uso de: árboles de decisión, redes neuornales y reglas de clasificación. Tenemos que elegir el modelo que mejor creemos que va a funcionar, esto no significa que no podamos hacer uso de los demás, de hecho deberíamos para saber cuál es el modelo que ofrece los mejores resultados para nuestro problema.
+
+Respecto a nuestro caso, tenemos que tratar de minimizar el error, ya que si no conseguimos clasificar muy bien puede ser un modelo muy desastroso, los falsos negativos son un peligro, ya que podríamos indicar a una persona que no tiene cáncer de mama cuando realmente sí que lo tiene, por lo tanto tenemos que minimizar ese porcentaje.
+
+
+### Evaluación e interpretación del modelo
+Cuando ya hemos construido el modelo, debemos preguntarnos si ese modelo es el mejor, es decir, si tiene la suficiente calidad, si tenemos que volver a empezar, si tenemos que elegir otro modelo...
+
+El objetivo de esta fase es evaluar el modelo, para ello se suele utilizar dos conjuntos de datos a partir de un conjunto incial, un conjunto se va a usar para entrenar el modelo y el segundo para comprobar que el modelo realmente funciona y presenta la suficiente calidad.
+
+En nuestro caso, podríamos dividir el dataset inicial en tres subconjuntos, uno para entrenar el modelo, otro para validar el modelo y un tercelo para para evaluar el modelo.
+
+Una vez que el modelo se ha evaluado, tenemos que realizar una interpretación de los resultados que hemos obtenido, y en este punto hay que tener mucho cuidado porque podemos estar considerando unos resultados que no son lo suficientemente buenos pero realmente nos están proporcionando mucha información y viceversa.
+
+
+### Integración de los resultados
+Esta fase es la final, cuando ya tenemos un modelo que cumple con los objetivos hay que integrar dicho modelo dentro de la cadena de la organización. En nuestro caso, una vez que tenemos el modelo de clasificación, tenemos que proporcionar esa herramienta a los médicos, de tal forma, que con un simple programa e introduciendo los datos de diferentes análisis le permita predecir si el paciente que ha venido a la consulta tiene cáncer de mama o no.
+
+Por último, cabe destacar que esto es un proceso iterativo, es decir, si ya tenemos un modelo "perfecto" no significa que ya hemos ternimando nuestro trabajo, sino que hay que seguir mejorándolo y dar nuevas respustas a otros problemas. 
+
 
 ## Ejercicio 2:
 A partir del juego de datos disponible en el siguiente enlace http://archive.ics.uci.edu/ml/datasets/adult , realiza las tareas previas a la generación de un modelo de minería de datos explicados en el Módulo 2. Puedes utilizar de referencia el ejemplo del Titánic.
