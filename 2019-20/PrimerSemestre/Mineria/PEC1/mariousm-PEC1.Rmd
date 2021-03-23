@@ -376,11 +376,106 @@ Nota: Si lo deseas puedes utilizar otro conjunto de datos propio o de algún rep
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Cargamos el juego de datos
+df = read.table(file="./data/adult.data", fileEncoding="UTF-8", sep=",", na.strings = "NA")
 
-# Redacta aquí el código R para el estudio del juego de datos
+# Cambiamos el nombre de las columnas tal y como se llaman según la página web
+colnames(df) = c("age", "workclass", "fnlwgt", "education", "education-num", "marital-status", "occupation", "relationship", "race", "sex", "capital-gain", "capital-loss", "hours-per-week", "native-country", "salary")
+
+# Creamos una copia del dataframe, ya que va a ser la copia sobre la que vamos a realizar las modificaciones
+df_copy = df
+
+# Visualizamos los datos
+str(df_copy)
+
+# https://rdrr.io/cran/arules/man/Adult.html
+# https://lwmachinelearning.wordpress.com/portfolio/adults-data-set/
 ```
-> Escribe aquí la respuesta a la pregunta
 
+Vemos que tenemos 32561 registros y 15 variables que los caracterizan.
+
+Revisamos la descripción de las variables y si los tipos de variable se corresponden al que hemos cargado:
+
+**age**
+    integer - edad de la persona.
+    
+**workclass**
+    factor - clase de trabajo.
+    
+**fnlwgt**
+    integer - peso final de la población que representa.
+    
+**education**
+    ordered factor - nivel de educación.
+    
+**education-num**
+    integer - número de nivel de educación.
+    
+**marital-status**
+    factor - estado civil de la persona.
+    
+**occupation**
+    factor - ocupación de la persona.
+    
+**relationship**
+    factor - tipo de relación de la persona.
+    
+**race**
+    factor - raza de la persona.
+    
+**sex**
+    factor - sexo de la persona.
+    
+**capital-gain**
+    integer - ganacias obtenidas.
+    
+**capital-loss**
+    integer - pérdidas.
+    
+**hours-per-week**
+    integer - media de horas trabajadas por semana.
+    
+**native-country**
+    integer - país de origen.
+    
+**salary**
+    ordered factor - nivel de ingresos.
+    
+Tal y como podemos observar, las variables numéricas sí que están bien definidas, sin embargo, las variables no numéricas las reconoce como chr en vez de factor, por lo que vamos a solucionar eso, pero antes como podemos comprobar en los atributos de tipo chr sus valores se guardan con un espacio delante, asi que hay que solucionar este problema antes:
+```{r}
+# Método que elimina los espacios en blanco del principio y del final
+trim = function (x) gsub("^\\s+|\\s+$", "", x)
+
+# Quitamos los espacios para cada columna de tipo factor
+df_copy$workclass = trim(df_copy$workclass)
+df_copy$education = trim(df_copy$education)
+df_copy$`marital-status` = trim(df_copy$`marital-status`)
+df_copy$occupation = trim(df_copy$occupation)
+df_copy$relationship = trim(df_copy$relationship)
+df_copy$race = trim(df_copy$race)
+df_copy$sex = trim(df_copy$sex)
+df_copy$`native-country` = trim(df_copy$`native-country`)
+df_copy$salary = trim(df_copy$salary)
+
+str(df_copy)
+```
+
+Una vez hemos eliminado los espacios de la variable de tipo character, las podemos convertir a factor:
+```{r}
+# Convertirmos las columna a factor
+df_copy$workclass = as.factor(df_copy$workclass)
+df_copy$education = factor(df_copy$education, ordered = TRUE, levels = c("Preschool", "1st-4th", "5th-6th", "7th-8th", "9th", "10th", "11th", "12th", "HS-grad", "Prof-school", "Assoc-acdm", "Assoc-voc", "Some-college", "Bachelors", "Masters", "Doctorate"))
+df_copy$`marital-status` = as.factor(df_copy$`marital-status`)
+df_copy$occupation = as.factor(df_copy$occupation)
+df_copy$relationship = as.factor(df_copy$relationship)
+df_copy$race = as.factor(df_copy$race)
+df_copy$sex = as.factor(df_copy$sex)
+df_copy$`native-country` = as.factor(df_copy$`native-country`)
+df_copy$salary = factor(df_copy$salary, ordered = TRUE, levels = c("<=50K", ">50K"))
+
+str(df_copy)
+```
+
+    
 
 ***
 # Criterios de evaluación
