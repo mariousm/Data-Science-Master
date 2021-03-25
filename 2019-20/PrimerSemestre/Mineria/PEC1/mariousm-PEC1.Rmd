@@ -592,6 +592,251 @@ En la siguiente tabla podemos ver cómo está quedando nuestro dataset:
 head(df_copy)
 ```
 
+Finalmente, antes de terminar vamos a realizar un análisis de componentes principales, para así saber qué componentes nos permite representar las máxima variablidad medida a partir de la varianza.
+
+Lo primero que debemos hacer es quedarnos con la variables numéricas, para así calcular la matriz de correlaciones o de covarianzas:
+
+```{r}
+df_copy_numeric = df_copy[, unlist(lapply(df_copy, is.numeric))]
+head(df_copy_numeric)
+```
+
+Al ser variables con diferentes magnitudes, es mejor elegir la matriz de correlaciones:
+
+```{r}
+cor(df_copy_numeric)
+```
+
+Una vez que tenemos la matriz de correlaciones, podemos hacer el análisis de componentes principales:
+
+```{r}
+ACP.cor = prcomp(x=df_copy_numeric, center = TRUE, scale. = TRUE)
+summary(ACP.cor)
+```
+
+Con los resultados obtenidos vemos que la proporción de varianza es diferente para cada uno de los componentes.
+
+Por lo tanto, seleccionado los tres primeros componentes podemos proyectar más o menos la misma información que en el dataset original, pero reduciendo la dimensionalidad. Como podemos observar, las tres primeras dimensiones representan la mayor parte de la varianza total con un 75.32%. Y con la cuarta componente conseguimos respresentar el 88.58% de la variabilidad.
+
+Para ver qué componentes principales son los que debemos elegir podemos hacer uso de la regla de Kaiser-Guttman o un scree plot:
+
+```{r}
+# Realizamos el cálculo de la regla de Kaiser-Guttman
+valores_propios = ACP.cor$sdev^2
+media_valores_propios = sum(valores_propios) / length(valores_propios)
+cat("Los valores propios son: ", valores_propios)
+cat("La media de los valores propios es: ", media_valores_propios)
+```
+
+Como podemos apreciar, según Kaiser-Guttman hay que elegir como componentes princiales aquellos que cuyos valores propios superen la media de los mismos, en este caso los componentes 1, 2, 3 y 4 lo hacen, por lo que sí que es adecuado elegir estos cuatro componentes. De tal forma, que una vez que tenemos claro que éstos son los cuatro componentes princiaples ya conseguimos reducir la dimensionalidad del dataset original.
+
+
+
+### Análisis visual de los datos
+
+Una vez que ya hemos limpiado el dataset y le hemos dado el formato que nosotros queremos, podemos realizar diferentes análisis visuales, para entender mejor los datos.
+
+Cabe destacar que, aunque este dataset está enfocado al salario de los ciudadanos de los EEUU en 1994, se puede responder muchísimas preguntas, como por ejemplo: ¿saber si la sociedad es racista?, ¿si es machista?, ¿si es clasista?... Por lo tanto, el análisis que se puede hacer de este dataset es muy amplio, es por ello que nos vamos a ir centrando poco a poco en estas preguntas.
+
+El primer punto en el que nos vamos a centrar es en el estudio del salario, es decir, si es el salario depende de otros factores (si hay una relación). A priori, cuando pensamos en la gente joven suele ganar menos que la gente con más experiencia, por lo que vamos a comprobar si esto es verdad:
+
+```{r}
+ggplot(data = df_copy, aes(x=`d-age`,fill=salary)) + geom_bar(position = "fill") +
+  xlab("Edad") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto a la edad")
+```
+Tal y como era de esperar, mientras que los jóvenes están estudiando y formándose, y lo señores mayores están jubilados viviendo en este caso de su plan de pensiones, la gente entre 25 y 65 años suelen ser los trabajadores de cualquier sociedad, es por ello, que son los que más ganan.
+
+Algo llamativo del anterior gráfico, es que no hay ninguna clase de edad que supere el 50% de frecuencia respecto a un salario mayor de 50k, seguramente esto sea así ya que, los datos son de 1994 y por aquel entonces en EEUU no se tenía unos sueldos demasiados elevados (cabe destacar que hasta 1991 estuvieron en un guerra fría con la URSS, lo cual supuso una gran inversión a nivel milatar, eso significa inflación).
+
+Estudiando el cómo varía el salario, podemos ver si la clase de trabajo influye:
+
+```{r}
+ggplot(data = df_copy, aes(x=workclass,fill=salary)) + geom_bar(position = "fill") +
+  xlab("Clase de trabajo") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto a la clase de trabajo") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Como vemos en la anterior gráfica, la gente que trabaja de forma autónoma en una entidad corporativa tienen la mejor calidad de vida, ya que más del 50% de la gente que es de este tipo de clase cobra más de 50K dólares anuales. El resto de clases tienen un nivel de sueldos similar.
+
+Algo llamativo es ver cómo son los sueldos dentro del gobierno de EEUU, podemos apreciar que aquellos miembros del gobierno federal, es decir el gobierno de la nación, tienen una mejores sueldos que los que trabajan para el gobierno estatal o local, estos dos últimos tienen sueldos similares.
+
+Una pregunta que nos podemos hacer es si el nivel de educación afecta al salario, a priori diríamos que sí, pero ésto lo tenemos que comprobar:
+
+```{r}
+ggplot(data = df_copy, aes(x=education,fill=salary)) + geom_bar(position = "fill") +
+  xlab("Nivel educativo") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto al nivel educativo") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Vemos una gráfica muy curiosa está altamente correlacionado, podemos afirmar que sí que es verdad que a mayor nivel de estudios más dinero se gana. Aunque prof-school se encuentre en el medio de la gráfica con una frecuencia de 75% este nivel de estudios es equiparable a un máster o un doctorado.
+
+La principal diferencia entre professional school y master/doctarado es que el primero busca preparar a estudiantes en un campo específico (medicina, farmacia, business...), mientras que los segundos son cursos académicos más avanzados más allá de un graduado.
+
+Por lo tanto, aunque nos muestra la información según un orden que nosotros hemos establecido para hacer una mejor distinción, ambos niveles son similares, cada uno en su campo.
+
+Otra pregunta que nos podríamos hacer es, ¿el salario está relacionado con la raza?, ¿es una socidad racista la estadounidense?:
+
+```{r}
+ggplot(data = df_copy, aes(x=race,fill=salary)) + geom_bar(position = "fill") +
+  xlab("Raza") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto a la raza") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+```{r}
+summary(df_copy$race)
+```
+
+Como podemos apreciar, están bastante nivelados los sueldos y la raza, por lo que no podemos concluir que sea una socidad racista. Sin embargo, cabe destacar que los sueldos de los asiáticos son muy altos respecto a la población que hay de ellos, por lo tanto, tienen que ser por norma general gente de negocios.
+
+Otro aspecto a destacar es que, los negros tienen unos salarios más bajos respecto a los asiáticos, siendo el triple de personas. También los blancos tienen el mismo nivel respecto a los asiáticos siendo 27 veces más que ellos. Por lo tanto, como bien hemos mencionado esto se debe a que en la raza asiática hay mucho poder.
+
+Analizando la gráfica anterior no podemos garantizar que sea una sociedad racista, por lo tanto vamos a seguir analizando. ¿Dependiendo de la raza se tiene más oportunidades en la educación?
+
+```{r}
+ggplot(data = df_copy, aes(x=education,fill=race)) + geom_bar(position = "fill") +
+  xlab("Educación") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Raza") +
+  ggtitle("Raza respecto a la educación") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+```{r}
+summary(df_copy$race)
+```
+
+Tal y como podemos apreciar hay un mayor número de la raza blanca, por lo que en la gráfica observamos que el mayor número de alumnos en cada nivel educativo es el de la raza blanca. Respecto a la raze negra vemos que en proporción al final de la etapa educativa abandonan muchos, mientras que en la raza asiática es al contrario.
+
+Esto se puede deber a que tal y como hemos visto antes, la raza blanca y la asiática son los que más ingresos tienen, por lo tanto, a medida que aumenta el nivel educativo más caro se convierte, es por ello, que la raza negra abandona en la etapa final educativa, no tienen los recursos necesarios como para permitírselo.
+
+Por lo tanto, encontrar el origen del porqué la raza negra tienen de media un salario menor, es díficl de saber, ya que no tenemos toda la información necesaria sobre la causa del problema. Entonces, no podemos considerar que sea una sociedad racista, pero podemos mirar si en otros ámbitos lo es, como en el laboral:
+
+```{r}
+ggplot(data = df_copy, aes(x=race,fill=salary)) + geom_bar(position = "fill") +
+  facet_wrap(~occupation) +
+  xlab("Raza") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto a la raza y el sector de trabajo") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Dada la anterior gráfica, entendemos la causa de que los asiáticos y blancos tengan un salario elevado respecto a otras razas, y es que la gran parte de los ejecutivos (exec-managerial) y de profesionales especializados (prof-speciality) son de raza asiática y blanca. Sin embargo, los trabajos manuales y no espcializados como: trabajo artesanal (craft-repair), agricultura (farming-fishing), entre otros, son realizados por personas de raza negra.
+
+Por lo tanto, esta gráfica y la anterior estén relacionadas, ya que la raza negra al no tener tanto poder adquisitivo y no poder permitirse ir a la universidad no pueden asipirar a realizar trabajos cualificados, sin embargo, la raza asiática y la blanca sí. Con esto llegamos a la conclusión de que la sociedad estadounidense de 1994 no eran racistas, pero hay un par de razas la negra y la hindú que por motivos que desconocemos tienen un menor poder adquisitivo (probablemnte, respecto a la primera raza sea por la esclavitud que vivieron en el pasado, ya que no parten del mismo punto de salida que los asiáticos o los blancos, es decir, hace 200 años sí que eran racistas pero en 1994 no).
+
+También nos podríamos preguntar si la sociedad de EEUU es una sociedad machista, vamos a comprobar si esto es cierto:
+
+```{r}
+ggplot(data = df_copy, aes(x=sex,fill=salary)) + geom_bar(position = "fill") +
+  xlab("Sexo") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto al sexo")
+```
+
+Como bien vemos sí que hay una difenrecia significativa entre sexos pero, ¿se podría considerar machista? Hay que analizar con más profundiad:
+
+```{r}
+ggplot(data = df_copy, aes(x=sex,fill=salary)) + geom_bar(position = "fill") +
+  facet_wrap(~`marital-status`) +
+  xlab("Sexo") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto al sexo y estado civil") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Al realizar la anterior gráfica teniendo en cuenta el estado civil, se podría observar si las mujeres que están casadas cobran menos que los hombres (ya sea porque tienen redución de jornada, o directamente porque no trabajan), lo cual vemos que no es cierto, de hecho todo lo contrario, cuando más están nivelados los sueldos son cuando están casados. Por lo tanto, hemos visto que sí que hay una ventaja en el nivel del salario de los hombres respecto al de las mujeres.
+
+Esa ventaja en los salarios de los hombres respecto a las mujeres podría darse porque tienen niveles de educación diferntes:
+
+```{r}
+ggplot(data = df_copy, aes(x=sex,fill=salary)) + geom_bar(position = "fill") +
+  facet_wrap(~education) +
+  xlab("Sexo") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Salario") +
+  ggtitle("Salario respecto al sexo y la educación") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Pero a la vista está, que hombres y mujeres con el mismo nivel de estudios, en todos los casos son los hombres los que tienen un sueldo superior que las mujeres. Por lo tanto, podemos concluir que sí que es una sociedad machista, por lo menos en cuanto al nivel de salarios.
+
+Otro aspecto a tener en cuenta, es si las mujeres tienen las mismas oportunidades que los hombres en la educación:
+
+```{r}
+ggplot(data = df_copy, aes(x=education,fill=sex)) + geom_bar(position = "fill") +
+  xlab("Education") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Sexo") +
+  ggtitle("Sexo respecto a la educación") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Aunque a priori hay más hombres que mujeres que tienen una educación mayor, esto también se debe a que el número de registros que tenemos de hombres es mayor que el de mujeres, para ser más exacto es el doble de los datos, por lo tanto, lógicamente va a haber una desproporción en cuanto a cantidad, pero si analizamos las gráficas ambas siguen una tendencia similar al principio hay más hombre que mujeres pero a partir del 7-8 grado empieza a subir el número de mujeres, seguramente sea por el abandono de los hombres. También es verdad que al final de la etapa educativa vuelve a subir la proporción de hombres respecto a la de mujeres.
+
+En la siguiente ejecución podemos ver el número de registros de mujeres respecto hombres, y vemos que es el doble:
+
+```{r}
+summary(df_copy$sex)
+```
+
+Finalmente, para determinar cómo de machista es la sociedad, podríamos ver si en el ámbito laboral es similar la proporción entre hombres y mujeres:
+
+```{r}
+ggplot(data = df_copy, aes(x=occupation,fill=sex)) + geom_bar(position = "fill") +
+  xlab("Sector de trabajo") +
+  ylab("Frecuencia") +
+  scale_fill_discrete(name = "Sexo") +
+  ggtitle("Sexo respecto al trabajo") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Respecto al trabajo en el que suelen destacar las mujeres son tres grupos: el trabajo administrativo (adm-clerical), servicios del hogar (priv-house-serv) y otros servicios (other-service).
+
+Como podemos apreciar, los trabajos asociados a las mujeres son los típicos de cuidados de la casa, limpieza, secretaria... Por lo tanto, respecto al mundo laboral la sociedad estadounidense en 1994 era machista.
+
+
+### Conclusiones
+Dado el dataset que se nos ha proporcionado para esta práctica, podemos realizarnos muchas preguntas para saber si dos o más variables están relacioandas.
+
+Mi enfoque en este punto ha sido en un principio el ver si determinadas variables estaban relacioandas con el salario de un persona. Hemos llegado a la conclusión de que: 
+
+- Salarios altos solo se ven a partir de 25 años, esto quiere decir, que la gente joven por norma general estudia y de forma complentaria puede trabajar, lógicamente va a trabajar menos horas y su salario va a ser menor debido a la inexperiencia. Por otro lado, es lógico que los salarios más altos estén entre 25 y 65 años, debido a que ya se junta el conomiento y la experiencia.
+- Hemos relacionado el salario con la clase de trabajo, y hemos visto que la gente que más dinero gana son autónomos, también hemos podido ver la diferencia de salarios entre el gobierno federal, estatal y local.
+- Posteriormente, hemos comprobado si el sueldo de una peronsa dependía del nivel educativo, y hemos visto que estaban muy correlacionadas positivamente ambas variables, es decir, que a mayor nivel educativo mayor salrio.
+- Hemos comprobado si el salario se veía afectado por la raza.
+- Hemos comprobado si el salario se veía afectado por el sexo.
+
+De los dos último puntos anteriores, nos ha surgido una par de preguntas. La primera ha sido, ¿la sociedad estadounidense es racista?
+
+- Tras hacer un primer análisis, hemos visto que sí que había diferencias entre razas en cuanto a nivel de salarios, tanto la raza asiática como la blanca son los que mayores salarios tenían. Pero esto no significa que sea una sociedad racista.
+- Hemos analizado si el nivel educativo se veía influenciado por la raza, y hemos visto que ligeramente sí. La educación en EEUU es muy cara y por lo tanto a medida que avanzas a nivel educativo más cara se vuelve, es por ello que razas como la negra y la hindú reducían el número de personas en el ámbito educativo, sin embargo, la raza asiática y la blanca no se veían afectadas. Aunque sí que hay una ligera diferencia entre razas, no podemos determinar que sea una sociedad racista.
+- Hemos comprobado el sector de trabajo en cada raza, y hemos visto que la raza negra realiza trabajos menos culificados que las razas blanca y asiática. Lógicamente, hemos visto el porqué la raza negra tenía un descenso de personas en el ámbito universitario, y es que los salarios entre razas eran diferentes. Es verdad que la raza negra hacía trabajos no cualificados, pero eso no significa que una sociedad sea racista, por lo tanto, hemos intuido que el punto de partida de la raza negra respecto a las demás es diferente, debido a la esclavitud que vivió en su pasado, esto significa que en el pasado sí que era una sociedad racista pero que en 1994 no.
+
+La segunda pregunta que nos hemos hecho ha sido, ¿la sociedad es machista?
+
+- Primero hemos hecho un análisis básico sobre los salarios entre el género másculino y femenino, y nos hemos dado cuenta que sí que había una diferencia significativa.
+- Después hemos comprobado si era verdad que las mujeres dependiendo de su estado civil variaba su salario, por si estaban casadas y en el caso de tener hijos reducian su jornada laboral, o dejaban el trabajo. Hemos visto que no era cierta la suposoción, sino que cuando más equiparados estaban los salarios eran cuando estaban casadas las mujeres.
+- Nos hemos planteado si la diferencia entre salarios era por el nivel educativo, y nos hemos dado cuenta que sí que hay diferencia entre el hombre y la mujer, ya que el primero siempre tiene un salario mayor que el segundo. Por lo tanto, llegamos a la conclusión de que sí que eran machistas respecto al ámbito salarial.
+- Hemos comprobado si tanto hombres como mujeres tenían las mismas oportunidades educativas, y hemos visto que sí.
+- Finalmente, hemos analizado si los sectores en los que predomina la mujer son los típicos de admnistración, limpieza de hogares... Y la respuesta era que sí, por lo tanto, hemos concluido que sí que era una sociedad machista en el ámbito laboral.
+
+En resumen, son muchas las preguntas que nos podemos hacer pero siendo sinceros creo que las anteriores son las más interesantes, nos ha permitido tener una visión de cómo era la sociedad en los Estados Unidos de América en 1994.
+
 
 ***
 # Criterios de evaluación
