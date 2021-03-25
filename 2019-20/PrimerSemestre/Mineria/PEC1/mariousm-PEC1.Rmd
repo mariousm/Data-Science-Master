@@ -371,8 +371,15 @@ A partir del juego de datos disponible en el siguiente enlace http://archive.ics
 
 Nota: Si lo deseas puedes utilizar otro conjunto de datos propio o de algún repositorio datos abiertos siempre que sea similar en diversidad de tipo de variables al propuesto.
 
+### Objetivos
+Trabajaremos con el juego de datos “http://archive.ics.uci.edu/ml/datasets/adult” que recoge datos sobre el censo de los Estados Unidos de América en el año 1994.
+
+Las actividades que llevaremos a cabo en esta práctica se realizan en las fases iniciales de un proyecto de minería de datos. Tienen como objetivo obtener un conocimiento sobre los datos, además de preparar el dataset para poder ser usado posteriormente en los modelos de minería de datos.
+
+Algunas de las tareas que se van a realizar son la carga y limpieza del dataset, análisis de las variables, transformación de datos, análisis visuales de datos...
 
 
+### Procesos iniciales con los datos
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Cargamos el juego de datos
@@ -475,7 +482,116 @@ df_copy$salary = factor(df_copy$salary, ordered = TRUE, levels = c("<=50K", ">50
 str(df_copy)
 ```
 
-    
+Lo primero que vamos a hacer es eliminar la columna education-num, ya que dicha información viene representada con la columna education, gracias a esto reducimos la dimensionalidad del dataset:
+
+```{r}
+df_copy = df_copy[, -c(5)]
+str(df_copy)
+```
+
+Estadísticas básicas sobre el conjuntos de datos, nos permite tener una guía sobre los datos que estamos manejando, algunas de estas estadísticas se usarán a lo largo de la práctica:
+
+```{r}
+summary(df_copy)
+```
+
+Destacar que este dataset recoge el censo en los Estados Unidos de América en los años 90, y por aquel entonces un ciudadano medio sería el siguiente: hombre blanco estadounidense, con una edad entre 35 y 40 años, que trabaja en una empresa (no es autónomo), su educación seguramente sea el graduado escolar o estudios universitarios, posiblemente estará casado por lo civil o soltero, trabajara de media entre 40 y 45 horas semanales, y su salario anual será inferior a 50K dólares.
+
+Cosas que me han llamado bastante la atención de las anteriores estadísticas son:
+
+- Estados Unidos se vende como el país en el que se cumplen los sueños, y para ser el país en el que se cumplen los sueños en la gran mayoría de la gente su clase de trabajo es privada, no son emprendedores.
+
+- Hay mucha población cuyo nivel de educación es de instituto, es verdad que allí la universidad es muy cara y no todo el mundo se lo puede permitir, pero aún así viendo las estadísticas es que solo a partir de la clase media-alta puedes ir a la universidad.
+
+- Respecto a la raza pensaba que había más negros, creo que dentro de los blancos están considerando a los latinos (lo cual tanto en la costa oeste como en el sur hay un gran número de latinos), pero aún así hay casi 10 veces más blancos que negros. También puede ser que los negros por norma general no participen en el censo, por los motivos x.
+
+- En cuanto al sexo, es llamativo ver que hay el doble de hombres que de mujeres, no sé si es porque solo las mujeres independientes realizaron el censo, o lo mejor la proporción de hombres respecto al de mujeres es el doble.
+
+Por otro lado, una vez eliminada la columna education-num, realizamos la comprobación si hay elementos duplicados, para ellos usamos la función proporcionada en R:
+
+```{r}
+cat("El número de registros duplicados son: ", nrow(df_copy[duplicated(df_copy),]))
+```
+
+```{r}
+head(df_copy[duplicated(df_copy),])
+```
+
+Analizando con más detalle estos registros vemos que realmento no son duplicados, tienen muchos valores iguales pero no todos los atributos tienen el mismo valor, por lo tanto, nos los podemos considerar como duplicados.
+
+Sabiendo que no hay elementos duplicados, ahora nos toca ver si tenemos valores perdidos, es decir, si hay atributos vacíos (en la documentación del dataset, indica que los valores desconocidos son tratados con un interrogante "?"):
+
+```{r}
+colSums(is.na(df_copy))
+colSums(df_copy=="?")
+```
+
+Como podemos ver, las variables workclass, occupation y native-country, son las únicas variables que toman valores desconocidos. Estos valores podrían dejar de ser desconocidos si por ejemplo establecemos que el valor sea el más frecuente. Como en la práctica no se indica nada, considero que es mejor dejarlos como desconocidos, ya que de lo contario puede afectar en el estudio de los registros que sí que tienen todos los datos.
+
+Posteriormente, tenemos que normalizar algunas variables numéricas, en nuestro caso que lo mejor es normalizar el capital ganado y el capital perdido, ya que el rango de ambas variables es diferente y ambas se refieren a lo mismo, el dinero, ya sea de ganacias o de pérdidas:
+
+```{r}
+library(scales) # Usamos la librería scales para normalizar por la diferencia
+
+df_copy["n-capital-gain"] = rescale(df_copy$`capital-gain`) # Reescalamos y creamos un nuevo campo
+df_copy["n-capital-loss"] = rescale(df_copy$`capital-loss`) # Reescalamos y creamos un nuevo campo
+
+# Visualizamos los cambios
+head(df_copy[(df_copy$`capital-gain` != 0 | df_copy$`capital-loss` != 0), c("capital-gain", "capital-loss", "n-capital-gain", "n-capital-loss")])
+```
+
+Otro elemento a tener en cuenta, es el crear nuevas variables a partir de las existentes en el dataset, en nuestro caso creo que sería interesante estimar el salario anual, según las horas trabajadas. Para ello, la página oficial del censo en los Estados Unidos (https://www.census.gov/library/publications/1996/demo/p60-189.html), indica que el ingreso medio en los hogares de los EEUU era de 34445 dólares.
+
+Si dividimos ese valor por 12 meses, 30 días y 8 horas de trabajo al día (eso es lo legal), obtenemos que el ingreso por hora laboral es de 11.96 dólares por hora.
+
+```{r}
+incomePerHour = round(34445 / (12 * 30 * 8), 2)
+incomePerHour
+```
+
+Una vez que sabemos el dinero por hora podemos estimar para cada persona el salario anual que tendría según sus horas trabajadas, para ello múltiplicamos por 4 semanas y por 12 meses:
+
+```{r}
+df_copy["salary-estimated"] = df_copy$`hours-per-week` * incomePerHour * 4 * 12
+head(df_copy[, c("hours-per-week", "salary-estimated", "salary")], 10)
+```
+
+Como podemos apreciar en la anterior tabla, el salario estimado hay veces en las que no supera la variable salario con la que viene categorizada el dataset, esto puede ser por varios motivos:
+
+- Se desconoce si el salario de 34445$ en EEUU en 1994 es antes de impuestos o no.
+- No se sabe si la variable salario del dataset se refiere a antes de impuestos o no.
+- Si se considera como salario en el dataset los ingresos del hogar, tanto el sueldo de la mujer como el del hombre (si están casados). O si hay más miembros de la familia que trabajan. No se especifica en ningún lado en la documentación del dataset, no está del todo bien explicada.
+- Es una estimación, no es lo mismo el dinero que se paga a alguién con un trabajo cualificado que no...
+
+En resumen, esta estimación nos permite hacernos una idea del sueldo medio que correspondería según las horas trabajadas, no significa que sea exactamente lo que ganaban.
+
+Por último, es interesante discretizar determinados valores, para que así luego sea más fácil de analizar:
+
+```{r}
+# Discretizamos la edad
+df_copy["d-age"] = ordered(cut(df_copy[[ "age"]], breaks = c(15,25,45,65,100), labels = c("Young", "Middle-aged", "Senior", "Old")))
+
+# Discretizamos la jornada laboral
+df_copy["d-hours-per-week"] = ordered(cut(df_copy[[ "hours-per-week"]], c(0,25,40,60,168)), labels = c("Part-time", "Full-time", "Over-time", "Workaholic"))
+
+# Discretizamos el capital ganado
+df_copy["d-capital-gain"] = ordered(cut(df_copy[[ "capital-gain"]],
+                                        c(-Inf,0,median(df_copy[["capital-gain"]][df_copy[["capital-gain"]]>0]), Inf)), 
+                                    labels = c("None", "Low", "High"))
+
+# Discretizamos el capital perdido
+df_copy["d-capital-loss"] = ordered(cut(df_copy[[ "capital-loss"]],
+                                        c(-Inf,0, median(df_copy[["capital-loss"]][df_copy[[ "capital-loss"]]>0]), Inf)),
+                                    labels = c("None", "Low", "High"))
+
+str(df_copy)
+```
+
+En la siguiente tabla podemos ver cómo está quedando nuestro dataset:
+```{r}
+head(df_copy)
+```
+
 
 ***
 # Criterios de evaluación

@@ -503,13 +503,345 @@ ggplot(data = totalData1[!is.na(totalData[1:filas,]$FamilySize),],aes(x=FamilySi
 <h2 number="3.2"><span class="header-section-number">3.2</span> Ejercicio 2:</h2>
 <p>A partir del juego de datos disponible en el siguiente enlace <a href="http://archive.ics.uci.edu/ml/datasets/adult" class="uri">http://archive.ics.uci.edu/ml/datasets/adult</a> , realiza las tareas previas a la generación de un modelo de minería de datos explicados en el Módulo 2. Puedes utilizar de referencia el ejemplo del Titánic.</p>
 <p>Nota: Si lo deseas puedes utilizar otro conjunto de datos propio o de algún repositorio datos abiertos siempre que sea similar en diversidad de tipo de variables al propuesto.</p>
+<div id="objetivos-2" class="section level3" number="3.2.1">
+<h3 number="3.2.1"><span class="header-section-number">3.2.1</span> Objetivos</h3>
+<p>Trabajaremos con el juego de datos “<a href="http://archive.ics.uci.edu/ml/datasets/adult" class="uri">http://archive.ics.uci.edu/ml/datasets/adult</a>” que recoge datos sobre el censo de los Estados Unidos de América en el año 1994.</p>
+<p>Las actividades que llevaremos a cabo en esta práctica se realizan en las fases iniciales de un proyecto de minería de datos. Tienen como objetivo obtener un conocimiento sobre los datos, además de preparar el dataset para poder ser usado posteriormente en los modelos de minería de datos.</p>
+<p>Algunas de las tareas que se van a realizar son la carga y limpieza del dataset, análisis de las variables, transformación de datos, análisis visuales de datos…</p>
+</div>
+<div id="procesos-iniciales-con-los-datos-1" class="section level3" number="3.2.2">
+<h3 number="3.2.2"><span class="header-section-number">3.2.2</span> Procesos iniciales con los datos</h3>
 <pre class="r"><code># Cargamos el juego de datos
+df = read.table(file=&quot;./data/adult.data&quot;, fileEncoding=&quot;UTF-8&quot;, sep=&quot;,&quot;, na.strings = &quot;NA&quot;)
 
-# Redacta aquí el código R para el estudio del juego de datos</code></pre>
-<blockquote>
-<p>Escribe aquí la respuesta a la pregunta</p>
-</blockquote>
+# Cambiamos el nombre de las columnas tal y como se llaman según la página web
+colnames(df) = c(&quot;age&quot;, &quot;workclass&quot;, &quot;fnlwgt&quot;, &quot;education&quot;, &quot;education-num&quot;, &quot;marital-status&quot;, &quot;occupation&quot;, &quot;relationship&quot;, &quot;race&quot;, &quot;sex&quot;, &quot;capital-gain&quot;, &quot;capital-loss&quot;, &quot;hours-per-week&quot;, &quot;native-country&quot;, &quot;salary&quot;)
+
+# Creamos una copia del dataframe, ya que va a ser la copia sobre la que vamos a realizar las modificaciones
+df_copy = df
+
+# Visualizamos los datos
+str(df_copy)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    32561 obs. of  15 variables:
+##  $ age           : int  39 50 38 53 28 37 49 52 31 42 ...
+##  $ workclass     : chr  &quot; State-gov&quot; &quot; Self-emp-not-inc&quot; &quot; Private&quot; &quot; Private&quot; ...
+##  $ fnlwgt        : int  77516 83311 215646 234721 338409 284582 160187 209642 45781 159449 ...
+##  $ education     : chr  &quot; Bachelors&quot; &quot; Bachelors&quot; &quot; HS-grad&quot; &quot; 11th&quot; ...
+##  $ education-num : int  13 13 9 7 13 14 5 9 14 13 ...
+##  $ marital-status: chr  &quot; Never-married&quot; &quot; Married-civ-spouse&quot; &quot; Divorced&quot; &quot; Married-civ-spouse&quot; ...
+##  $ occupation    : chr  &quot; Adm-clerical&quot; &quot; Exec-managerial&quot; &quot; Handlers-cleaners&quot; &quot; Handlers-cleaners&quot; ...
+##  $ relationship  : chr  &quot; Not-in-family&quot; &quot; Husband&quot; &quot; Not-in-family&quot; &quot; Husband&quot; ...
+##  $ race          : chr  &quot; White&quot; &quot; White&quot; &quot; White&quot; &quot; Black&quot; ...
+##  $ sex           : chr  &quot; Male&quot; &quot; Male&quot; &quot; Male&quot; &quot; Male&quot; ...
+##  $ capital-gain  : int  2174 0 0 0 0 0 0 0 14084 5178 ...
+##  $ capital-loss  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ hours-per-week: int  40 13 40 40 40 40 16 45 50 40 ...
+##  $ native-country: chr  &quot; United-States&quot; &quot; United-States&quot; &quot; United-States&quot; &quot; United-States&quot; ...
+##  $ salary        : chr  &quot; &lt;=50K&quot; &quot; &lt;=50K&quot; &quot; &lt;=50K&quot; &quot; &lt;=50K&quot; ...</code></pre>
+<pre class="r"><code># https://rdrr.io/cran/arules/man/Adult.html
+# https://lwmachinelearning.wordpress.com/portfolio/adults-data-set/</code></pre>
+<p>Vemos que tenemos 32561 registros y 15 variables que los caracterizan.</p>
+<p>Revisamos la descripción de las variables y si los tipos de variable se corresponden al que hemos cargado:</p>
+<p><strong>age</strong> integer - edad de la persona.</p>
+<p><strong>workclass</strong> factor - clase de trabajo.</p>
+<p><strong>fnlwgt</strong> integer - peso final de la población que representa.</p>
+<p><strong>education</strong> ordered factor - nivel de educación.</p>
+<p><strong>education-num</strong> integer - número de nivel de educación.</p>
+<p><strong>marital-status</strong> factor - estado civil de la persona.</p>
+<p><strong>occupation</strong> factor - ocupación de la persona.</p>
+<p><strong>relationship</strong> factor - tipo de relación de la persona.</p>
+<p><strong>race</strong> factor - raza de la persona.</p>
+<p><strong>sex</strong> factor - sexo de la persona.</p>
+<p><strong>capital-gain</strong> integer - ganacias obtenidas.</p>
+<p><strong>capital-loss</strong> integer - pérdidas.</p>
+<p><strong>hours-per-week</strong> integer - media de horas trabajadas por semana.</p>
+<p><strong>native-country</strong> integer - país de origen.</p>
+<p><strong>salary</strong> ordered factor - nivel de ingresos.</p>
+<p>Tal y como podemos observar, las variables numéricas sí que están bien definidas, sin embargo, las variables no numéricas las reconoce como chr en vez de factor, por lo que vamos a solucionar eso, pero antes como podemos comprobar en los atributos de tipo chr sus valores se guardan con un espacio delante, asi que hay que solucionar este problema antes:</p>
+<pre class="r"><code># Método que elimina los espacios en blanco del principio y del final
+trim = function (x) gsub(&quot;^\\s+|\\s+$&quot;, &quot;&quot;, x)
+
+# Quitamos los espacios para cada columna de tipo factor
+df_copy$workclass = trim(df_copy$workclass)
+df_copy$education = trim(df_copy$education)
+df_copy$`marital-status` = trim(df_copy$`marital-status`)
+df_copy$occupation = trim(df_copy$occupation)
+df_copy$relationship = trim(df_copy$relationship)
+df_copy$race = trim(df_copy$race)
+df_copy$sex = trim(df_copy$sex)
+df_copy$`native-country` = trim(df_copy$`native-country`)
+df_copy$salary = trim(df_copy$salary)
+
+str(df_copy)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    32561 obs. of  15 variables:
+##  $ age           : int  39 50 38 53 28 37 49 52 31 42 ...
+##  $ workclass     : chr  &quot;State-gov&quot; &quot;Self-emp-not-inc&quot; &quot;Private&quot; &quot;Private&quot; ...
+##  $ fnlwgt        : int  77516 83311 215646 234721 338409 284582 160187 209642 45781 159449 ...
+##  $ education     : chr  &quot;Bachelors&quot; &quot;Bachelors&quot; &quot;HS-grad&quot; &quot;11th&quot; ...
+##  $ education-num : int  13 13 9 7 13 14 5 9 14 13 ...
+##  $ marital-status: chr  &quot;Never-married&quot; &quot;Married-civ-spouse&quot; &quot;Divorced&quot; &quot;Married-civ-spouse&quot; ...
+##  $ occupation    : chr  &quot;Adm-clerical&quot; &quot;Exec-managerial&quot; &quot;Handlers-cleaners&quot; &quot;Handlers-cleaners&quot; ...
+##  $ relationship  : chr  &quot;Not-in-family&quot; &quot;Husband&quot; &quot;Not-in-family&quot; &quot;Husband&quot; ...
+##  $ race          : chr  &quot;White&quot; &quot;White&quot; &quot;White&quot; &quot;Black&quot; ...
+##  $ sex           : chr  &quot;Male&quot; &quot;Male&quot; &quot;Male&quot; &quot;Male&quot; ...
+##  $ capital-gain  : int  2174 0 0 0 0 0 0 0 14084 5178 ...
+##  $ capital-loss  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ hours-per-week: int  40 13 40 40 40 40 16 45 50 40 ...
+##  $ native-country: chr  &quot;United-States&quot; &quot;United-States&quot; &quot;United-States&quot; &quot;United-States&quot; ...
+##  $ salary        : chr  &quot;&lt;=50K&quot; &quot;&lt;=50K&quot; &quot;&lt;=50K&quot; &quot;&lt;=50K&quot; ...</code></pre>
+<p>Una vez hemos eliminado los espacios de la variable de tipo character, las podemos convertir a factor:</p>
+<pre class="r"><code># Convertirmos las columna a factor
+df_copy$workclass = as.factor(df_copy$workclass)
+df_copy$education = factor(df_copy$education, ordered = TRUE, levels = c(&quot;Preschool&quot;, &quot;1st-4th&quot;, &quot;5th-6th&quot;, &quot;7th-8th&quot;, &quot;9th&quot;, &quot;10th&quot;, &quot;11th&quot;, &quot;12th&quot;, &quot;HS-grad&quot;, &quot;Prof-school&quot;, &quot;Assoc-acdm&quot;, &quot;Assoc-voc&quot;, &quot;Some-college&quot;, &quot;Bachelors&quot;, &quot;Masters&quot;, &quot;Doctorate&quot;))
+df_copy$`marital-status` = as.factor(df_copy$`marital-status`)
+df_copy$occupation = as.factor(df_copy$occupation)
+df_copy$relationship = as.factor(df_copy$relationship)
+df_copy$race = as.factor(df_copy$race)
+df_copy$sex = as.factor(df_copy$sex)
+df_copy$`native-country` = as.factor(df_copy$`native-country`)
+df_copy$salary = factor(df_copy$salary, ordered = TRUE, levels = c(&quot;&lt;=50K&quot;, &quot;&gt;50K&quot;))
+
+str(df_copy)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    32561 obs. of  15 variables:
+##  $ age           : int  39 50 38 53 28 37 49 52 31 42 ...
+##  $ workclass     : Factor w/ 9 levels &quot;?&quot;,&quot;Federal-gov&quot;,..: 8 7 5 5 5 5 5 7 5 5 ...
+##  $ fnlwgt        : int  77516 83311 215646 234721 338409 284582 160187 209642 45781 159449 ...
+##  $ education     : Ord.factor w/ 16 levels &quot;Preschool&quot;&lt;&quot;1st-4th&quot;&lt;..: 14 14 9 7 14 15 5 9 15 14 ...
+##  $ education-num : int  13 13 9 7 13 14 5 9 14 13 ...
+##  $ marital-status: Factor w/ 7 levels &quot;Divorced&quot;,&quot;Married-AF-spouse&quot;,..: 5 3 1 3 3 3 4 3 5 3 ...
+##  $ occupation    : Factor w/ 15 levels &quot;?&quot;,&quot;Adm-clerical&quot;,..: 2 5 7 7 11 5 9 5 11 5 ...
+##  $ relationship  : Factor w/ 6 levels &quot;Husband&quot;,&quot;Not-in-family&quot;,..: 2 1 2 1 6 6 2 1 2 1 ...
+##  $ race          : Factor w/ 5 levels &quot;Amer-Indian-Eskimo&quot;,..: 5 5 5 3 3 5 3 5 5 5 ...
+##  $ sex           : Factor w/ 2 levels &quot;Female&quot;,&quot;Male&quot;: 2 2 2 2 1 1 1 2 1 2 ...
+##  $ capital-gain  : int  2174 0 0 0 0 0 0 0 14084 5178 ...
+##  $ capital-loss  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ hours-per-week: int  40 13 40 40 40 40 16 45 50 40 ...
+##  $ native-country: Factor w/ 42 levels &quot;?&quot;,&quot;Cambodia&quot;,..: 40 40 40 40 6 40 24 40 40 40 ...
+##  $ salary        : Ord.factor w/ 2 levels &quot;&lt;=50K&quot;&lt;&quot;&gt;50K&quot;: 1 1 1 1 1 1 1 2 2 2 ...</code></pre>
+<p>Lo primero que vamos a hacer es eliminar la columna education-num, ya que dicha información viene representada con la columna education, gracias a esto reducimos la dimensionalidad del dataset:</p>
+<pre class="r"><code>df_copy = df_copy[, -c(5)]
+str(df_copy)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    32561 obs. of  14 variables:
+##  $ age           : int  39 50 38 53 28 37 49 52 31 42 ...
+##  $ workclass     : Factor w/ 9 levels &quot;?&quot;,&quot;Federal-gov&quot;,..: 8 7 5 5 5 5 5 7 5 5 ...
+##  $ fnlwgt        : int  77516 83311 215646 234721 338409 284582 160187 209642 45781 159449 ...
+##  $ education     : Ord.factor w/ 16 levels &quot;Preschool&quot;&lt;&quot;1st-4th&quot;&lt;..: 14 14 9 7 14 15 5 9 15 14 ...
+##  $ marital-status: Factor w/ 7 levels &quot;Divorced&quot;,&quot;Married-AF-spouse&quot;,..: 5 3 1 3 3 3 4 3 5 3 ...
+##  $ occupation    : Factor w/ 15 levels &quot;?&quot;,&quot;Adm-clerical&quot;,..: 2 5 7 7 11 5 9 5 11 5 ...
+##  $ relationship  : Factor w/ 6 levels &quot;Husband&quot;,&quot;Not-in-family&quot;,..: 2 1 2 1 6 6 2 1 2 1 ...
+##  $ race          : Factor w/ 5 levels &quot;Amer-Indian-Eskimo&quot;,..: 5 5 5 3 3 5 3 5 5 5 ...
+##  $ sex           : Factor w/ 2 levels &quot;Female&quot;,&quot;Male&quot;: 2 2 2 2 1 1 1 2 1 2 ...
+##  $ capital-gain  : int  2174 0 0 0 0 0 0 0 14084 5178 ...
+##  $ capital-loss  : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ hours-per-week: int  40 13 40 40 40 40 16 45 50 40 ...
+##  $ native-country: Factor w/ 42 levels &quot;?&quot;,&quot;Cambodia&quot;,..: 40 40 40 40 6 40 24 40 40 40 ...
+##  $ salary        : Ord.factor w/ 2 levels &quot;&lt;=50K&quot;&lt;&quot;&gt;50K&quot;: 1 1 1 1 1 1 1 2 2 2 ...</code></pre>
+<p>Estadísticas básicas sobre el conjuntos de datos, nos permite tener una guía sobre los datos que estamos manejando, algunas de estas estadísticas se usarán a lo largo de la práctica:</p>
+<pre class="r"><code>summary(df_copy)</code></pre>
+<pre><code>##       age                   workclass         fnlwgt       
+##  Min.   :17.00   Private         :22696   Min.   :  12285  
+##  1st Qu.:28.00   Self-emp-not-inc: 2541   1st Qu.: 117827  
+##  Median :37.00   Local-gov       : 2093   Median : 178356  
+##  Mean   :38.58   ?               : 1836   Mean   : 189778  
+##  3rd Qu.:48.00   State-gov       : 1298   3rd Qu.: 237051  
+##  Max.   :90.00   Self-emp-inc    : 1116   Max.   :1484705  
+##                  (Other)         :  981                    
+##         education                   marital-status            occupation  
+##  HS-grad     :10501   Divorced             : 4443   Prof-specialty :4140  
+##  Some-college: 7291   Married-AF-spouse    :   23   Craft-repair   :4099  
+##  Bachelors   : 5355   Married-civ-spouse   :14976   Exec-managerial:4066  
+##  Masters     : 1723   Married-spouse-absent:  418   Adm-clerical   :3770  
+##  Assoc-voc   : 1382   Never-married        :10683   Sales          :3650  
+##  11th        : 1175   Separated            : 1025   Other-service  :3295  
+##  (Other)     : 5134   Widowed              :  993   (Other)        :9541  
+##          relationship                   race           sex       
+##  Husband       :13193   Amer-Indian-Eskimo:  311   Female:10771  
+##  Not-in-family : 8305   Asian-Pac-Islander: 1039   Male  :21790  
+##  Other-relative:  981   Black             : 3124                 
+##  Own-child     : 5068   Other             :  271                 
+##  Unmarried     : 3446   White             :27816                 
+##  Wife          : 1568                                            
+##                                                                  
+##   capital-gain    capital-loss    hours-per-week        native-country 
+##  Min.   :    0   Min.   :   0.0   Min.   : 1.00   United-States:29170  
+##  1st Qu.:    0   1st Qu.:   0.0   1st Qu.:40.00   Mexico       :  643  
+##  Median :    0   Median :   0.0   Median :40.00   ?            :  583  
+##  Mean   : 1078   Mean   :  87.3   Mean   :40.44   Philippines  :  198  
+##  3rd Qu.:    0   3rd Qu.:   0.0   3rd Qu.:45.00   Germany      :  137  
+##  Max.   :99999   Max.   :4356.0   Max.   :99.00   Canada       :  121  
+##                                                   (Other)      : 1709  
+##    salary     
+##  &lt;=50K:24720  
+##  &gt;50K : 7841  
+##               
+##               
+##               
+##               
+## </code></pre>
+<p>Destacar que este dataset recoge el censo en los Estados Unidos de América en los años 90, y por aquel entonces un ciudadano medio sería el siguiente: hombre blanco estadounidense, con una edad entre 35 y 40 años, que trabaja en una empresa (no es autónomo), su educación seguramente sea el graduado escolar o estudios universitarios, posiblemente estará casado por lo civil o soltero, trabajara de media entre 40 y 45 horas semanales, y su salario anual será inferior a 50K dólares.</p>
+<p>Cosas que me han llamado bastante la atención de las anteriores estadísticas son:</p>
+<ul>
+<li><p>Estados Unidos se vende como el país en el que se cumplen los sueños, y para ser el país en el que se cumplen los sueños en la gran mayoría de la gente su clase de trabajo es privada, no son emprendedores.</p></li>
+<li><p>Hay mucha población cuyo nivel de educación es de instituto, es verdad que allí la universidad es muy cara y no todo el mundo se lo puede permitir, pero aún así viendo las estadísticas es que solo a partir de la clase media-alta puedes ir a la universidad.</p></li>
+<li><p>Respecto a la raza pensaba que había más negros, creo que dentro de los blancos están considerando a los latinos (lo cual tanto en la costa oeste como en el sur hay un gran número de latinos), pero aún así hay casi 10 veces más blancos que negros. También puede ser que los negros por norma general no participen en el censo, por los motivos x.</p></li>
+<li><p>En cuanto al sexo, es llamativo ver que hay el doble de hombres que de mujeres, no sé si es porque solo las mujeres independientes realizaron el censo, o lo mejor la proporción de hombres respecto al de mujeres es el doble.</p></li>
+</ul>
+<p>Por otro lado, una vez eliminada la columna education-num, realizamos la comprobación si hay elementos duplicados, para ellos usamos la función proporcionada en R:</p>
+<pre class="r"><code>cat(&quot;El número de registros duplicados son: &quot;, nrow(df_copy[duplicated(df_copy),]))</code></pre>
+<pre><code>## El número de registros duplicados son:  24</code></pre>
+<pre class="r"><code>head(df_copy[duplicated(df_copy),])</code></pre>
+<pre><code>##       age workclass fnlwgt    education marital-status      occupation
+## 4882   25   Private 308144    Bachelors  Never-married    Craft-repair
+## 5105   90   Private  52386 Some-college  Never-married   Other-service
+## 9172   21   Private 250051 Some-college  Never-married  Prof-specialty
+## 11632  20   Private 107658 Some-college  Never-married    Tech-support
+## 13085  25   Private 195994      1st-4th  Never-married Priv-house-serv
+## 15060  21   Private 243368    Preschool  Never-married Farming-fishing
+##        relationship               race    sex capital-gain capital-loss
+## 4882  Not-in-family              White   Male            0            0
+## 5105  Not-in-family Asian-Pac-Islander   Male            0            0
+## 9172      Own-child              White Female            0            0
+## 11632 Not-in-family              White Female            0            0
+## 13085 Not-in-family              White Female            0            0
+## 15060 Not-in-family              White   Male            0            0
+##       hours-per-week native-country salary
+## 4882              40         Mexico  &lt;=50K
+## 5105              35  United-States  &lt;=50K
+## 9172              10  United-States  &lt;=50K
+## 11632             10  United-States  &lt;=50K
+## 13085             40      Guatemala  &lt;=50K
+## 15060             50         Mexico  &lt;=50K</code></pre>
+<p>Analizando con más detalle estos registros vemos que realmento no son duplicados, tienen muchos valores iguales pero no todos los atributos tienen el mismo valor, por lo tanto, nos los podemos considerar como duplicados.</p>
+<p>Sabiendo que no hay elementos duplicados, ahora nos toca ver si tenemos valores perdidos, es decir, si hay atributos vacíos (en la documentación del dataset, indica que los valores desconocidos son tratados con un interrogante “?”):</p>
+<pre class="r"><code>colSums(is.na(df_copy))</code></pre>
+<pre><code>##            age      workclass         fnlwgt      education marital-status 
+##              0              0              0              0              0 
+##     occupation   relationship           race            sex   capital-gain 
+##              0              0              0              0              0 
+##   capital-loss hours-per-week native-country         salary 
+##              0              0              0              0</code></pre>
+<pre class="r"><code>colSums(df_copy==&quot;?&quot;)</code></pre>
+<pre><code>##            age      workclass         fnlwgt      education marital-status 
+##              0           1836              0              0              0 
+##     occupation   relationship           race            sex   capital-gain 
+##           1843              0              0              0              0 
+##   capital-loss hours-per-week native-country         salary 
+##              0              0            583              0</code></pre>
+<p>Como podemos ver, las variables workclass, occupation y native-country, son las únicas variables que toman valores desconocidos. Estos valores podrían dejar de ser desconocidos si por ejemplo establecemos que el valor sea el más frecuente. Como en la práctica no se indica nada, considero que es mejor dejarlos como desconocidos, ya que de lo contario puede afectar en el estudio de los registros que sí que tienen todos los datos.</p>
+<p>Posteriormente, tenemos que normalizar algunas variables numéricas, en nuestro caso que lo mejor es normalizar el capital ganado y el capital perdido, ya que el rango de ambas variables es diferente y ambas se refieren a lo mismo, el dinero, ya sea de ganacias o de pérdidas:</p>
+<pre class="r"><code>library(scales) # Usamos la librería scales para normalizar por la diferencia
+
+df_copy[&quot;n-capital-gain&quot;] = rescale(df_copy$`capital-gain`) # Reescalamos y creamos un nuevo campo
+df_copy[&quot;n-capital-loss&quot;] = rescale(df_copy$`capital-loss`) # Reescalamos y creamos un nuevo campo
+
+# Visualizamos los cambios
+head(df_copy[(df_copy$`capital-gain` != 0 | df_copy$`capital-loss` != 0), c(&quot;capital-gain&quot;, &quot;capital-loss&quot;, &quot;n-capital-gain&quot;, &quot;n-capital-loss&quot;)])</code></pre>
+<pre><code>##    capital-gain capital-loss n-capital-gain n-capital-loss
+## 1          2174            0     0.02174022      0.0000000
+## 9         14084            0     0.14084141      0.0000000
+## 10         5178            0     0.05178052      0.0000000
+## 24            0         2042     0.00000000      0.4687787
+## 33            0         1408     0.00000000      0.3232323
+## 53            0         1902     0.00000000      0.4366391</code></pre>
+<p>Otro elemento a tener en cuenta, es el crear nuevas variables a partir de las existentes en el dataset, en nuestro caso creo que sería interesante estimar el salario anual, según las horas trabajadas. Para ello, la página oficial del censo en los Estados Unidos (<a href="https://www.census.gov/library/publications/1996/demo/p60-189.html" class="uri">https://www.census.gov/library/publications/1996/demo/p60-189.html</a>), indica que el ingreso medio en los hogares de los EEUU era de 34445 dólares.</p>
+<p>Si dividimos ese valor por 12 meses, 30 días y 8 horas de trabajo al día (eso es lo legal), obtenemos que el ingreso por hora laboral es de 11.96 dólares por hora.</p>
+<pre class="r"><code>incomePerHour = round(34445 / (12 * 30 * 8), 2)
+incomePerHour</code></pre>
+<pre><code>## [1] 11.96</code></pre>
+<p>Una vez que sabemos el dinero por hora podemos estimar para cada persona el salario anual que tendría según sus horas trabajadas, para ello múltiplicamos por 4 semanas y por 12 meses:</p>
+<pre class="r"><code>df_copy[&quot;salary-estimated&quot;] = df_copy$`hours-per-week` * incomePerHour * 4 * 12
+head(df_copy[, c(&quot;hours-per-week&quot;, &quot;salary-estimated&quot;, &quot;salary&quot;)], 10)</code></pre>
+<pre><code>##    hours-per-week salary-estimated salary
+## 1              40         22963.20  &lt;=50K
+## 2              13          7463.04  &lt;=50K
+## 3              40         22963.20  &lt;=50K
+## 4              40         22963.20  &lt;=50K
+## 5              40         22963.20  &lt;=50K
+## 6              40         22963.20  &lt;=50K
+## 7              16          9185.28  &lt;=50K
+## 8              45         25833.60   &gt;50K
+## 9              50         28704.00   &gt;50K
+## 10             40         22963.20   &gt;50K</code></pre>
+<p>Como podemos apreciar en la anterior tabla, el salario estimado hay veces en las que no supera la variable salario con la que viene categorizada el dataset, esto puede ser por varios motivos:</p>
+<ul>
+<li>Se desconoce si el salario de 34445$ en EEUU en 1994 es antes de impuestos o no.</li>
+<li>No se sabe si la variable salario del dataset se refiere a antes de impuestos o no.</li>
+<li>Si se considera como salario en el dataset los ingresos del hogar, tanto el sueldo de la mujer como el del hombre (si están casados). O si hay más miembros de la familia que trabajan. No se especifica en ningún lado en la documentación del dataset, no está del todo bien explicada.</li>
+<li>Es una estimación, no es lo mismo el dinero que se paga a alguién con un trabajo cualificado que no…</li>
+</ul>
+<p>En resumen, esta estimación nos permite hacernos una idea del sueldo medio que correspondería según las horas trabajadas, no significa que sea exactamente lo que ganaban.</p>
+<p>Por último, es interesante discretizar determinados valores, para que así luego sea más fácil de analizar:</p>
+<pre class="r"><code># Discretizamos la edad
+df_copy[&quot;d-age&quot;] = ordered(cut(df_copy[[ &quot;age&quot;]], breaks = c(15,25,45,65,100), labels = c(&quot;Young&quot;, &quot;Middle-aged&quot;, &quot;Senior&quot;, &quot;Old&quot;)))
+
+# Discretizamos la jornada laboral
+df_copy[&quot;d-hours-per-week&quot;] = ordered(cut(df_copy[[ &quot;hours-per-week&quot;]], c(0,25,40,60,168)), labels = c(&quot;Part-time&quot;, &quot;Full-time&quot;, &quot;Over-time&quot;, &quot;Workaholic&quot;))
+
+# Discretizamos el capital ganado
+df_copy[&quot;d-capital-gain&quot;] = ordered(cut(df_copy[[ &quot;capital-gain&quot;]],
+                                        c(-Inf,0,median(df_copy[[&quot;capital-gain&quot;]][df_copy[[&quot;capital-gain&quot;]]&gt;0]), Inf)), 
+                                    labels = c(&quot;None&quot;, &quot;Low&quot;, &quot;High&quot;))
+
+# Discretizamos el capital perdido
+df_copy[&quot;d-capital-loss&quot;] = ordered(cut(df_copy[[ &quot;capital-loss&quot;]],
+                                        c(-Inf,0, median(df_copy[[&quot;capital-loss&quot;]][df_copy[[ &quot;capital-loss&quot;]]&gt;0]), Inf)),
+                                    labels = c(&quot;None&quot;, &quot;Low&quot;, &quot;High&quot;))
+
+str(df_copy)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    32561 obs. of  21 variables:
+##  $ age             : int  39 50 38 53 28 37 49 52 31 42 ...
+##  $ workclass       : Factor w/ 9 levels &quot;?&quot;,&quot;Federal-gov&quot;,..: 8 7 5 5 5 5 5 7 5 5 ...
+##  $ fnlwgt          : int  77516 83311 215646 234721 338409 284582 160187 209642 45781 159449 ...
+##  $ education       : Ord.factor w/ 16 levels &quot;Preschool&quot;&lt;&quot;1st-4th&quot;&lt;..: 14 14 9 7 14 15 5 9 15 14 ...
+##  $ marital-status  : Factor w/ 7 levels &quot;Divorced&quot;,&quot;Married-AF-spouse&quot;,..: 5 3 1 3 3 3 4 3 5 3 ...
+##  $ occupation      : Factor w/ 15 levels &quot;?&quot;,&quot;Adm-clerical&quot;,..: 2 5 7 7 11 5 9 5 11 5 ...
+##  $ relationship    : Factor w/ 6 levels &quot;Husband&quot;,&quot;Not-in-family&quot;,..: 2 1 2 1 6 6 2 1 2 1 ...
+##  $ race            : Factor w/ 5 levels &quot;Amer-Indian-Eskimo&quot;,..: 5 5 5 3 3 5 3 5 5 5 ...
+##  $ sex             : Factor w/ 2 levels &quot;Female&quot;,&quot;Male&quot;: 2 2 2 2 1 1 1 2 1 2 ...
+##  $ capital-gain    : int  2174 0 0 0 0 0 0 0 14084 5178 ...
+##  $ capital-loss    : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ hours-per-week  : int  40 13 40 40 40 40 16 45 50 40 ...
+##  $ native-country  : Factor w/ 42 levels &quot;?&quot;,&quot;Cambodia&quot;,..: 40 40 40 40 6 40 24 40 40 40 ...
+##  $ salary          : Ord.factor w/ 2 levels &quot;&lt;=50K&quot;&lt;&quot;&gt;50K&quot;: 1 1 1 1 1 1 1 2 2 2 ...
+##  $ n-capital-gain  : num  0.0217 0 0 0 0 ...
+##  $ n-capital-loss  : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ salary-estimated: num  22963 7463 22963 22963 22963 ...
+##  $ d-age           : Ord.factor w/ 4 levels &quot;Young&quot;&lt;&quot;Middle-aged&quot;&lt;..: 2 3 2 3 2 2 3 3 2 2 ...
+##  $ d-hours-per-week: Ord.factor w/ 4 levels &quot;Part-time&quot;&lt;&quot;Full-time&quot;&lt;..: 2 1 2 2 2 2 1 3 3 2 ...
+##  $ d-capital-gain  : Ord.factor w/ 3 levels &quot;None&quot;&lt;&quot;Low&quot;&lt;&quot;High&quot;: 2 1 1 1 1 1 1 1 3 2 ...
+##  $ d-capital-loss  : Ord.factor w/ 3 levels &quot;None&quot;&lt;&quot;Low&quot;&lt;&quot;High&quot;: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<p>En la siguiente tabla podemos ver cómo está quedando nuestro dataset:</p>
+<pre class="r"><code>head(df_copy)</code></pre>
+<pre><code>##   age        workclass fnlwgt education     marital-status        occupation
+## 1  39        State-gov  77516 Bachelors      Never-married      Adm-clerical
+## 2  50 Self-emp-not-inc  83311 Bachelors Married-civ-spouse   Exec-managerial
+## 3  38          Private 215646   HS-grad           Divorced Handlers-cleaners
+## 4  53          Private 234721      11th Married-civ-spouse Handlers-cleaners
+## 5  28          Private 338409 Bachelors Married-civ-spouse    Prof-specialty
+## 6  37          Private 284582   Masters Married-civ-spouse   Exec-managerial
+##    relationship  race    sex capital-gain capital-loss hours-per-week
+## 1 Not-in-family White   Male         2174            0             40
+## 2       Husband White   Male            0            0             13
+## 3 Not-in-family White   Male            0            0             40
+## 4       Husband Black   Male            0            0             40
+## 5          Wife Black Female            0            0             40
+## 6          Wife White Female            0            0             40
+##   native-country salary n-capital-gain n-capital-loss salary-estimated
+## 1  United-States  &lt;=50K     0.02174022              0         22963.20
+## 2  United-States  &lt;=50K     0.00000000              0          7463.04
+## 3  United-States  &lt;=50K     0.00000000              0         22963.20
+## 4  United-States  &lt;=50K     0.00000000              0         22963.20
+## 5           Cuba  &lt;=50K     0.00000000              0         22963.20
+## 6  United-States  &lt;=50K     0.00000000              0         22963.20
+##         d-age d-hours-per-week d-capital-gain d-capital-loss
+## 1 Middle-aged        Full-time            Low           None
+## 2      Senior        Part-time           None           None
+## 3 Middle-aged        Full-time           None           None
+## 4      Senior        Full-time           None           None
+## 5 Middle-aged        Full-time           None           None
+## 6 Middle-aged        Full-time           None           None</code></pre>
 <hr />
+</div>
 </div>
 </div>
 <div id="criterios-de-evaluación" class="section level1" number="4">
