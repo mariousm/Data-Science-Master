@@ -331,7 +331,7 @@ Respecto a nuestro caso de estudio, vamos a considerar que somos un grupo de cie
 
 
 ### Preparación de datos
-Cuando ya tenemos todos los datos necesarios para construir el modelo, nos podemos encontrar con varios inconvenientes, como por ejemplo: hay registros en lo que en determinados campos no hay un valor, columnas que son numéricas y la información viene en formato string, puede ser que un mismo atributo este medido en la misma magnitud pero en diferentes unidades como por ejemplo nanómetros y micrómetros...
+Cuando ya tenemos todos los datos necesarios para construir el modelo, nos podemos encontrar con varios inconvenientes, como por ejemplo: hay registros en lo que en determinados campos no hay un valor, columnas que son numéricas y la información viene en formato string, puede ser que un mismo atributo esté medido en la misma magnitud pero en diferentes unidades como por ejemplo nanómetros y micrómetros...
 
 El objetivo de esta fase es solucionar todos estos problemas que nos vamos encontrando, de tal forma que los datos tengan la mayor calidad posible, para que así el modelo funcione correctamente.
 
@@ -355,7 +355,7 @@ Cuando ya hemos construido el modelo, debemos preguntarnos si ese modelo es el m
 
 El objetivo de esta fase es evaluar el modelo, para ello se suele utilizar dos conjuntos de datos a partir de un conjunto incial, un conjunto se va a usar para entrenar el modelo y el segundo para comprobar que el modelo realmente funciona y presenta la suficiente calidad.
 
-En nuestro caso, podríamos dividir el dataset inicial en tres subconjuntos, uno para entrenar el modelo, otro para validar el modelo y un tercelo para para evaluar el modelo.
+En nuestro caso, podríamos dividir el dataset inicial en tres subconjuntos, uno para entrenar el modelo, otro para validar el modelo y un tercero para evaluar el modelo.
 
 Una vez que el modelo se ha evaluado, tenemos que realizar una interpretación de los resultados que hemos obtenido, y en este punto hay que tener mucho cuidado porque podemos estar considerando unos resultados que no son lo suficientemente buenos pero realmente nos están proporcionando mucha información y viceversa.
 
@@ -447,7 +447,7 @@ Revisamos la descripción de las variables y si los tipos de variable se corresp
 **salary**
     ordered factor - nivel de ingresos.
     
-Tal y como podemos observar, las variables numéricas sí que están bien definidas, sin embargo, las variables no numéricas las reconoce como chr en vez de factor, por lo que vamos a solucionar eso, pero antes como podemos comprobar en los atributos de tipo chr sus valores se guardan con un espacio delante, asi que hay que solucionar este problema antes:
+Tal y como podemos observar, las variables numéricas sí que están bien definidas, sin embargo, las variables no numéricas las reconoce como chr en vez de factor, por lo que vamos a solucionar eso, pero antes como podemos comprobar en los atributos de tipo chr sus valores se guardan con un espacio delante, así que hay que solucionar este problema antes:
 ```{r}
 # Método que elimina los espacios en blanco del principio y del final
 trim = function (x) gsub("^\\s+|\\s+$", "", x)
@@ -528,7 +528,7 @@ colSums(df_copy=="?")
 
 Como podemos ver, las variables workclass, occupation y native-country, son las únicas variables que toman valores desconocidos. Estos valores podrían dejar de ser desconocidos si por ejemplo establecemos que el valor sea el más frecuente. Como en la práctica no se indica nada, considero que es mejor dejarlos como desconocidos, ya que de lo contario puede afectar en el estudio de los registros que sí que tienen todos los datos.
 
-Posteriormente, tenemos que normalizar algunas variables numéricas, en nuestro caso que lo mejor es normalizar el capital ganado y el capital perdido, ya que el rango de ambas variables es diferente y ambas se refieren a lo mismo, el dinero, ya sea de ganacias o de pérdidas:
+Posteriormente, tenemos que normalizar algunas variables numéricas, en nuestro caso lo mejor es normalizar el capital ganado y el capital perdido, ya que el rango de ambas variables es diferente y ambas se refieren a lo mismo, el dinero, ya sea de ganacias o de pérdidas:
 
 ```{r}
 library(scales) # Usamos la librería scales para normalizar por la diferencia
@@ -638,7 +638,7 @@ Una vez que ya hemos limpiado el dataset y le hemos dado el formato que nosotros
 
 Cabe destacar que, aunque este dataset está enfocado al salario de los ciudadanos de los EEUU en 1994, se puede responder muchísimas preguntas, como por ejemplo: ¿saber si la sociedad es racista?, ¿si es machista?, ¿si es clasista?... Por lo tanto, el análisis que se puede hacer de este dataset es muy amplio, es por ello que nos vamos a ir centrando poco a poco en estas preguntas.
 
-El primer punto en el que nos vamos a centrar es en el estudio del salario, es decir, si es el salario depende de otros factores (si hay una relación). A priori, cuando pensamos en la gente joven suele ganar menos que la gente con más experiencia, por lo que vamos a comprobar si esto es verdad:
+El primer punto en el que nos vamos a centrar es en el estudio del salario, es decir, si el salario depende de otros factores (si hay una relación). A priori, cuando pensamos en la gente joven suele ganar menos que la gente con más experiencia, por lo que vamos a comprobar si esto es verdad:
 
 ```{r}
 ggplot(data = df_copy, aes(x=`d-age`,fill=salary)) + geom_bar(position = "fill") +
@@ -647,6 +647,7 @@ ggplot(data = df_copy, aes(x=`d-age`,fill=salary)) + geom_bar(position = "fill")
   scale_fill_discrete(name = "Salario") +
   ggtitle("Salario respecto a la edad")
 ```
+
 Tal y como era de esperar, mientras que los jóvenes están estudiando y formándose, y lo señores mayores están jubilados viviendo en este caso de su plan de pensiones, la gente entre 25 y 65 años suelen ser los trabajadores de cualquier sociedad, es por ello, que son los que más ganan.
 
 Algo llamativo del anterior gráfico, es que no hay ninguna clase de edad que supere el 50% de frecuencia respecto a un salario mayor de 50k, seguramente esto sea así ya que, los datos son de 1994 y por aquel entonces en EEUU no se tenía unos sueldos demasiados elevados (cabe destacar que hasta 1991 estuvieron en un guerra fría con la URSS, lo cual supuso una gran inversión a nivel milatar, eso significa inflación).
@@ -664,7 +665,7 @@ ggplot(data = df_copy, aes(x=workclass,fill=salary)) + geom_bar(position = "fill
 
 Como vemos en la anterior gráfica, la gente que trabaja de forma autónoma en una entidad corporativa tienen la mejor calidad de vida, ya que más del 50% de la gente que es de este tipo de clase cobra más de 50K dólares anuales. El resto de clases tienen un nivel de sueldos similar.
 
-Algo llamativo es ver cómo son los sueldos dentro del gobierno de EEUU, podemos apreciar que aquellos miembros del gobierno federal, es decir el gobierno de la nación, tienen una mejores sueldos que los que trabajan para el gobierno estatal o local, estos dos últimos tienen sueldos similares.
+Algo llamativo es ver cómo son los sueldos dentro del gobierno de EEUU, podemos apreciar que aquellos miembros del gobierno federal, es decir el gobierno de la nación, tienen mejores sueldos que los que trabajan para el gobierno estatal o local, estos dos últimos tienen sueldos similares.
 
 Una pregunta que nos podemos hacer es si el nivel de educación afecta al salario, a priori diríamos que sí, pero ésto lo tenemos que comprobar:
 
@@ -681,7 +682,7 @@ Vemos una gráfica muy curiosa está altamente correlacionado, podemos afirmar q
 
 La principal diferencia entre professional school y master/doctarado es que el primero busca preparar a estudiantes en un campo específico (medicina, farmacia, business...), mientras que los segundos son cursos académicos más avanzados más allá de un graduado.
 
-Por lo tanto, aunque nos muestra la información según un orden que nosotros hemos establecido para hacer una mejor distinción, ambos niveles son similares, cada uno en su campo.
+Por lo tanto, aunque nos muestra la información según un orden que nosotros hemos establecido, ambos niveles son similares, cada uno en su campo.
 
 Otra pregunta que nos podríamos hacer es, ¿el salario está relacionado con la raza?, ¿es una socidad racista la estadounidense?:
 
@@ -717,7 +718,7 @@ ggplot(data = df_copy, aes(x=education,fill=race)) + geom_bar(position = "fill")
 summary(df_copy$race)
 ```
 
-Tal y como podemos apreciar hay un mayor número de la raza blanca, por lo que en la gráfica observamos que el mayor número de alumnos en cada nivel educativo es el de la raza blanca. Respecto a la raze negra vemos que en proporción al final de la etapa educativa abandonan muchos, mientras que en la raza asiática es al contrario.
+Tal y como podemos apreciar hay un mayor número de la raza blanca, por lo que en la gráfica observamos que el mayor número de alumnos en cada nivel educativo es el de la raza blanca. Respecto a la raza negra vemos que en proporción al final de la etapa educativa abandonan muchos, mientras que en la raza asiática es al contrario.
 
 Esto se puede deber a que tal y como hemos visto antes, la raza blanca y la asiática son los que más ingresos tienen, por lo tanto, a medida que aumenta el nivel educativo más caro se convierte, es por ello, que la raza negra abandona en la etapa final educativa, no tienen los recursos necesarios como para permitírselo.
 
@@ -817,7 +818,7 @@ Mi enfoque en este punto ha sido en un principio el ver si determinadas variable
 
 - Salarios altos solo se ven a partir de 25 años, esto quiere decir, que la gente joven por norma general estudia y de forma complentaria puede trabajar, lógicamente va a trabajar menos horas y su salario va a ser menor debido a la inexperiencia. Por otro lado, es lógico que los salarios más altos estén entre 25 y 65 años, debido a que ya se junta el conomiento y la experiencia.
 - Hemos relacionado el salario con la clase de trabajo, y hemos visto que la gente que más dinero gana son autónomos, también hemos podido ver la diferencia de salarios entre el gobierno federal, estatal y local.
-- Posteriormente, hemos comprobado si el sueldo de una peronsa dependía del nivel educativo, y hemos visto que estaban muy correlacionadas positivamente ambas variables, es decir, que a mayor nivel educativo mayor salrio.
+- Posteriormente, hemos comprobado si el sueldo de una peronsa dependía del nivel educativo, y hemos visto que estaban muy correlacionadas positivamente ambas variables, es decir, que a mayor nivel educativo mayor salario.
 - Hemos comprobado si el salario se veía afectado por la raza.
 - Hemos comprobado si el salario se veía afectado por el sexo.
 
@@ -829,7 +830,7 @@ De los dos último puntos anteriores, nos ha surgido una par de preguntas. La pr
 
 La segunda pregunta que nos hemos hecho ha sido, ¿la sociedad es machista?
 
-- Primero hemos hecho un análisis básico sobre los salarios entre el género másculino y femenino, y nos hemos dado cuenta que sí que había una diferencia significativa.
+- Primero hemos hecho un análisis básico sobre los salarios entre el género masculino y femenino, y nos hemos dado cuenta que sí que había una diferencia significativa.
 - Después hemos comprobado si era verdad que las mujeres dependiendo de su estado civil variaba su salario, por si estaban casadas y en el caso de tener hijos reducian su jornada laboral, o dejaban el trabajo. Hemos visto que no era cierta la suposoción, sino que cuando más equiparados estaban los salarios eran cuando estaban casadas las mujeres.
 - Nos hemos planteado si la diferencia entre salarios era por el nivel educativo, y nos hemos dado cuenta que sí que hay diferencia entre el hombre y la mujer, ya que el primero siempre tiene un salario mayor que el segundo. Por lo tanto, llegamos a la conclusión de que sí que eran machistas respecto al ámbito salarial.
 - Hemos comprobado si tanto hombres como mujeres tenían las mismas oportunidades educativas, y hemos visto que sí.
