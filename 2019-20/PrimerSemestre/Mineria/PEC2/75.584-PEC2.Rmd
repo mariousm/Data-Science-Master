@@ -1,6 +1,6 @@
 ---
 title: 'Minería de datos: PEC2'
-author: "Autor: Nombre estudiante"
+author: "Autor: Mario Ubierna San Mamés"
 date: "Abril 2021"
 output:
   html_document:
@@ -81,7 +81,28 @@ Deberéis, además, adjuntar los ficheros originales cuando las obras utilizadas
 2. Razona si tiene sentido aplicar un método de agregación al ejemplo que pusiste en la PEC1. Si lo tiene, comenta como se podría aplicar y que tipo de resultados se podrían obtener. Si no lo tiene, reformula el problema para que si lo tenga.
 
 ## Respuesta ejercicio 1
-Escribe aquí la respuesta
+
+Respecto al primer apartado, cuando hablamos de los métodos de agregación o clustering nos estamos refiriendo a un tipo de modelos de míneria de datos que nos permiten obtener una primera aproximación de la estructura de un dominio, es decir, nos permite discernir qué elementos son parecidos, pero sin poner de primeras ningún criterio.
+
+Por lo tanto, el objetivo de este tipo de modelos es obtener/discernir grupos de elementos/objetos dentro de un dominio, en el cual a priori desconocemos el cómo se pueden agrupar dichos elementos ya que no tenemos una variable que nos clasifique los elementos, es decir, este tipo de modelos son parecidos a los modelos de clasificación, ambos tratan de identificar qué elemento pertenece a qué grupo gracias a características similares, sin embargo, los modelos de agregación son modelos no supervisados, mientras que los de clasificación sí que lo son. Es por ello que cuando aplicamos un modelo de clustering es porque tenemos un desconocmiento de lo que sabemos.
+
+Un buen ejemplo en el uso de modelos de clustering podría ser el siguiente, imaginémonos que tenemos una tienda online de ropa, y queremos identificar cuáles son los diferentes tipos de clientes que nos compran para así poder aplicar mejores descuentos, o ver qué tipo de ropa se compra dentro de cada grupo, o mejorar las promociones en nuestra tienda...
+
+Ante el ejemplo anterior tenemos el objetivo claro, es decir, necesitamos saber qué tipo de clientes hay en nuestra tienda, cómo se agrupan los clientes con características similares, pero tenemos un problema, hay un desconocimiento del dominio, es decir, no sabemos cómo se agrupan los clientes con características similares, ¿se agrupan por edad?, ¿por sexo?, ¿por estatura?, ¿por peso?, ¿por clase social?... Como podemos apreciar tenemos un gran desconocimiento del problema, no tenemos información suficiente.
+
+Es en este tipo de problemas en los que se hace uso de un modelo de clustering, porque nos va a permitir discernir grupos sin tener el conocimiento suficiente del problema.
+
+Respecto al segundo apartado, lo primero que tenemos que saber es el objetivo de la PEC1. En dicha prática los datos que usamos fueron los del censo en los Estados Unidos de América en el año 1994, es decir, se recogía información sobre la edad, la clase de trabajo, la educación recibida, la raza, el estado civil, los ingresos, las pérdidas...
+
+Como podemos apreciar, la información era variada y nos permitía hacernos una idea de cómo era la sociedad en aquella época. El objetivo de ese conjunto de datos era el de clasificarlos, es decir, aplicar un modelo de clasificación para poder discenir dos grupos, aquellos en los que el salario anual era mayor a 50K dólares y los que era menor o igual a 50K.
+
+Era un problema de clasificación ya que sabíamos el valor en todo momento de la variable objetivo, es decir, sabíamos para cada registro si tenía un salario mayor o menor a 50K.
+
+Por lo tanto, tal cual era el ejemplo de la PEC1 no tendría sentido modelarlo como si fuera un problema de clustering, ya que como bien hemos mencionado, se sabía en todo momento el valor de la variable objetivo. Sin embargo, si no tuviéramos ese conocimiento sí que tendría sentido hacer uso de un método de agregación, ya que buscaría discernir grupos sin saber cuántos hay, cómo se relacionan...
+
+Suponiendo que no tenemos el conocimiento suficiente respecto al ejemplo de la PEC1, podríamos aplicar por ejemplo un método de agregación como el k-means, en el cual tenemos que predefinir el número de grupos. Si ponemos que el número de grupos es dos, podríamos comprobar el cómo clasifca cada uno de los elementos y si es parecido al resolver el problema usando un modelo de clasificación. Podríamos, poner más grupos o no, dependiendo de la granularidad que queremos en los grupos, a mayor número de grupos más específico va a ser nuestro modelo, y a menor número de grupos más general va a ser.
+
+Resumiendo, sí que podríamos hacer uso de un método de agregación en la PEC1, siempre y cuando quisiéramos analizar el cómo se agrupan los diferentes elementos y no tenemos claro un objetivo para agrupar, ya sea por raza, por sexo, por edad, por ingresos, por pérdidas... Al hacer uso de un modelo de clustering podríamos analizar el cómo se agrupan, cuáles son las características similares de cada grupo...
 
 ******
 # Ejercicio 2
@@ -91,7 +112,30 @@ Escribe aquí la respuesta
 2. Razona si tiene sentido aplicar un método de generación de reglas de asociación al ejemplo que pusiste en la PEC1. Si lo tiene, comenta como se podría aplicar y que tipo de resultados se podrían obtener. Si no lo tiene, reformula el problema para que si lo tenga.
 
 ## Respuesta ejercicio 2
-Escribe aquí la respuesta
+
+Respecto al primer apartado. hay que hacer una distinción entre los método de clustering y los método de generación de reglas de asociación, ambos están enfocados al aprendizaje no supervisado, es decir, desconocemos la variable objetivo. Sin embargo, hay una clara diferencia entre ambos modelos.
+
+Los modelos de clustering, tal y como se explicó en el anterior ejercicio, buscan agrupar elementos de los cuales no tenemos el conocimiento suficiente, a partir de la distancia entre elementos y su similitud. Por otro lado, los métodos de generación de reglas de asociación tratan de encontrar relaciones entre atributos que tienden a ocurrir de forma conjunta, es decir, una relación lógica si A entonces B (A => B).
+
+Como podemos apreciar el enfoque a la hora de resolver el problema es diferente, lo que buscamos con la reglas de asociación es poder describir el conjunto de datos que tenemos, para así poder saber si hay una relación entre atributos o no.
+
+En estadística usaríamos un contraste de hipótesis para saber si una hipótesis/condición se cumple o no. Sin embargo, con la reglas de asociación se busca el ver qué condiciones se pueden cumplir con los datos que tenemos, para ello se define tanto un nivel de confianza como de soporte.
+
+Siguiendo con el ejemplo establecido en el ejercicio anterior, si tenemos una tienda online que se encarga de vender ropa, podríamos hacer uso de un método de generación de reglas de asociación para así saber qué atributos (sexo, edad, localización, clase social...) están relacionados a la ahora de comprar un producto, en nuestro caso, una determinada camiseta.
+
+Para ello, definiríamos un nivel de confianza y de soporte mínimo, e iríamos comprobando si al definir una regla de asociación el nivel de confianza y de soporte que obtenemos es igual o superior a los niveles mínimos que hemos definido, de no ser así buscaríamos otra regla de asociación.
+
+Respecto al segundo apartado, tal y como se comentó en el anterior ejercicio, el objetivo de los datos de la PEC1 era el de clasificar ya que conocíamos la variable objetivo, es decir, el salario.
+
+Sin embargo, sí que podríamos hacer uso de métodos de generación de reglas de asociación al proporcionanos otro enfoque, ya que podríamos buscar cuáles son las condiciones que hacen que un determinado registro cumpla que tenga unos ingresos/pérdidas mayores o menores, decir, podríamos comprobar si el sexo, la edad, y la raza por ejemplo condicionan los ingresos/pérdidas de una persona en los Estados Unidos de América en 1994. Este enfoque es completamente direfente al de la clasificación y al del clustering, en el primero se busca predecir la etiqueta ya que conocemos los grupos, en el segundo se busca agrupar por similitudes ya que desconocemos las etiquetas, y el enfoque de las reglas de asociación es el descubrir el qué condiciona los datos.
+
+Un aspecto a destacar de este tipo de métodos, es que necesita la información de forma binarizada, es decir, el dato solo puede ser un 1 o un 0, por ejemplo: o es hombre o mujer, o es negro o no lo es, o es joven o no lo es... Por lo tanto, tendríamos que transformar el dataset original de la PEC1 para poder hacer uso de estos tipos de métodos.
+
+Una vez que ya tenemos la información binariza, podríamos hacer uso de diferentes métodos como el apriori, eclat... Uno de los más usados es el apriori, el cual se podría dividir en dos fases, en la primera identificar todos los conjuntos de elementos que ocurren con un frecuencia superior a un límite definido, y una segunda en la cual convertimos esos conjuntos de elementos en reglas de asociación.
+
+Cabe destacar que podríamos obtener más de una regla de asociación que cumplan el límite mínimo que hemos definido. Una vez que tenemos las reglas de asociación, podemos saber las condiciones que se cumplen para poder predecir.
+
+Resumiendo, el dataset de la PEC1 está enfocado al aprendizaje supervisado ya que conocemos en todo momento la variable objetivo, pero si no fuera así, podríamos hacer uso método de generación de reglas de asocición para ver cómo se relacionan los atributos, es decir, una consecuencia como mayores ingresos o pérdidas de qué condiciones depende.
 
 ******
 # Ejercicio 3
