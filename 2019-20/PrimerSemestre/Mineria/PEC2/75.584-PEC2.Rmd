@@ -266,7 +266,7 @@ A continuación vamos a ver otro ejemplo de cómo se usan los modelos de agregac
 Cargamos el fichero y visualizamos la estructura de los datos
 ```{r message= FALSE, warning=FALSE}
 library(cluster)
-flores_data<-read.csv("flores.csv", header=T, sep=",")
+flores_data<-read.csv("./data/flores.csv", header=T, sep=",")
 colnames(flores_data) <- c("sepalLength", "sepalWidth", "petalLength", "petalWidth")
 summary(flores_data)
 ```
@@ -365,11 +365,49 @@ Esto último lo podemos comprobar usando únicamente las dos características re
 ```{r message= FALSE, warning=FALSE}
 cl2b <- kmeans(flores_data[c(3,4)], 2)
 plot(flores_data[c(3,4)], col=cl2b$cluster)
-
 ```
 
 ## Respuesta ejercicio 3
-Escribe aquí la respuesta
+
+En este primer punto lo que debemos de hacer es la carga de los datos, un resumen de lo que hemos leído, una explicación de los mismos, preparar los datos para el modelo y realizar un análisis de los mismos.
+
+Por lo tanto, lo primero que debemos hacer es la carga del archivo clientes.csv:
+```{r}
+df_clientes = read.csv("./data/clientes.csv", stringsAsFactors = TRUE)
+colnames(df_clientes) = c("CustomerID", "Genr", "Age", "Income", "Spending_Score")
+head(df_clientes)
+```
+
+Resumen de la estructura del dataset:
+```{r}
+str(df_clientes)
+```
+
+Revisamos la descripción de las variables y si los tipos de variable se corresponden al que hemos cargado:
+
+**CustomerID**
+    integer - id del cliente.
+    
+**Genr**
+    factor - género del cliente.
+    
+**Age**
+    integer - edad del cliente.
+    
+**Income**
+    integer - ingresos anuales del cliente, representado en k dólares (15 = 15000$)
+    
+**Spending_Score**
+    integer - puntuación del gasto del cliente.
+    
+Vemos que tenemos 200 registros y 5 variables que los caracterizan. Este dataset está formado por 4 variables numéricas y una variable categórica (el género), por lo que, al hacer un uso posterior del algoritmo kmeans solo nos admite valores numéricos, es por ello que vamos a eliminar la columna género del dataset original:
+```{r}
+df_clientes_copy = df_clientes[, unlist(lapply(df_clientes, is.numeric))]
+str(df_clientes_copy)
+```
+
+
+
 
 ******
 # Ejercicio 4
