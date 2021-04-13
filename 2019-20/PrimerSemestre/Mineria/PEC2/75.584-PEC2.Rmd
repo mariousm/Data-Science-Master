@@ -369,6 +369,9 @@ plot(flores_data[c(3,4)], col=cl2b$cluster)
 
 ## Respuesta ejercicio 3
 
+## Carga, resumen, explicación, preparación y análisis de los datos
+
+### Carga de los datos
 En este primer punto lo que debemos de hacer es la carga de los datos, un resumen de lo que hemos leído, una explicación de los mismos, preparar los datos para el modelo y realizar un análisis de los mismos.
 
 Por lo tanto, lo primero que debemos hacer es la carga del archivo clientes.csv:
@@ -378,10 +381,14 @@ colnames(df_clientes) = c("CustomerID", "Genr", "Age", "Income", "Spending_Score
 head(df_clientes)
 ```
 
+### Resumen de los datos
+
 Resumen de la estructura del dataset:
 ```{r}
 str(df_clientes)
 ```
+
+### Explicación de los datos
 
 Revisamos la descripción de las variables y si los tipos de variable se corresponden al que hemos cargado:
 
@@ -400,13 +407,277 @@ Revisamos la descripción de las variables y si los tipos de variable se corresp
 **Spending_Score**
     integer - puntuación del gasto del cliente.
     
-Vemos que tenemos 200 registros y 5 variables que los caracterizan. Este dataset está formado por 4 variables numéricas y una variable categórica (el género), por lo que, al hacer un uso posterior del algoritmo kmeans solo nos admite valores numéricos, es por ello que vamos a eliminar la columna género del dataset original:
+Vemos que tenemos 200 registros y 5 variables que los caracterizan. 
+
+Este dataset está formado por 4 variables numéricas y una variable categórica (el género).
+
+### Preparación de los datos
+
+Al hacer un uso posterior del algoritmo kmeans solo nos admite valores numéricos, es por ello que vamos a eliminar la columna género del dataset original. Además, vamos a analizar el cómo se agrupan los clientes según la edad, los ingresos y su puntación en el gasto, por lo que la columna CustomerID la podemos quitar del dataset, si se necesita en un futuro para identificar un elemento en particular podemos añadir dicha columna a posteriori:
 ```{r}
-df_clientes_copy = df_clientes[, unlist(lapply(df_clientes, is.numeric))]
+df_clientes_copy = df_clientes[c(3:5)]
 str(df_clientes_copy)
 ```
 
+Comprobamos que no haya datos sin valores:
+```{r}
+colSums(is.na(df_clientes_copy))
+```
 
+De la anterior ejecución vemos que todos los campos tienen valores.
+Realizamos un summary del dataset resultante para hacernos una idea del conjunto de datos que vamos a manejar, es decir, cuáles son los valores mínimos/máximos, ver si a priori hay outliers...
+```{r}
+summary(df_clientes_copy)
+```
+
+Como podemos observar, las variables Age, Income y Spending_Score siempre toman valores positivos, lo cual tiene todo el sentido del mundo, no sería posible ver a alguien con -8 años/ -15000$ de ingresos/ -50 puntos de gasto. Además, todas las variables tienen un rango de valores bastente comunes, sin embargo, en la variable Income hay mucha diferencia entre el tercer cuartil y el valor máximo, comprobamos si hay outliers en dicha variable:
+```{r}
+library(ggplot2)
+
+boxplot(df_clientes_copy$Income)
+ggplot(mapping = aes(x=df_clientes_copy$Income)) + geom_density()
+```
+
+Observamos según el boxplot, que sí que tenemos un punto que es outlier, cuyo valor es el máximo 137. Sin embargo, a la hora de ver la distribución de la variable vemos que para nada es un outlier, es decir, no hay una anomalía, por lo tanto, podemos asegurar que dicho valor es correcto, ya que puede ser que alguien ingrese 137000$.
+
+El siguiente paso es preparar los datos para que puedan ser utilizados por el algoritmo kmeans, un aspecto importante de dicho algoritmo es que tiene en cuenta las distancias entre puntos, por lo que, no es lo mismo medir la distancia como la edad que va de 18 a 70 años, a como lo hace los ingresos anuales que van de 15000 a 137000 dólares.
+
+Es por ello, que primero debemos normalizar el dataset:
+```{r}
+df_clientes_copy = scale(df_clientes_copy)
+head(df_clientes_copy)
+```
+
+### Análisis de los datos
+
+Finalmente, para terminar con esta primera fase, vamos a hacer un análisis de dichas variables, es decir, los ingresos respecto a la edad:
+```{r}
+ggplot(df_clientes, aes(x = Age, y = Income)) +
+  geom_point() +
+  ggtitle("Ingresos respecto a la edad")
+```
+
+Como podemos ver no hay una distinción clara de grupos, sin embargo, aquella población de mediana edad entre 30 y 50 años tienen unos ingresos de media más elevados que la población joven y que la población de mayores, pero a priori no podemos hacer una distinción clara entre grupos.
+
+Por otro lado, podemos ver cómo varía la puntuación de gatos respecto a la edad:
+```{r}
+ggplot(df_clientes, aes(x = Age, y = Spending_Score)) +
+  geom_point() +
+  ggtitle("Puntuación de gastos respecto a la edad")
+```
+
+Analizando la anterior gráfica podemos ver que podríamos tener a priori 4/5 grupos: población joven con una baja puntuación de gastos, población joven con una puntuación de gastos media, población joven con una puntuación de gastos elevada, población de mediana/mayor edad con una baja puntuación de gastos y población de mediana/mayor edad con una puntuación de gastos media.
+
+Por último podemos analizar la relación entre ingresos y gastos:
+```{r}
+ggplot(df_clientes, aes(x = Income, y = Spending_Score)) +
+  geom_point() +
+  ggtitle("Puntuación de gastos respecto a los ingresos")
+```
+
+La anterior gráfica es bastante curiosa porque podemos apreciar 5 grupos claramente: población que tiene unos ingresos bajos y su puntación de gasto es baja, ingresos bajos y gasto elevado, ingresos medio y gasto medio, ingresos altos y gastos bajos, ingresos altos y gastos altos.
+
+## Aplicación del algoritmo k-means con diferentes k.
+
+Del anterior análisis de los datos podemos apreciar que a priori va a haber 5 grupos según los ingresos y los gastos, pero una cosa es lo que a priori podemos tener y luego lo que realmente es, por lo tanto, vamos a aplicar el algoritmo de k-means con diferentes k para ver cómo se agrupan los elementos:
+```{r}
+library(cluster)
+```
+
+Pero antes, vamos a calcular el número de clústers ideales para poder realizar nuestro modelo. Esto lo vamos a hacer de dos formas, la primera calculando la silhouette. Cabe destacar que calculamos el valor de la silueta x veces para cada modelo, esto es así porque dicho valor cambia todo el rato, al calcularlo x veces podemos hacer una media y que los "mejores clusters" se mantengan independientemente de las veces que se ejecute:
+```{r}
+# Método que nos devuelve el valor medio de la silueta para un rango de clústers y de iteraciones sobre el mismo clúster
+kmeans_silhouette = function(df, minCluster = 2, maxCluster = 10, maxIterations = 10) {
+  
+  if (minCluster <= maxCluster & minCluster > 1) {
+    resultados = rep(0, maxCluster)
+    
+    for (i in c(minCluster:maxCluster)) {
+      resultado = rep(0, maxIterations)
+      
+      for (j in c(1:maxIterations)) {
+        fit = kmeans(df, i)
+        y_cluster = fit$cluster
+        sk = silhouette(y_cluster, daisy(df))
+      
+        # Como el valor de la silueta puede cambiar de una iteración a otra, calculamos su valor medio
+        resultado[j] = mean(sk[,3])
+      }
+      resultados[i] = mean(resultado)
+    }
+    return(resultados)
+    
+  } else {
+    print("ERROR: minCluster debe ser menor que maxCluster y mayor que 1")
+  }
+}
+```
+
+Una vez definido el método que nos va a permitir calcular el valor de la silueta medio para cada modelo, obtenemos la siguiente gráfica:
+```{r}
+minCluster = 2
+maxCluster = 10
+maxIterations = 2000
+
+mean_silhouette = kmeans_silhouette(df_clientes_copy, minCluster, maxCluster, maxIterations)
+
+plot(minCluster:maxCluster, mean_silhouette[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="Silueta")
+```
+
+Tal y como podemos observar, los modelos que mejor silueta proporcionan son cuando tienen 5, 6 y 7 clústers. Si nos ponemos un poco más precisos, podríamos decir que los dos mejores modelos son cuando tienen 5 y 6 clústers ya que cuando tiene 7 el modelo tiene una silueta menor que en los dos casos anteriores.
+
+## Análisis de calidad del agrupamiento
+
+Una vez que ya hemos aplicado el kmeans con diferentes k, para así saber cuántos clusters proporciona una mayor silueta, lo siguiente que debemos hacer es saber cómo de bueno son los agrupamientos, lo cual nos va a definir también cuántos clústers serían lo ideal.
+
+Esto los conseguimos con la menor suma de los cuadrados de las distancias de los puntos de cada grupo con respecto a su centro (withinss), con la mayor separación entre centros de grupos (betweenss):
+```{r}
+# Método que nos devuelve el valor medio del tot.withinss para un rango de clústers y de iteraciones sobre el mismo clúster
+kmeans_totWithinss = function(df, minCluster = 2, maxCluster = 10, maxIterations = 10) {
+  
+  if (minCluster <= maxCluster & minCluster > 1) {
+    resultados = rep(0, maxCluster)
+    
+    for (i in c(minCluster:maxCluster))
+    {
+      resultado = rep(0, maxIterations)
+      
+      for (j in c(1:maxIterations)) {
+        fit = kmeans(df, i)
+        resultado[j] = fit$tot.withinss
+      }
+      
+      resultados[i] = mean(resultado)
+    }
+    return(resultados)
+    
+  } else {
+     print("ERROR: minCluster debe ser menor que maxCluster y mayor que 1")
+  }
+}
+```
+
+Una vez definido el método que nos devuelve el valor medio de withinss para cada modelo, obtenemos la siguiente gráfica:
+```{r}
+mean_totWithinss = kmeans_totWithinss(df_clientes_copy, minCluster, maxCluster, maxIterations)
+
+plot(minCluster:maxCluster,mean_totWithinss[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="tot.tot.withinss")
+```
+
+Tal y como podemos observar en la anterior  ilustración, los mejores agrupamientos son aquellos en los que el error es mínimo (se ha explicado antes), lógicamente a mayor número de clusters, menor error vamos a tener ya que el modelo va a ser muy específico, de hecho, si cada punto fuera un clúster independiente a priori sería lo mejor, porque reduciríamos el error a 0, pero esto no es lo ideal de un problema de minería, no buscamos crear modelos muy específicos, sino que más bien buscamos generalizar.
+
+Para seguir determinando la calidad de los modelos podemos tener en cuenta la distancia entre centro de grupos, lo que se llama betweenss, a mayor distancia más separación hay entre los grupos, por lo que mejor es el modelo:
+```{r}
+# Método que nos devuelve el valor medio de la betweenss para un rango de clústers y de iteraciones sobre el mismo clúster
+kmeans_betweenss = function(df, minCluster = 2, maxCluster = 10, maxIterations = 10) {
+  
+  if (minCluster <= maxCluster & minCluster > 1) {
+    resultados = rep(0, maxCluster)
+    
+    for (i in c(minCluster:maxCluster))
+    {
+      resultado = rep(0, maxIterations)
+      
+      for (j in c(1:maxIterations)) {
+        fit = kmeans(df, i)
+        resultado[j] = fit$betweenss
+      }
+      
+      resultados[i] = mean(resultado)
+    }
+    return(resultados)
+    
+  } else {
+     print("ERROR: minCluster debe ser menor que maxCluster y mayor que 1")
+  }
+}
+```
+
+Una vez definido el método que nos devuelve el valor medio de betweenss para cada modelo, obtenemos la siguiente gráfica:
+```{r}
+mean_betweenss = kmeans_betweenss(df_clientes_copy, minCluster, maxCluster, maxIterations)
+
+plot(minCluster:maxCluster,mean_betweenss[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="betweenss")
+```
+
+Por lo tanto, viendo la anterior gráfica podríamos concluir al igual que antes que un modelo con 5,6 o 7 clústers sería lo mejor, aunque es verdad que si elegimos un modelo con 5 y 6 clústers va a ser un pelín mejor.
+
+Una vez que ya hemos visto qué modelos presentan una mejor calidad de agrupamiento dependiendo del número de clusters, vamos a realizar el análisis tanto para un modelo de kmeans con un k igual a 5 e igual a 6.
+
+Lo primero que debemos de hacer es crear ambos modelos:
+```{r}
+clientes_kmeans_k5 = kmeans(df_clientes_copy, 5)
+clientes_kmeans_k6 = kmeans(df_clientes_copy, 6)
+```
+
+Lo segundo que vamos a hacer es calcular la silueta de cada modelo:
+```{r}
+clientes_kmeans_k5_silhouette = kmeans_silhouette(df_clientes_copy, 5, 5, 1)[5]
+clientes_kmeans_k6_silhouette = kmeans_silhouette(df_clientes_copy, 6, 6, 1)[6]
+cat("La silueta cuando el número de clusters es igual a 5 es: ", clientes_kmeans_k5_silhouette)
+cat("La silueta cuando el número de clusters es igual a 6 es: ", clientes_kmeans_k6_silhouette)
+```
+
+Lo tercero que vamos a realizar es calcular el calidad de cada modelo respecto a su withinss:
+```{r}
+clientes_kmeans_k5_totWithinss = kmeans_totWithinss(df_clientes_copy, 5, 5, 1)[5]
+clientes_kmeans_k6_totWithinss = kmeans_totWithinss(df_clientes_copy, 6, 6, 1)[6]
+cat("El withinss total cuando el número de clusters es igual a 5 es: ", clientes_kmeans_k5_totWithinss)
+cat("El withinss total cuando el número de clusters es igual a 6 es: ", clientes_kmeans_k6_totWithinss)
+```
+
+Lo cuarto que vamos a hacer es calcular el calidad de cada modelo respecto a su betweenss:
+```{r}
+clientes_kmeans_k5_betweenss = kmeans_betweenss(df_clientes_copy, 5, 5, 1)[5]
+clientes_kmeans_k6_betweenss = kmeans_betweenss(df_clientes_copy, 6, 6, 1)[6]
+cat("La betweenss total cuando el número de clusters es igual a 5 es: ", clientes_kmeans_k5_betweenss)
+cat("La betweenss total cuando el número de clusters es igual a 6 es: ", clientes_kmeans_k6_betweenss)
+```
+
+Una vez que tenemos todas las medidas, debemos saber que a mayor distancia a los centros de cada cluster es mejor y a menor distancia entre los puntos de un clúster a su centro también es mejor, por lo que a priori presenta una mayor calidad del modelo cuando tenemos 6 clústers. Sin embargo, el valor de la silueta es algo mayor cuando hay 5 clústers en vez de 6 (esto puede variar dependiendo de la ejecución).
+
+Es por ello, que vamos a analizar los resultado obtenidos en primer lugar para un modelo con 5 clústers y luego para un modelo con 6 clústers.
+
+## Interpretación de los clústers
+
+Lo primero que debemos observar es el cómo se han dividido los grupos por pares de variables, al tener tres variables podríamos hacer un gráfico tridimensional, pero se ve más claro en un gráfico en dos dimensiones.
+
+El primer gráfico representa los grupos según el ingreso que tienen respecto a la edad:
+```{r}
+plot(df_clientes_copy[,c(1,2)], col=clientes_kmeans_k5$cluster, main="Ingresos respecto a la edad")
+```
+
+Cabe destacar que si en un gráfico hay grupos mezclados que apriori no tendría mucho sentido, es porque falta analizar el resto de gráficos (diferentes puntos de vista), por lo que ahora vamos a sacar unas primeras conclusiones y al final de todo el análisis tendremos ya las conclusiones definitivas.
+
+Del anterior gráfico, podemos ver como es lógico que tenemos 5 grupos ya que estamos analizando primero el modelo kmedias con una k igual a 5.
+
+Podríamos concluir a primera vista que tenemos 3 grupos claros:
+
+
+El siguiente gráfico hace referencia a los gastos según la edad:
+```{r}
+plot(df_clientes_copy[,c(1,3)], col=clientes_kmeans_k5$cluster, main="Gastos respecto a la edad")
+```
+
+Por último, tenemos los gastos respecto a los ingresos:
+```{r}
+plot(df_clientes_copy[,c(2,3)], col=clientes_kmeans_k5$cluster, main="Gastos respecto a los ingresos")
+```
+
+El primer gráfico representa los grupos según el ingreso que tienen respecto a la edad:
+```{r}
+plot(df_clientes_copy[,c(1,2)], col=clientes_kmeans_k6$cluster, main="Ingresos respecto a la edad")
+```
+
+El siguiente gráfico hace referencia a los gastos según la edad:
+```{r}
+plot(df_clientes_copy[,c(1,3)], col=clientes_kmeans_k6$cluster, main="Gastos respecto a la edad")
+```
+
+Por último, tenemos los gastos respecto a los ingresos:
+```{r}
+plot(df_clientes_copy[,c(2,3)], col=clientes_kmeans_k6$cluster, main="Gastos respecto a los ingresos")
+```
 
 
 ******
@@ -463,7 +734,79 @@ Esta información nos puede ayudar a dar consejos a la dirección de la disposic
 
 
 ## Respuesta ejercicio 4
-Escribe aquí la respuesta
+
+## Carga, resumen y explicación de los datos
+
+### Carga de los datos
+En este primer punto lo que debemos de hacer es la carga de los datos, un resumen de lo que hemos leído, una explicación de los mismos, preparar los datos para el modelo y realizar un análisis de los mismos.
+
+Por lo tanto, lo primero que debemos hacer es la carga del archivo clientes.csv:
+```{r}
+df_lastfm = read.csv("./data/lastfm.csv", stringsAsFactors = TRUE)
+head(df_lastfm)
+```
+
+### Resumen de los datos
+
+Resumen de la estructura del dataset:
+```{r}
+str(df_lastfm)
+```
+
+### Explicación de los datos
+
+Revisamos la descripción de las variables y si los tipos de variable se corresponden al que hemos cargado:
+
+**user**
+    integer - id del usuario.
+    
+**artist**
+    factor - artista escucahdo por el usuario.
+    
+**sex**
+    factor - género del usuario (male o female).
+    
+**country**
+    factor - país del usuario.
+    
+Vemos que tenemos 289955 registros y 4 variables que los caracterizan. 
+
+Este dataset está formado por 1 variable numérica (user) y 3 variable categóricas.
+
+### Preparación de los datos
+
+Comprobamos que no haya datos sin valores:
+```{r}
+df_lastfm_copy = df_lastfm
+colSums(is.na(df_lastfm_copy))
+```
+
+De la anterior ejecución vemos que todos los campos tienen valores.
+
+Realizamos un summary del dataset resultante para hacernos una idea del conjunto de datos que vamos a manejar, es decir, cuáles son los valores más frecuentes, las clases que tenemos...
+```{r}
+summary(df_lastfm_copy)
+```
+
+Como podemos observar, las variables tienen valores comunes, es característico ver que hay más usuarios hombres que mujeres, además, los artistas escuchados están más nivelados, sin embargo, vemos que una gran parte del dataset está basado en las escuchas de usuarios de los Estados Unidos de América, este pasís junto con Reino Unido y Alemania representan ellos solos a más de un tercio de los países registrados en el dataset.
+
+En la siguiente gráfica podemos observar la diferencia entre el histórico de usuarios hombres y mujeres:
+```{r}
+ggplot(data=df_lastfm_copy,aes(x=sex)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Sexo") +
+  ggtitle("Frecuencia según el sexo")
+```
+
+Podríamos hacer una representación gráfica de los artistas y de los países para ver el cómo se distrubuyen los datos, pero hay muchísimos niveles y si tratamos de acotar los niveles a un top 5 estaríamos viendo la misma información que nos proporciona la función summary, ejecutada anteriormente.
+
+Por lo tanto, hemos comprobado que no hay registros sin datos y que los datos que contienen son coherentes, por lo que podemos proceder a aplicar el algoritmo de generación de reglas de asociación.
+
+## Aplicación del algoritmo apriori
+
+
+
 
 
 ******
