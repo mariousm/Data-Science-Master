@@ -638,9 +638,9 @@ cat("La betweenss total cuando el número de clusters es igual a 5 es: ", client
 cat("La betweenss total cuando el número de clusters es igual a 6 es: ", clientes_kmeans_k6_betweenss)
 ```
 
-Una vez que tenemos todas las medidas, debemos saber que a mayor distancia a los centros de cada cluster es mejor y a menor distancia entre los puntos de un clúster a su centro también es mejor, por lo que a priori presenta una mayor calidad del modelo cuando tenemos 6 clústers. Sin embargo, el valor de la silueta es algo mayor cuando hay 5 clústers en vez de 6 (esto puede variar dependiendo de la ejecución).
+Una vez que tenemos todas las medidas, debemos saber que a mayor distancia a los centros de cada cluster es mejor y a menor distancia entre los puntos de un clúster a su centro también es mejor, por lo que a priori presenta una mayor calidad del modelo cuando tenemos 6 clústers.
 
-Es por ello, que vamos a analizar los resultado obtenidos en primer lugar para un modelo con 5 clústers y luego para un modelo con 6 clústers.
+Es por ello, que vamos a analizar los resultados obtenidos en primer lugar para un modelo con 5 clústers y luego para un modelo con 6 clústers.
 
 ## Interpretación de los clústers
 
@@ -651,9 +651,9 @@ El primer gráfico representa los grupos según el ingreso que tienen respecto a
 plot(df_clientes_copy[,c(1,2)], col=clientes_kmeans_k5$cluster, main="Ingresos respecto a la edad")
 ```
 
-Cabe destacar que si en un gráfico hay grupos mezclados que apriori no tendría mucho sentido, es porque falta analizar el resto de gráficos (diferentes puntos de vista), por lo que ahora vamos a sacar unas primeras conclusiones y al final de todo el análisis tendremos ya las conclusiones definitivas.
+Cabe destacar que si en un gráfico hay grupos mezclados que a priori no tendría mucho sentido, es porque falta analizar el resto de gráficos (diferentes puntos de vista), por lo que ahora vamos a sacar unas primeras conclusiones y al final de todo el análisis tendremos ya las conclusiones definitivas.
 
-Del anterior gráfico, podemos ver como es lógico que tenemos 5 grupos ya que estamos analizando primero el modelo kmedias con una k igual a 5.
+Del anterior gráfico, podemos ver como es lógico que tenemos 5 grupos ya que estamos analizando primero el modelo kmean con una k igual a 5.
 
 Podríamos concluir a primera vista que tenemos 3 grupos claros:
 
@@ -661,7 +661,7 @@ Podríamos concluir a primera vista que tenemos 3 grupos claros:
 - Mediana/tercera edad con ingresos muy bajos. (grupo azul oscuro)
 - Mediana/tercera edad con ingresos bajos/medios. (grupo rojo)
 
-Sin embargo dos grupos se mezclan (verde y azul claro), los primeros son gente de mediana/tercera edad con unos ingresos medios/elevados y los segundo son gente jóven con unos ingresos medios/elevados.
+Sin embargo dos grupos se mezclan (verde y azul claro), los primeros son gente de mediana/tercera edad con unos ingresos medios/elevados y los segundo son gente joven con unos ingresos medios/elevados.
 
 El siguiente gráfico hace referencia a los gastos según la edad:
 ```{r}
@@ -671,12 +671,12 @@ plot(df_clientes_copy[,c(1,3)], col=clientes_kmeans_k5$cluster, main="Gastos res
 Al igual que sucedía con los ingresos sí que podemos distinguir tres grupos claramente:
 
 - Aquellos jóvenes que tienen unos gastos medios/elevados. (grupo negro)
-- Aquello jóvenes de una edad superior a los anteriores con unos gastos elevados. (grupo azul claro)
+- Aquellos jóvenes de una edad superior a los anteriores con unos gastos elevados. (grupo azul claro)
 - Gente de mediana/tercera edad con unos gastos medios. (grupo rojo)
 
 Sin embargo, no podemos distinguir desde este punto de vista dos grupos:
 - Gente de mediana/tercera edad con unos gastos medios/bajos (grupo azul oscuro)
-- Gente de mayoritariamente de mediana edad anque también de tercera edad con unos gastos medios/bajos. (grupo verde)
+- Gente de mayoritariamente de mediana edad aunque también de tercera edad con unos gastos medios/bajos. (grupo verde)
 
 Por último, tenemos los gastos respecto a los ingresos:
 ```{r}
@@ -712,7 +712,7 @@ Lógicamente al tener una k = 6 obtenemos 6 clúster, los cuales son:
 
 - Jóvenes con unos ingresos medios. (grupo rosa)
 - Jóvenes con unos ingresos bajos. (grupo rojo)
-- Gente jóven/mediana edad con ingresos elevados. (grupo azul claro)
+- Gente joven/mediana edad con ingresos elevados. (grupo azul claro)
 - Gente de mediana/tercera edad con ingresos elevados. (grupo verde)
 - Gente de mediana/tercera edad con ingresos medios. (grupo azul oscuro)
 - Gente de mediana/tercera edad con ingresos bajos. (grupo negro)
@@ -726,7 +726,7 @@ Del gráfico anterior obtenemos las siguiente información:
 
 - Jóvenes con gastos elevados. (grupo rojo)
 - Jóvenes con gastos medios. (grupo rosa)
-- Gente jóven/mediana edad con gastos elevados. (grupo azul claro)
+- Gente joven/mediana edad con gastos elevados. (grupo azul claro)
 - Gente de mediana/tercera edad con gastos medios. (grupo azul oscuro)
 - Gente de mediana/tercera edad con gastos bajos. (grupo negro)
 - Gente de mediana/tercera edad con gastos bajos. (grupo verde)
@@ -753,7 +753,7 @@ Una vez que hemos analizado los clúster cuando tenemos 6 grupos, obtenemos las 
 
 - Respecto al grupo rojo, son jóvenes que tienen unos ingresos bajos y unos gastos elevados.
 - Respecto al grupo rosa, son jóvenes que tienen unos ingresos medios y gastos medios.
-- Respecto al grupo azul claro, son gente jóven/mediana edad con unos ingresos elevados y gastos elevados.
+- Respecto al grupo azul claro, son gente joven/mediana edad con unos ingresos elevados y gastos elevados.
 - Respecto al grupo negro, son gente de mediana/tercera edad con unos ingresos bajos y gastos bajos.
 - Respecto al grupo azul oscuro, son gente de mediana/tercera edad con unos ingresos medios y gastos medios.
 - Respecto al grupo verde, son gente de mediana/tercera edad con unos ingresos elevados y gastos bajos.
@@ -909,7 +909,7 @@ Las filas se corresponden con las transacciones que tenemos en el dataset:
 rownames(transactions_lastfm)[1:20]
 ```
 
-Podemos análizar los items que tenemos en nuestra transacciones, como vemos a continuación, tenemos los artistas correspondientes a la primera trasacción, es decir, al primer usuario (si abrimos el fichero comprobamos que tiene el mismo número de artistas y que se corresponde con estos):
+Podemos análizar los items que tenemos en transacciones, como vemos a continuación, tenemos los artistas correspondientes a la primera trasacción, es decir, al primer usuario (si abrimos el fichero comprobamos que tiene el mismo número de artistas y que se corresponde con estos):
 ```{r}
 inspect(head(transactions_lastfm, 1))
 ```
@@ -954,7 +954,7 @@ Tal y como podemos observar la gran mayoría de {rhs} se corresponden con los gr
 
 Además, podemos ver que los artistas más comunes tienen antecedentes similares al género músical que hacen, por ejemplo, hay gente que para escuchar a coldplay viene de snow patrol (hace rock alternativo) y hay gente que viene de keane o de muse, los cuales también hacen rock.
 
-Por lo tanto, podemos ver que los usuarios que escuchan un tipo de género, también escucha otros grupos del mismo tipo de género muscial. Hay casos "especiales", como por ejemplo hay gente que escucha a david bowie o radiohead (rock) y están relacionados con the beatles, los cuales hacen un rock más popular, más comumente conocido como pop.
+Por lo tanto, podemos ver que los usuarios que escuchan un tipo de género, también escuchan otros grupos del mismo tipo de género muscial. Hay casos "especiales", como por ejemplo hay gente que escucha a david bowie o radiohead (rock) y están relacionados con the beatles, los cuales hacen un rock más popular, más comumente conocido como pop.
 
 La confianza habla de la probabilidad de que {rhs} se de en función de {lhs}, a mayor confianza mayor va a ser la relación entre {rhs} y {lhs}:
 ```{r}
@@ -965,20 +965,20 @@ Tal y como podemos apreciar hay una fuerte relación entre determinados grupos q
 
 También podemos ver que hay relaciones entre grupos que sinceramente se hacen por lo famosos que son, por ejemplo que bob dylan y the rolling stones está fuertemente relacionado con the beatles, sin embargo, hacen géneros diferentes y son tipos de personalidad completamente diferentes.
 
-Por lo tanto, nos podemos hacer una idea de que la gran mayoría de relaciones se hacen porque los artistas hacen o el mismo género o géneros similares, pero hay casos especiales, en lo que hay artistas famosos los cuales la gente los escucha por eso mismo, esto no implica que un usuario solo pueda escuchar un género o un determinado artista, pero llama la atención.
+Por lo tanto, nos podemos hacer una idea de que la gran mayoría de relaciones se hacen porque los artistas hacen o el mismo género o géneros similares, pero hay casos especiales, en los que hay artistas famosos los cuales la gente los escucha por eso mismo, esto no implica que un usuario solo pueda escuchar un género o un determinado artista, pero llama la atención.
 
 Finalmente, el lift es un parámetro que nos indica cuánto de aleatoriedad hay en las reglas. Un lift de 1 o menos es que las reglas son completamente fruto del azar:
 ```{r}
 inspect(head(sort(lastfm_rules, by = "lift"), 10))[, c(1:3,7)]
 ```
 
-La ejecución anterior nos da una información muy valiosa, hasta ahora las reglas se centraban más en los artistas "más famosos", sin embargo, el lift no está indicando que hay relaciones que no son tan aleaotrio como imaginábamos.
+La ejecución anterior nos da una información muy valiosa, hasta ahora las reglas se centraban más en los artistas "más famosos", sin embargo, el lift no está indicando que hay relaciones que no son tan aleatorias como imaginábamos.
 
-Por ejemplo, el grupo the pussycat dolls hacen música más orientado al cabaret y rihanna en ese caso su estilo musical es muy parecido, por lo que es lógico que no haya una aletoriadad en esa regla.
+Por ejemplo, el grupo the pussycat dolls hacen música más orientado al cabaret y rihanna en ese caso su estilo musical es muy parecido, por lo que es lógico que no haya una aleatoriedad en esa regla.
 
 Otro caso son los que escuchan a pink floyd y the doors hacen un estilo de música muy especial caracterizada en los finales de los 60 y primeros de los 70, es por ello que lógicamente van a escuchar a led zeppelin ya que los géneros son similares y son de la misma época.
 
-Otro caso similar es el de T.I. con kenye west ambos hacen rap más comercial y son de la misma época, por lo que tiene todo el sentido del mundo que escuchen a ambos artistas, ya que si te gusta ese género y tienes dos artistas similares los vas a escucahr sí o sí.
+Otro caso similar es el de T.I. con kenye west ambos hacen rap más comercial y son de la misma época, por lo que tiene todo el sentido del mundo que escuchen a ambos artistas, ya que si te gusta ese género y tienes dos artistas similares los vas a escuchar sí o sí.
 
 ## Variando los parámetros de confianza y soporte
 
@@ -1020,7 +1020,7 @@ De la ejecución anterior podemos ver realmente la relación que hay, es decir, 
 
 Por ejemplo, en el primer caso tenemos que si escuchas keane problablemnte escuches coldplay, es lógico, son mismo género musical, ambos son de Reino Unido y como hemos visto anteriormente de los Estados Unidos y Reino Unido son la gran mayoría de los usuarios.
 
-Otro caso similar al anterior, es el de megadeth con metallica, ambos son grupos que hacen la misma  Y lo mismo sucede con simon & garfunke y the beatles, ya que hacen la música parecida (los primeros fols rock y los segundo pop rock), son de la misma época de los 60, comparten el mismo público porque ambos son de habla inglesa...
+Otro caso similar al anterior, es el de megadeth con metallica, ambos son grupos que hacen la misma música, y lo mismo sucede con simon & garfunke y the beatles, ya que hacen la música parecida (los primeros fols rock y los segundo pop rock), son de la misma época de los 60, comparten el mismo público porque ambos son de habla inglesa...
 
 Por lo tanto, nos podemos hacer una idea de que la gran mayoría de relaciones se hacen porque los artistas hacen o el mismo género o géneros similares, son de una misma zona geográfica, son de la misma época, cantan en el mismo idioma...
 
@@ -1086,12 +1086,77 @@ Para realizar este ejercicio hemos creado tres modelo apriori:
 Busca información sobre otros métodos de agregación diferentes al *k-means*. Partiendo del Ejercicio 3, probar el funcionamiento de al menos 2 métodos diferentes y comparar los resultados obtenidos.
 
 ## Respuesta ejercicio 5
-Escribe aquí la respuesta
 
+Para realizar este ejercicio hemos decidido usar dos algoritmos de clusterings particionados, el más usado es el kmedias, pero encontramos también el PAM y el CLARA (este último se basa en el PAM pero busca ser eficiente con datasets muy grandes). La principal ventaje de ambos es que no son sensibles a los outliers, mientras que el kmeans sí que lo es.
 
+## PAM
 
+Lo primero que debemos hacer es crear el modelo usando PAM, para poder comparar los resultados, vamos a generar el modelo pero vamos a calcular cuál sería el número de clusters ideal para ese modelo, al igual que hicimos con kmeans:
+```{r}
+library(factoextra)
 
+fviz_nbclust(df_clientes_copy, pam, method="silhouette")+theme_classic()
+```
 
+Como podemos apreciar en la anterior captura el número de clusters ideales para PAM es de 6, al igual que en el kmeans, por lo tanto generamos el modelo:
+```{r}
+set.seed(0)
+
+clientes_pam_k6 = pam(df_clientes_copy, 6)
+clientes_pam_k6
+```
+
+## CLARA
+
+El segundo modelo que vamos a crear es el de CLARA, al igual que antes calculamos el número de clusters ideales para el algoritmo de clara:
+```{r}
+fviz_nbclust(df_clientes_copy, clara, method="silhouette")+theme_classic()
+```
+
+En este caso, nos indica que es mejor tener 7 clusters que 6, por lo tanto creamos el modelo con 7 clusters:
+```{r}
+set.seed(0)
+
+clientes_clara_k7 = clara(df_clientes_copy, 7)
+clientes_clara_k7
+```
+
+## Comparación de los resultados
+
+Una vez que hemos creado cada modelo según el número de clusters ideales para ese problema, vamos a comparar los resultados que obtenemos a nivel gráfico.
+
+Para ello primero visualizamos las agrupaciones que hace el algoritmo de kmeans respecto a los gastos e ingresos:
+```{r}
+plot(df_clientes_copy[,c(1,2)], col=clientes_kmeans_k6$cluster, main="Ingresos respecto a la edad")
+plot(df_clientes_copy[,c(1,3)], col=clientes_kmeans_k6$cluster, main="Gastos respecto a la edad")
+plot(df_clientes_copy[,c(2,3)], col=clientes_kmeans_k6$cluster, main="Gastos respecto a los ingresos")
+```
+
+Visualizamos las agrupaciones que hace el algoritmo de PAM respecto a los gastos e ingresos:
+```{r}
+plot(df_clientes_copy[,c(1,2)], col=clientes_pam_k6$clustering, main="Ingresos respecto a la edad")
+plot(df_clientes_copy[,c(1,3)], col=clientes_pam_k6$clustering, main="Gastos respecto a la edad")
+plot(df_clientes_copy[,c(2,3)], col=clientes_pam_k6$clustering, main="Gastos respecto a los ingresos")
+```
+
+Visualizamos las agrupaciones que hace el algoritmo de CLARA respecto a los gastos e ingresos:
+```{r}
+plot(df_clientes_copy[,c(1,2)], col=clientes_clara_k7$clustering, main="Ingresos respecto a la edad")
+plot(df_clientes_copy[,c(1,3)], col=clientes_clara_k7$clustering, main="Gastos respecto a la edad")
+plot(df_clientes_copy[,c(2,3)], col=clientes_clara_k7$clustering, main="Gastos respecto a los ingresos")
+```
+
+## Conclusiones
+
+Lo primero que cabe destacar es que el dataset no es lo suficientemente grande como para determinar qué algoritmo es mejor, ya que los cambios que hay entre ellos son muy pequeños.
+
+Aún así la ventaja de usar kmeans respecto a los demás, es que es muy fácil de implementar, pero es vulnerable a los outliers, pero si controlamos eso tendremos un buen algoritmo.
+
+Dado el dataset del ejericio 3 entre el kmeans y pam hay muy pocas diferencias, si nos fijamos detenidamente en cada gráfica solo cambia 2 o 3 puntos entre los clusters que define kmeans y pam, sin embargo, esos puntos que cambia desde mi puntos de vista lo hace mejor el algoritmo pam, ya que tienen más sentido porque esos puntos están más cerca de un clúster que de otro. Pero esto no deja de ser relativo, ya que si el dataset es mayor a lo mejor el algoritmo kmeans se comportaba mejor.
+
+Por otro lado, el algoritmo clara para el mismo conjunto de datos ha necesitado un grupo más que kmeans y pam, por lo que es lógico que haga una mejor división de los datos, es decir, que su agrupamiento esté mejor definido y diferenciado, es por ello, que este algoritmo se comporta similar al pam pero al introducir un grupo más consigue diferenciar mejor los datos, por lo que considero que al fin al cabo el objetivo del clustering es diferenciar grupos de una mejor forma y el modelo clara es el que mejor lo hace.
+
+En resumen, no podemos extraer grandes conclusiones de qué algoritmo es mejor ya que el dataset que tenemos es muy pequeño, si tuviera que elegir entre el kmean y pam, considero que pam ha realizado un mejor agrupamiento, pero entre estos dos y clara, considero que clara es la ganadora ya que introduce un grupo más y hace una mayor distinción de los datos.
 
 
 ******
