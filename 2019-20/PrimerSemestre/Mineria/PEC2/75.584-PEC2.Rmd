@@ -606,12 +606,14 @@ Una vez que ya hemos visto qué modelos presentan una mejor calidad de agrupamie
 
 Lo primero que debemos de hacer es crear ambos modelos:
 ```{r}
+set.seed(0)
 clientes_kmeans_k5 = kmeans(df_clientes_copy, 5)
 clientes_kmeans_k6 = kmeans(df_clientes_copy, 6)
 ```
 
 Lo segundo que vamos a hacer es calcular la silueta de cada modelo:
 ```{r}
+set.seed(0)
 clientes_kmeans_k5_silhouette = kmeans_silhouette(df_clientes_copy, 5, 5, 1)[5]
 clientes_kmeans_k6_silhouette = kmeans_silhouette(df_clientes_copy, 6, 6, 1)[6]
 cat("La silueta cuando el número de clusters es igual a 5 es: ", clientes_kmeans_k5_silhouette)
@@ -620,6 +622,7 @@ cat("La silueta cuando el número de clusters es igual a 6 es: ", clientes_kmean
 
 Lo tercero que vamos a realizar es calcular el calidad de cada modelo respecto a su withinss:
 ```{r}
+set.seed(0)
 clientes_kmeans_k5_totWithinss = kmeans_totWithinss(df_clientes_copy, 5, 5, 1)[5]
 clientes_kmeans_k6_totWithinss = kmeans_totWithinss(df_clientes_copy, 6, 6, 1)[6]
 cat("El withinss total cuando el número de clusters es igual a 5 es: ", clientes_kmeans_k5_totWithinss)
@@ -628,6 +631,7 @@ cat("El withinss total cuando el número de clusters es igual a 6 es: ", cliente
 
 Lo cuarto que vamos a hacer es calcular el calidad de cada modelo respecto a su betweenss:
 ```{r}
+set.seed(0)
 clientes_kmeans_k5_betweenss = kmeans_betweenss(df_clientes_copy, 5, 5, 1)[5]
 clientes_kmeans_k6_betweenss = kmeans_betweenss(df_clientes_copy, 6, 6, 1)[6]
 cat("La betweenss total cuando el número de clusters es igual a 5 es: ", clientes_kmeans_k5_betweenss)
@@ -653,32 +657,106 @@ Del anterior gráfico, podemos ver como es lógico que tenemos 5 grupos ya que e
 
 Podríamos concluir a primera vista que tenemos 3 grupos claros:
 
+- Aquellos que son jóvenes y tienen unos ingresos bajos. (grupo negro)
+- Mediana/tercera edad con ingresos muy bajos. (grupo azul oscuro)
+- Mediana/tercera edad con ingresos bajos/medios. (grupo rojo)
+
+Sin embargo dos grupos se mezclan (verde y azul claro), los primeros son gente de mediana/tercera edad con unos ingresos medios/elevados y los segundo son gente jóven con unos ingresos medios/elevados.
 
 El siguiente gráfico hace referencia a los gastos según la edad:
 ```{r}
 plot(df_clientes_copy[,c(1,3)], col=clientes_kmeans_k5$cluster, main="Gastos respecto a la edad")
 ```
 
+Al igual que sucedía con los ingresos sí que podemos distinguir tres grupos claramente:
+
+- Aquellos jóvenes que tienen unos gastos medios/elevados. (grupo negro)
+- Aquello jóvenes de una edad superior a los anteriores con unos gastos elevados. (grupo azul claro)
+- Gente de mediana/tercera edad con unos gastos medios. (grupo rojo)
+
+Sin embargo, no podemos distinguir desde este punto de vista dos grupos:
+- Gente de mediana/tercera edad con unos gastos medios/bajos (grupo azul oscuro)
+- Gente de mayoritariamente de mediana edad anque también de tercera edad con unos gastos medios/bajos. (grupo verde)
+
 Por último, tenemos los gastos respecto a los ingresos:
 ```{r}
 plot(df_clientes_copy[,c(2,3)], col=clientes_kmeans_k5$cluster, main="Gastos respecto a los ingresos")
 ```
+
+En este gráfico podemos distinguir mayoritariamente muy bien los grupos:
+
+- Gente con unos gastos altos/medios e ingresos bajos/medios. (grupo negro)
+- Gente con gastos bajos e ingresos bajos. (grupo azul oscuro)
+- Gente con unos gastos medios e ingresos medios. (grupo rojo)
+- Gente con gastos altos e ingresos altos. (grupo azul claro)
+- Gente con gastos bajos e ingresos altos. (grupo verde)
+
+### Conclusiones respecto al algortimo de kmeans con una k = 5
+
+Una vez que hemos analizado los clúster cuando tenemos 5 grupos, obtenemos las siguiente conclusiones:
+
+- Respecto al grupo negro, son jóvenes que tienen unos ingresos bajos y sus gastos son medios y elevados.
+- Respecto al grupo azul claro, son jóvenes que tienen unos ingresos medios/elevados y unos gastos elevados.
+- Respecto al grupo rojo, son gente de mediana/tercera edad con unos ingresos medios/bajos y unos gastos medios.
+- Respecto al grupo azul oscuro, son gente de mediana/tercera edad con unos ingresos muy bajos y unos gastos bajos.
+- Respecto al grupo verde, son gente de mediana/tercera edad con ingresos medios/elevados y unos gastos medios/bajos.
+
+Una vez obtenidas las conclusiones para el algoritmo kmeans con una k = 5, vamos a hacer lo mismo para una k = 6 
 
 El primer gráfico representa los grupos según el ingreso que tienen respecto a la edad:
 ```{r}
 plot(df_clientes_copy[,c(1,2)], col=clientes_kmeans_k6$cluster, main="Ingresos respecto a la edad")
 ```
 
+Lógicamente al tener una k = 6 obtenemos 6 clúster, los cuales son:
+
+- Jóvenes con unos ingresos medios. (grupo rosa)
+- Jóvenes con unos ingresos bajos. (grupo rojo)
+- Gente jóven/mediana edad con ingresos elevados. (grupo azul claro)
+- Gente de mediana/tercera edad con ingresos elevados. (grupo verde)
+- Gente de mediana/tercera edad con ingresos medios. (grupo azul oscuro)
+- Gente de mediana/tercera edad con ingresos bajos. (grupo negro)
+
 El siguiente gráfico hace referencia a los gastos según la edad:
 ```{r}
 plot(df_clientes_copy[,c(1,3)], col=clientes_kmeans_k6$cluster, main="Gastos respecto a la edad")
 ```
+
+Del gráfico anterior obtenemos las siguiente información:
+
+- Jóvenes con gastos elevados. (grupo rojo)
+- Jóvenes con gastos medios. (grupo rosa)
+- Gente jóven/mediana edad con gastos elevados. (grupo azul claro)
+- Gente de mediana/tercera edad con gastos medios. (grupo azul oscuro)
+- Gente de mediana/tercera edad con gastos bajos. (grupo negro)
+- Gente de mediana/tercera edad con gastos bajos. (grupo verde)
+
+Cabe destacar que los dos últimos grupos no se ve una buena separación entre ellos, es más están mezclados, pero como veremos acontinuación es solamente porque coinciden en el rango de edad y el nivel de gasos.
 
 Por último, tenemos los gastos respecto a los ingresos:
 ```{r}
 plot(df_clientes_copy[,c(2,3)], col=clientes_kmeans_k6$cluster, main="Gastos respecto a los ingresos")
 ```
 
+Respecto al anterior gráfico obtenemos la siguiente información:
+
+- Gente que tiene unos ingresos bajos y unos gastos elevados. (grupo rojo)
+- Gente que tiene unos ingresos bajos y unos gastos bajos. (grupo negro)
+- Gente que tiene unos ingresos medios y unos gastos medios. (grupo azul oscuro)
+- Gente que tiene unos ingresos medios y unos gastos medios. (grupo rosa)
+- Gente que tiene unos ingresos elevados y unos gastos elevados. (grupo azul claro)
+- Gente que tiene unos ingresos elevados y unos gatos bajos. (grupo verde)
+
+### Conclusiones respecto al algortimo de kmeans con una k = 6
+
+Una vez que hemos analizado los clúster cuando tenemos 6 grupos, obtenemos las siguiente conclusiones:
+
+- Respecto al grupo rojo, son jóvenes que tienen unos ingresos bajos y unos gastos elevados.
+- Respecto al grupo rosa, son jóvenes que tienen unos ingresos medios y gastos medios.
+- Respecto al grupo azul claro, son gente jóven/mediana edad con unos ingresos elevados y gastos elevados.
+- Respecto al grupo negro, son gente de mediana/tercera edad con unos ingresos bajos y gastos bajos.
+- Respecto al grupo azul oscuro, son gente de mediana/tercera edad con unos ingresos medios y gastos medios.
+- Respecto al grupo verde, son gente de mediana/tercera edad con unos ingresos elevados y gastos bajos.
 
 ******
 # Ejercicio 4
