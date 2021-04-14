@@ -803,11 +803,203 @@ Podríamos hacer una representación gráfica de los artistas y de los países p
 
 Por lo tanto, hemos comprobado que no hay registros sin datos y que los datos que contienen son coherentes, por lo que podemos proceder a aplicar el algoritmo de generación de reglas de asociación.
 
-## Aplicación del algoritmo apriori
+## Preparación de los datos y aplicación del algoritmo apriori
+
+Aunque nuestro dataset tiene 4 campos (el identificador del usuario, el artista escuchado, el género del usuario y el país del usuario) realmente vamos a comprobar el cómo se relacionan los usuarios con los artistas escuchados, es decir, hacernos una idea según lo que están escuchando lo que podrían escuchar.
+
+Para trabajar de forma óptima con el algoritmo apriori debemos trabajar con trasacciones, es por ello que volvemos a hacer la lecutra de los datos y nos quedamos con el usuario y el artista, tarda mucho menos si volvemos a hacer la lectura del fichero que convertir el dataframe a un objeto de trasacciones.
+
+Un aspecto a destacar de la creación de las transacciones es que debemos definir el formato, puede ser single (si cada línea representa un ítem) o basket (si cada línea representa una transacción completa), en  nuestro caso el formato debe ser single ya que la transcción completa es el histórico de cada usuario y los items los artistas escuchados:
+```{r}
+library(arules)
+
+transactions_lastfm = read.transactions(file = "./data/lastfm.csv", sep = ",", format = "single", header = TRUE, cols = c("user", "artist"), rm.duplicates = TRUE, encoding = "UTF-8")
+
+transactions_lastfm
+```
+
+Como podemos apreciar, tenemos 15000 transacciones y 1004 items.
 
 
+Las columnas de las transacciones se corresponden con los artistas de nuestro dataset:
+```{r}
+colnames(transactions_lastfm)[1:20]
+```
 
+Las filas se corresponden con las transacciones que tenemos en el dataset:
+```{r}
+rownames(transactions_lastfm)[1:20]
+```
 
+Podemos análizar los items que tenemos en nuestra transacciones, como vemos a continuación, tenemos los artistas correspondientes a la primera trasacción, es decir, al primer usuario (si abrimos el fichero comprobamos que tiene el mismo número de artistas y que se corresponde con estos):
+```{r}
+inspect(head(transactions_lastfm, 1))
+```
+
+Podemos ver cómo varía el tamaño de las transacciones:
+```{r}
+  ggplot(data.frame(size(transactions_lastfm)), aes(x = size(transactions_lastfm))) +
+  geom_histogram() +
+  labs(title = "Distribución del tamaño de las transacciones",
+       x = "Tamaño") +
+  theme_bw()
+```
+
+De la anterior gráfica podemos concluir que la gran mayoría de gente escucha entre 8 y 30 artistas, pero también podemos comprobar cuáles son los artistas más escuchados/más frecuentes, es decir, los que tienen un mayor soporte:
+```{r}
+itemFrequencyPlot(transactions_lastfm, topN = 10, type = "absolute")
+
+frecuencia_items = itemFrequency(x = transactions_lastfm, type = "absolute")
+head(sort(frecuencia_items, decreasing = TRUE), 10)
+```
+
+Como podemos apreciar, el top 10 de artistas más escuchados son de habla inglesa, lo cual es lógico ya que un tercio de los datos que tenemos son de Estados Unidos y Reino Unido.
+
+Una vez que hemos hecho un pequeño análisis de las transacciones que tenemos, podemos aplicar el algoritmo apriori para obtener las asociaciones más frecuentes, de primeras vamos a crear un modelo con los parámetros por defecto del algoritmo y vamos a analizar los resultados obtenidos:
+```{r}
+lastfm_rules = apriori(transactions_lastfm, parameter = list(support = 0.01, confidence = 0.5))
+```
+
+Una vez generado el modelo, observamos el número de reglas encontradas:
+```{r}
+cat("El número de reglas encontradas son: ", length(lastfm_rules))
+```
+
+Finalmente, realizamos un análisis tanto del soporte, como de la confianza y del lift.
+
+El soporte indica cuantas veces se han encontrado las reglas {lsh => rhs} en el dataset, cuanto más alto mejor ya que indicaría que hay una alta relación entre los artistas de si escucha uno escuchar el otro: 
+```{r}
+inspect(head(sort(lastfm_rules, by = "support"), 10))[, c(1:4)]
+```
+
+Tal y como podemos observar la gran mayoría de {rhs} se corresponden con los grupos más escuchados (Radiohead, Coldplay, the beatles), pero cabe destacar que se ha "colado" el grupo metallica como uno de los grupos que más relación tiene con su antecedente {lhs}, lo cual es normal, porque su grupo antecente megadeth su género músical es igual a metallica.
+
+Además, podemos ver que los artistas más comunes tienen antecedentes similares al género músical que hacen, por ejemplo, hay gente que para escuchar a coldplay viene de snow patrol (hace rock alternativo) y hay gente que viene de keane o de muse, los cuales también hacen rock.
+
+Por lo tanto, podemos ver que los usuarios que escuchan un tipo de género, también escucha otros grupos del mismo tipo de género muscial. Hay casos "especiales", como por ejemplo hay gente que escucha a david bowie o radiohead (rock) y están relacionados con the beatles, los cuales hacen un rock más popular, más comumente conocido como pop.
+
+La confianza habla de la probabilidad de que {rhs} se de en función de {lhs}, a mayor confianza mayor va a ser la relación entre {rhs} y {lhs}:
+```{r}
+inspect(head(sort(lastfm_rules, by = "confidence"), 10))[, c(1:3,5)]
+```
+
+Tal y como podemos apreciar hay una fuerte relación entre determinados grupos que hacen música sobre un mismo género, como oasis y the killers con coldplay.
+
+También podemos ver que hay relaciones entre grupos que sinceramente se hacen por lo famosos que son, por ejemplo que bob dylan y the rolling stones está fuertemente relacionado con the beatles, sin embargo, hacen géneros diferentes y son tipos de personalidad completamente diferentes.
+
+Por lo tanto, nos podemos hacer una idea de que la gran mayoría de relaciones se hacen porque los artistas hacen o el mismo género o géneros similares, pero hay casos especiales, en lo que hay artistas famosos los cuales la gente los escucha por eso mismo, esto no implica que un usuario solo pueda escuchar un género o un determinado artista, pero llama la atención.
+
+Finalmente, el lift es un parámetro que nos indica cuánto de aleatoriedad hay en las reglas. Un lift de 1 o menos es que las reglas son completamente fruto del azar:
+```{r}
+inspect(head(sort(lastfm_rules, by = "lift"), 10))[, c(1:3,7)]
+```
+
+La ejecución anterior nos da una información muy valiosa, hasta ahora las reglas se centraban más en los artistas "más famosos", sin embargo, el lift no está indicando que hay relaciones que no son tan aleaotrio como imaginábamos.
+
+Por ejemplo, el grupo the pussycat dolls hacen música más orientado al cabaret y rihanna en ese caso su estilo musical es muy parecido, por lo que es lógico que no haya una aletoriadad en esa regla.
+
+Otro caso son los que escuchan a pink floyd y the doors hacen un estilo de música muy especial caracterizada en los finales de los 60 y primeros de los 70, es por ello que lógicamente van a escuchar a led zeppelin ya que los géneros son similares y son de la misma época.
+
+Otro caso similar es el de T.I. con kenye west ambos hacen rap más comercial y son de la misma época, por lo que tiene todo el sentido del mundo que escuchen a ambos artistas, ya que si te gusta ese género y tienes dos artistas similares los vas a escucahr sí o sí.
+
+## Variando los parámetros de confianza y soporte
+
+Una vez que ya hemos hecho un modelo de base que nos da una idea de cómo se relacionan los artistas, podemos tratar de mejorar ese modelo aumentando la confianza y soporte, de tal forma que vayamos obteniendo un mejor número de reglas y que estas reglas sean lo más claras posible, para tener la certeza que realmente sí que hay una relación.
+
+En este apartado se podrían hacer muchos modelo, pero nos vamos a centrar en dos: el primero aumentado solamente el soporte y manteniendo la confianza, y un segundo modelo en el que aumentaremos solo la confianza.
+
+Por lo tanto, en el primer modelo vamos a aumentar el soporte de 0.01 a 0.015, esto lo que significa es que aumentamos el nivel que el algormitmo considera como frecuente:
+```{r}
+lastfm_rules = apriori(transactions_lastfm, parameter = list(support = 0.015, confidence = 0.5))
+```
+
+Una vez generado el modelo, observamos el número de reglas encontradas:
+```{r}
+cat("El número de reglas encontradas son: ", length(lastfm_rules))
+```
+
+Tal y como podemos recordar, en el anterior modelo teníamos 50 reglas encontradas, en este caso ya son solo 9.
+
+Finalmente, realizamos un análisis tanto del soporte, como de la confianza y del lift.
+
+El soporte indica cuantas veces se han encontrado las reglas {lsh => rhs} en el dataset, cuanto más alto mejor ya que indicaría que hay una alta relación entre los artistas de si escucha uno escuchar el otro: 
+```{r}
+inspect(sort(lastfm_rules, by = "support"))[, c(1:4)]
+```
+
+Tal y como podemos observar la gran mayoría de {rhs} se corresponden con los grupos más escuchados (Radiohead, Coldplay, the beatles), pero cabe destacar que se ha "colado" el grupo metallica como uno de los grupos que más relación tiene con su antecedente {lhs}, lo cual es normal, porque su grupo antecente megadeth su género músical es igual a metallica.
+
+Además, podemos ver que los artistas más comunes tienen antecedentes similares al género músical que hacen, por ejemplo, hay gente que para escuchar a coldplay viene de snow patrol (hace rock alternativo) y hay gente que viene de keane o de muse, los cuales también hacen rock.
+
+Estas conclusiones obtenidas lógicamente son iguales que en el modelo anterior, ya que son los mismos datos lo único que ponemos más restricciones para no tener un conjunto de reglas tan alto, solo tener verdaderamente las que son llamativas.
+
+La confianza habla de la probabilidad de que {rhs} se de en función de {lhs}, a mayor confianza mayor va a ser la relación entre {rhs} y {lhs}:
+```{r}
+inspect(sort(lastfm_rules, by = "confidence"))[, c(1:3,5)]
+```
+
+De la ejecución anterior podemos ver realmente la relación que hay, es decir, la probablidad de que se escuche al artista {rhs} dependiendo de {lhs}, esto puede ser por diversos factores.
+
+Por ejemplo, en el primer caso tenemos que si escuchas keane problablemnte escuches coldplay, es lógico, son mismo género musical, ambos son de Reino Unido y como hemos visto anteriormente de los Estados Unidos y Reino Unido son la gran mayoría de los usuarios.
+
+Otro caso similar al anterior, es el de megadeth con metallica, ambos son grupos que hacen la misma  Y lo mismo sucede con simon & garfunke y the beatles, ya que hacen la música parecida (los primeros fols rock y los segundo pop rock), son de la misma época de los 60, comparten el mismo público porque ambos son de habla inglesa...
+
+Por lo tanto, nos podemos hacer una idea de que la gran mayoría de relaciones se hacen porque los artistas hacen o el mismo género o géneros similares, son de una misma zona geográfica, son de la misma época, cantan en el mismo idioma...
+
+Finalmente, el lift es un parámetro que nos indica cuánto de aleatoriedad hay en las reglas. Un lift de 1 o menos es que las reglas son completamente fruto del azar:
+```{r}
+inspect(sort(lastfm_rules, by = "lift"))[, c(1:3,7)]
+```
+
+Algo curioso es que al aumentar  el soporte hemos obtenido un menor lift, esto significa que tenemos más aleatoriedad, lógicamente al aumentar el soporte estamos aumenta el nivel de frecuencia de los artistas, por lo que ahora solo aparecen los artistas más escuchados, Rihanna ya no sale ya que su frecuencia era menor.
+
+Aunque haya disminuido el lift, la relaciones que se siguen produciendo son lógicas y para nada son producidas por el azar, como ya hemos comentado megadeth y metallica son grupso simalres, keane y coldplay también, por lo que no podemos hablar del azar en cuanto a estas reglas.
+
+Finalmente, vamos a ajustar un poco más el modelo, y para ello vamos a manter el nivel de soporte pero aumetaremos el nivel de confianza de 0.5 a 0.525:
+```{r}
+lastfm_rules = apriori(transactions_lastfm, parameter = list(support = 0.015, confidence = 0.525))
+```
+
+Una vez generado el modelo, observamos el número de reglas encontradas:
+```{r}
+cat("El número de reglas encontradas son: ", length(lastfm_rules))
+```
+
+Tal y como podemos recordar, en el anterior modelo teníamos 9 reglas encontradas, en este caso ya son solo 4.
+
+Finalmente, realizamos un análisis tanto del soporte, como de la confianza y del lift.
+
+Respecto al soporte: 
+```{r}
+inspect(sort(lastfm_rules, by = "support"))[, c(1:4)]
+```
+
+En la ejecución anterior se mide la frecuencia, por lo que al aumentar la confianza buscamos que la probabilidad de que una regla suceda sea alta, por lo tanto ahora obtenemos solamente los grupos con mayor frecuencia y cuya relación es elevada.
+
+Respecto a la confianza:
+```{r}
+inspect(sort(lastfm_rules, by = "confidence"))[, c(1:3,5)]
+```
+
+Al igual que sucedía en el anterior apartado, nos estamos fijando en los grupos más frecuentes cuya relación es muy probable y vamoe que la relación más probable es si escuchas a keane y coldplay, lo cual tal y como hemos venido comentando a lo largo de todo el ejercicio es normal, ya que son grupos similares, de la misma zona geográfica, que cantan en el mismo idioma y cuya música es parecida.
+
+Finalmente, el lift es un parámetro que nos indica cuánto de aleatoriedad hay en las reglas:
+```{r}
+inspect(sort(lastfm_rules, by = "lift"))[, c(1:3,7)]
+```
+
+Al igual que sucedía con el modelo anterior, al ponernos más restrictivos con el modelo diminuye el lift, pero tal y como apreciamos sigue sin ser aletorias estas reglas, ya que cada una de ellas los artistas están relacionados.
+
+## Conclusiones
+Aunque las conclusiones se han ido comentando a lo largo del ejercicio, en este apartado vamos a tratar de hacer un resumen.
+
+Para realizar este ejercicio hemos creado tres modelo apriori:
+
+- El primero tenía un nivel de soporte de 0.01 y de confianza de 0.5: con esta configuración de parámetros hemos obtenido 50 reglas, las cuales buscaban de reflejar de una forma general el cómo se relacionaban los artistas. Hemos visto que la gran mayoría de las relaciones se producían porque hacían géneros de música similares, eran de la misma zona geográfica, hablaban el mismo idioma o porque escuchaban a grupos famosos.
+
+- El segundo tenía un nivel de soporte de 0.015 y de confianza de 0.5: con esta configuración de parámetros hemos obtenido 9 reglas, las cuales eran más específicas que en el modelo anterior, hemos obtenido las mismas conclusiones que antes con la excepción de que la relaciones entre los artistas ya no estaban influenciadas por los famosos que fueran, es decir, su frecuencia, ya que el parámetro que hemos modifica (soporte) busca eso, considerar que el nivel de frecuencia sea más alto. Un aspecto a tener en cuenta era que a medida que nos poníamos más restrictivos se reducía el valor del lift, lógicamente hay más registros con esos grupos por lo que la aletoriedad va a aumentar ya que hay más casos.
+
+- El tercero tenía un nivel de soporte de 0.015 y de confianza de 0.525: con esta configuración de parámetos hemos obtenido 4 reglas, las cuales eran más restrictivas que en los dos modelos anteriores, las conclusiones encuanto a cómo se relacionaban los artistas eran las mismas que en el modelo anterior. Al igual que sucedía en antes, al aumentar la confianza seguía aumentado la aletoriedad.
 
 ******
 # Ejercicio 5
