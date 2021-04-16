@@ -15,22 +15,118 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Lectura del fichero
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Leer el fichero fifa_clean.csv. Validar que los datos leídos son correctos. Si no es así, realizar las conversiones
+oportunas.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Lo primero que debemos realizar es la carga del fichero y visualizamos que se ha cargado:
+```{r}
+df = read.csv(file = "./data/fifa_clean.csv", sep = ",", stringsAsFactors = TRUE)
 
-```{r cars}
-summary(cars)
+head(df)
+```
+A priori los datos se han cargado correctamene, pero vamos a comprobar si cada variable tiene el tipo de variable correcto:
+```{r}
+str(df)
 ```
 
-## Including Plots
+Tal y como podemos apreciar, prácticamente todas las variables tienen su tipo de variable correcto, pero hay un par de excepciones, tanto la variable Club_Joining como Birth_Date son variables de tipo Date y las ha categorizado como Factor, por lo que vamos a hacer dicha transformación:
+```{r}
+df_copy = df # Creamos una copia del dataframe
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+df_copy$Club_Joining = as.Date(df_copy$Club_Joining, format = "%m/%d/%Y")
+df_copy$Birth_Date = as.Date(df_copy$Birth_Date, format = "%m/%d/%Y")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Comprobamos que se han realizado los cambios de forma correcta:
+```{r}
+str(df_copy$Club_Joining)
+str(df_copy$Birth_Date)
+```
+
+# Rating de los jugadores
+
+Nos interesa investigar los valores que toma la variable Rating en la población. Para ello, realizad un primer
+análisis visual de esta variable a partir de la muestra. Posteriormente, calculad el intervalo de confianza de la
+variable Rating de los jugadores. Seguid los pasos que se indican a continuación.
+
+## Análisis visual
+
+Mostrad visualmente la distribución de la variable Rating. Usad el gráfico o gráficos que creáis más oportunos.
+Describid brevemente lo que se observa en los gráficos que representáis.
+
+En el siguiente gráfico podemos ver el cómo es la distribución del rating:
+```{r}
+library(ggplot2) # Importamos la librería ggplot2
+
+ggplot(mapping = aes(x=df_copy$Rating)) + geom_density()
+```
+
+Tal y como podemos apreciar, la distribución parace seguir una distribución normal, lógicamente no es una distribución perfecta pero si tenemos en mente la distribución normal estándar se asemeja. Este primer gráfico nos permite hacernos una idea de cómo es la distribución, dónde puede estar la media, si hay más datos a la izquierda de la función o a la derecha...
+
+Para ser más técnicos podríamos hacer un diagrama boxplot:
+```{r}
+boxplot(x = df_copy$Rating)
+```
+
+Este tipo de gráficos nos proporciona mucha información:
+
+- Podemos ver que la mediana está entorno al 66, lo cual nos indica que por norma general los jugadores profesionales recogidos en el FIFA tienen una calidad media-baja.
+
+- Nos da información sobre el primer cuartil, es decir, el punto en el que el 25% de los datos está por debajo a ese valor, el valor de este cuartil es entorno a 63.
+
+- Apreciamos el tercer cuartil, el punto en el que el 75% de los datos son menores o iguales a ese valor, este valor es más o menos 71.
+
+- Con el primer y tercer cuartil sacamos el rango intercuartílico, en este caso, podemos ver que es pequeño dicho rango lo que nos da a entender que muchos de los datos, para ser más exactos el 50%, se mueven entre 63 y 71, es decir, los jugadores de media son regulares.
+
+- También observamos tanto el límite inferior como superior, gracias a ellos podemos identificar outliers, valores fuera de lo común, y vemos que esto tiene un significado positivo y negativo al mismo tiempo, ya que hay jugadores muy  (aunque son pocos) y jugadores muy buenos.
+
+## Intervalo de confianza
+
+Calculad el intervalo de confianza de la variable Rating. A continuación, explicad el resultado y cómo se debe
+interpretar el resultado obtenido.
+
+Nota: Los cálculos se deben realizar manualmente. No se pueden usar funciones de R que calculen directamente
+el intervalo de confianza. En cambio, sí se pueden usar funciones como mean, sd, qnorm, pnorm, qt y pt
+
+Al realizar este ejercicio no se nos proporciona la varianza poblacional por lo que tenemos que calcular la varianza o la desviación de la muestra, esto lógicamente supone más incertidumbre ya que calculamos la desviación a partir de la muestra no de la población, es por ello que se recomienda hacer el cálculo a partir de la distribución t-student.
+
+Aunque podríamos aplicar el teorema del límite central, asumiendo que al calcular la media de la muestra seguimos una distribución normal, vamos a realizar los cálculos como si el teorema del límite central no existiera. 
+
+Por otro lado, consideramos que el nivel de confianza es del 95%. Para calcular el intervalo de confianza, primero calculamos el alfa (nivel de significancia), junto con la desviación de la muestra y el tamaño de la muestra:
+```{r}
+alfa = 1 - 0.95
+tam_muestra = length(df_copy$Rating)
+desviacion = sd(df_copy$Rating)
+```
+
+Una vez tenemos los valores anteriores, calculamos el estadístico y el valor z para esta distribución:
+```{r}
+estadistico = desviacion / sqrt(tam_muestra)
+z = qt(alfa/2, tam_muestra - 1, lower.tail = FALSE)
+```
+
+Finalmente, calculamos el límite inferior y superior:
+```{r}
+lim_inferior = round(mean(df_copy$Rating) - (z * estadistico), 2)
+lim_superior = round(mean(df_copy$Rating) + (z * estadistico), 2)
+
+cat("El límite inferior del intervalo de confianza (L) es igual a: ", lim_inferior)
+cat("El límite superior del intervalo de confianza (U) es igual a: ", lim_superior)
+```
+
+Tal y como podemos apreciar en la anterior ejecución tenemos el siguiente intervalo de confianza [66.06, 66.27]. Cuando calculamos el intervalo de confianza no podemos afirmar que cualquier valor de la población esté dentro del intervalo, lo que conseguimos establecer al calcular el intervalo de confianza es asegurarnos, en nuestro caso a un 95%, del procedimiento, es decir, que el nivel de confianza en el procedimiento de cualquier muestra esté garantizado dando lugar a un intervalo que contenga el valor. 
+
+En resumen, de lo que nos garantizamos es que el 95% de los intervalos de confianza calculados a partir de cada meustra contengan el valor medio del rating.
+
+
+
+
+
+
+
+
+
+
+
