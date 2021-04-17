@@ -190,7 +190,11 @@ pre code {
 <li><a href="#tabla-de-resultados"><span class="toc-section-number">3.6</span> Tabla de resultados</a></li>
 <li><a href="#intepretación"><span class="toc-section-number">3.7</span> Intepretación</a></li>
 </ul></li>
-<li><a href="#comparación-por-pares"><span class="toc-section-number">4</span> Comparación por pares</a></li>
+<li><a href="#comparación-por-pares"><span class="toc-section-number">4</span> Comparación por pares</a>
+<ul>
+<li><a href="#jugador-más-similar"><span class="toc-section-number">4.1</span> Jugador más similar</a></li>
+<li><a href="#muestras"><span class="toc-section-number">4.2</span> Muestras</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -747,13 +751,62 @@ Dribbling
 </ul>
 <p>Para ello realizamos el contraste de hipótesis, para cada pregunta lo podemos resolver de dos maneras diferentes:</p>
 <ul>
-<li><p>La primera, comprobar si valor observado está fuera de la región de aceptación. Si está fuera podemos rechazar la hipótesis nula a favor de la alternativa. En nuestro caso la región de aceptación para todas las variables (Ball_Control, Rating, Dribbling) era un intervalo aproximado [-infinitoi, 1.645] y los valores observados que hemos obtenido para las variables Ball_Control, Rating, Dribbling son respectivamente: 15.182, 5.934 y 18.138. Como podemos apreciar, todos los valores están fuera de la región de aceptación, por lo que rechazamos la hipótesis nula a favor de la alternativa, lo cual significa, que es verdad que los jugadores zurdos son mejores que los diestros respecto al Ball_Control, al Rating y al Dribbling.</p></li>
-<li><p>La segunda forma, podemos observar si el p-valor es menor que el nivel de significancia (p-valor &lt; alfa), de ser cierto, podríamos rechazar la hipótesis nula en favor de la alternativa. En nuestro caso, el nivel de significancia es de 0.05, por lo que comprobamos si p-valor &lt; 0.05, todas las variables analizadas tienen un p-valor próximo a 0, por lo que el p-valor siempre es menor que el alfa, por lo tanto, rechazamos la hipótesis nula y confirmamos que los jugadores zurdos son mejores que los diestros.</p></li>
+<li><p>La primera, comprobar si valor observado está fuera de la región de aceptación. Si está fuera podemos rechazar la hipótesis nula a favor de la alternativa. En nuestro caso la región de aceptación para todas las variables (Ball_Control, Rating, Dribbling) era un intervalo aproximado [-infinitoi, 1.645] y los valores observados que hemos obtenido para las variables Ball_Control, Rating, Dribbling son respectivamente: 15.182, 5.934 y 18.138. Como podemos apreciar, todos los valores están fuera de la región de aceptación, por lo que rechazamos la hipótesis nula a favor de la alternativa, lo cual significa, que es verdad que los jugadores zurdos son mejores que los diestros respecto al Ball_Control, al Rating y al Dribbling con un nivel de confianza del 95%.</p></li>
+<li><p>La segunda forma, podemos observar si el p-valor es menor que el nivel de significancia (p-valor &lt; alfa), de ser cierto, podríamos rechazar la hipótesis nula en favor de la alternativa. En nuestro caso, el nivel de significancia es de 0.05, por lo que comprobamos si p-valor &lt; 0.05, todas las variables analizadas tienen un p-valor próximo a 0, por lo que el p-valor siempre es menor que el alfa, por lo tanto, rechazamos la hipótesis nula y confirmamos que los jugadores zurdos son mejores que los diestros con un nivel de confianza del 95%.</p></li>
 </ul>
 </div>
 </div>
 <div id="comparación-por-pares" class="section level1" number="4">
 <h1 number="4"><span class="header-section-number">4</span> Comparación por pares</h1>
+<p>Nos preguntamos si obtendríamos el mismo resultado si comparásemos los jugadores de campo zurdos con aquellos jugadores de campo diestros que tienen un peso, altura y edad similar. Para dar respuesta a esta pregunta, realizaremos un proceso similar al denominado propensity score matching, aunque un poco simplificado. Realizaremos lo siguiente:</p>
+<ul>
+<li><p>Para cada jugador de campo zurdo, localizaremos el jugador de campo diestro más similar, en cuanto a peso, altura y edad.</p></li>
+<li><p>Para realizar esta búsqueda, debemos implementar un algoritmo del tipo vecino más cercano.</p></li>
+<li><p>Para calcular la similitud entre dos jugadores, nos basaremos en la función de distancia euclídea.</p></li>
+</ul>
+<p>A partir de estas muestras, nos preguntaremos si los jugadores zurdos son mejores en Rating que los jugadores diestros relacionados.</p>
+<div id="jugador-más-similar" class="section level2" number="4.1">
+<h2 number="4.1"><span class="header-section-number">4.1</span> Jugador más similar</h2>
+<p>Lo primer de todo es definir la función que nos va a calcular la similitud entre dos jugadores, para ellos definimos la función de distancia euclídea:</p>
+<pre class="r"><code>euclidean = function(x1, x2) {
+  return(sqrt(sum((x1 - x2)^2)))
+}</code></pre>
+<p>Posteriormente, definimos la función que dado un jugador calcule el jugador más similar en términos de edad, peso y altura:</p>
+<pre class="r"><code>my.nn = function(x, sample) {
+  dist_min = integer(.Machine$integer.max)
+  dist = integer(.Machine$integer.max)
+  pos = 0
+  
+  for(i in 1:nrow(sample)) {
+    dist = euclidean(x, sample[i,])
+    
+    if(dist &lt; dist_min) {
+      dist_min = dist
+      pos = i
+    }
+  }
+  
+  return(pos)
+}</code></pre>
+<p>Una vez que hemos definido la función que dado un jugador calcula el más similar, creamos una nueva función para iterar sobre la muestra de los zurdos y así obtener la lista de emparejados:</p>
+<pre class="r"><code>my.nn.sample = function(sample1, sample2) {
+  Right.paired = data.frame()
+  pos = 0
+  
+  for(i in 1:nrow(sample1)) {
+    pos = my.nn(sample1[i, c(&quot;Height&quot;, &quot;Weight&quot;, &quot;Age&quot;)], sample2[, c(&quot;Height&quot;, &quot;Weight&quot;, &quot;Age&quot;)])
+    Right.paired[i] = sample2[pos]
+  }
+  
+  return(Right.paired)
+}</code></pre>
+</div>
+<div id="muestras" class="section level2" number="4.2">
+<h2 number="4.2"><span class="header-section-number">4.2</span> Muestras</h2>
+<p>Llegados a este punto, tenemos dos muestras: Left.sample, con los jugadores de campo zurdos. Y Right.paired, que contiene los jugadores diestros más similares a los jugadores de la muestra Left.sample.</p>
+<p>Mostrad las primeras filas de las dos muestras.</p>
+<p>Nota: Puede que el algoritmo del vecino más cercano necesite bastante tiempo en computarse, ya que las muestras contienen muchos datos. Si es así, os recomendamos que apliquéis el cálculo sobre una muestra de 100 jugadores zurdos. Podéis también tomar una muestra de 200 jugadores diestros. Así evitaréis el exceso de tiempo computacional requerido y la actividad se considera igualmente válida.</p>
+</div>
 </div>
 
 
