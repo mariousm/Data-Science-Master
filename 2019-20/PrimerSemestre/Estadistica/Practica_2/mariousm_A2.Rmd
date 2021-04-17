@@ -230,7 +230,7 @@ Respecto al dribbling presentamos las siguientes hipótesis:
 
 - H1 (hipótesis alternativa): Dribbling de zurdos > Dribbling de diestros.
 
-# Método
+## Método
 
 En función de las características de la muestra, decidid qué método aplicar para validar la hipótesis planteada.
 Para ello, debéis especificar como mínimo: a) si es un contraste de una muestra o de dos muestras (en caso
@@ -240,9 +240,9 @@ homocedasticidad o heterocedasticidad.
 
 Justificad vuestras elecciones.
 
-En este problema tenemos tres hipótesis planteadas, y todas ella son iguales:
+En este problema tenemos tres hipótesis planteadas, y todas ellas son iguales:
 
-- El contraste son de dos muestras, es decir, por un lado tenemos la muestra de zurdos y por otro lado tenemos la muestra de diestros. Estas muestras son independientes ya que no hay una relación entre muestras, es decir, no hay un hermano diestro para cada zurdo por ejemplo, no tenemos una relación para pode asociar a los elementos de cada muestra.
+- El contraste son de dos muestras, es decir, por un lado tenemos la muestra de zurdos y por otro lado tenemos la muestra de diestros. Estas muestras son independientes ya que no hay una relación entre muestras, es decir, no hay un hermano diestro para cada zurdo por ejemplo, no tenemos una relación para poder asociar a los elementos de cada muestra.
 
 - Sí que podríamos asumir normalidad, para asumir normalidad podemos aplicar el teorema del límite central, el cual nos indica que la media de una muestra que sea lo suficientemente grande (mayor de 30 observaciones) sigue una distribución normal. Al poder calcular la media de ambas muestras esto lo cumplimos, solo nos hace falta comprobar que tenemos el número de observaciones mínimas, pero tal y como vemos a continuación esto también se cumple:
 ```{r}
@@ -261,4 +261,126 @@ var.test(df_copy_players_left$Rating, df_copy_players_right$Rating, conf.level =
 var.test(df_copy_players_left$Dribbling, df_copy_players_right$Dribbling, conf.level = 0.95)
 ```
 
+## Cálculos
+
+Calcular el estadístico de contraste, el valor crítico y el valor p.
+
+Definimos la función que nos va a realizar los cálculos del estadístico de contraste, el valor crítico y el p-valor:
+```{r}
+
+muestrasIndependientes_varianzasDesconocidas = function(valores_left, valores_right, alfa) {
+  
+  # Calculamos el estadístico de contraste
+  sd_left = sd(valores_left)
+  sd_right = sd(valores_right)
+  n_left = length(valores_left) 
+  n_right = length(valores_right)
+  
+  numerador = mean(valores_left) - mean(valores_right)
+  denominador = sqrt(((sd_left)^2/n_left) + ((sd_right)^2/n_right))
+  
+  z_obs = numerador / denominador
+  
+  # Calculamos los grados de libertad
+  numerador = (((sd_left)^2/n_left) + ((sd_right)^2/n_right))^2
+  denominador = (((sd_left)^2/n_left)^2 / (n_left - 1)) + (((sd_right)^2/n_right)^2 / (n_right - 1))
+  grados_libertad = as.integer(numerador / denominador)
+  
+  # Calculamos el punto crítico
+  z_cri = qt(alfa, df = grados_libertad, lower.tail = FALSE)
+  
+  # Calculamos el p-valor
+  p_value = pt(z_obs, df = grados_libertad, lower.tail = FALSE)
+  
+  # Devolvemos los valores
+  return(data.frame(L = "-INF", U = z_cri, Estadistico_Contraste = z_obs, P_Valor = p_value, Grados_Libertad = grados_libertad))
+}
+```
+
+Hacemos uso de la función anterior para calcular los campos relativos a la variable Ball_Control:
+```{r}
+contraste_hipotesis_Ball_Control = muestrasIndependientes_varianzasDesconocidas(df_copy_players_left$Ball_Control, df_copy_players_right$Ball_Control, 0.05)
+
+contraste_hipotesis_Ball_Control
+```
+
+```{r}
+t.test(df_copy_players_left$Ball_Control,
+       df_copy_players_right$Ball_Control,
+       alternative="greater", 
+       var.equal=FALSE)
+```
+
+Realizamos lo mismo para la variable Rating:
+```{r}
+contraste_hipotesis_Rating = muestrasIndependientes_varianzasDesconocidas(df_copy_players_left$Rating, df_copy_players_right$Rating, 0.05)
+
+contraste_hipotesis_Rating
+```
+
+```{r}
+t.test(df_copy_players_left$Rating,
+       df_copy_players_right$Rating,
+       alternative="greater", 
+       var.equal=FALSE)
+```
+
+Finalmente, volvemos a llamar al mismo método para realizar los cálculos sobre la variable Dribbling:
+```{r}
+contraste_hipotesis_Dribbling = muestrasIndependientes_varianzasDesconocidas(df_copy_players_left$Dribbling, df_copy_players_right$Dribbling, 0.05)
+
+contraste_hipotesis_Dribbling
+```
+
+```{r}
+t.test(df_copy_players_left$Dribbling,
+       df_copy_players_right$Dribbling,
+       alternative="greater", 
+       var.equal=FALSE)
+```
+
+## Tabla de resultados
+
+Incorporad una tabla de resultados con el formato que se indica a continuación. Adjuntamos el fragmento de
+código que hemos usado para generar la tabla para que podáis usar este mismo formato. Necesitáis usar la
+librería kableExtra (si es necesario, debéis instalarla previamente a su uso).
+
+Escribimos el código proporcionado en la práctica:
+```{r}
+library(kableExtra)
+
+out <- data.frame( var=c("Rating", "BallControl", "Dribbling"), 
+                   mean_Left=c(mean(df_copy_players_left$Rating), mean(df_copy_players_left$Ball_Control), mean(df_copy_players_left$Dribbling)),
+                   mean_Right=c(mean(df_copy_players_right$Rating), mean(df_copy_players_right$Ball_Control), mean(df_copy_players_right$Dribbling)), 
+                   n_Left=c(length(df_copy_players_left$Rating),length(df_copy_players_left$Ball_Control), length(df_copy_players_left$Dribbling)), 
+                   n_Right=c(length(df_copy_players_right$Rating), length(df_copy_players_right$Ball_Control), length(df_copy_players_right$Dribbling)), 
+                   obs_value=c(contraste_hipotesis_Rating$Estadistico_Contraste, contraste_hipotesis_Ball_Control$Estadistico_Contraste, contraste_hipotesis_Dribbling$Estadistico_Contraste),
+                   critical=c(contraste_hipotesis_Rating$U, contraste_hipotesis_Ball_Control$U, contraste_hipotesis_Dribbling$U), 
+                   pvalue=c(contraste_hipotesis_Rating$P_Valor, contraste_hipotesis_Ball_Control$P_Valor, contraste_hipotesis_Dribbling$P_Valor))
+
+out %>% kable() %>% kable_styling()
+```
+
+Cabe destacar que en la tabla el p-valor lo redondea directamente a 0, ya que éste es un número muy pequeño.
+
+## Intepretación
+
+A partir de los resultados obtenidos, realizad la interpretación de los mismos, dando respuesta a las preguntas
+formuladas.
+
+Una vez que ya tenemos todos los resultados calculados debemos responder a cada una de las pregutnas que nos hemos propuesto en el primer apartado:
+
+- ¿El control de la pelota de los jugadores zurdos es mejor que el control de pelota de los jugadores diestros?
+
+- ¿La valoración de los jugadores zurdos es mejor que la valoración de los jugadores diestros?
+
+- ¿El dribbling de los jugadores zurdos es mejor que el dribbling de los jugadores diestros?
+
+Para ello realizamos el contraste de hipótesis, para cada pregunta lo podemos resolver de dos maneras diferentes:
+
+- La primera, comprobar si valor observado está fuera de la región de aceptación. Si está fuera podemos rechazar la hipótesis nula a favor de la alternativa. En nuestro caso la región de aceptación para todas las variables (Ball_Control, Rating, Dribbling) era un intervalo aproximado [-infinitoi, 1.645] y los valores observados que hemos obtenido para las variables Ball_Control, Rating, Dribbling son respectivamente: 15.182, 5.934 y 18.138. Como podemos apreciar, todos los valores están fuera de la región de aceptación, por lo que rechazamos la hipótesis nula a favor de la alternativa, lo cual significa, que es verdad que los jugadores zurdos son mejores que los diestros respecto al Ball_Control, al Rating y al Dribbling.
+
+- La segunda forma, podemos observar si el p-valor es menor que el nivel de significancia (p-valor < alfa), de ser cierto, podríamos rechazar la hipótesis nula en favor de la alternativa. En nuestro caso, el nivel de significancia es de 0.05, por lo que comprobamos si p-valor < 0.05, todas las variables analizadas tienen un p-valor próximo a 0, por lo que el p-valor siempre es menor que el alfa, por lo tanto, rechazamos la hipótesis nula y confirmamos que los jugadores zurdos son mejores que los diestros.
+
+# Comparación por pares
 
