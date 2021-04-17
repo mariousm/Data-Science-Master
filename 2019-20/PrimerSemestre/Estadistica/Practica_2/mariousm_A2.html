@@ -194,6 +194,11 @@ pre code {
 <ul>
 <li><a href="#jugador-más-similar"><span class="toc-section-number">4.1</span> Jugador más similar</a></li>
 <li><a href="#muestras"><span class="toc-section-number">4.2</span> Muestras</a></li>
+<li><a href="#hipótesis-nula-y-alternativa-1"><span class="toc-section-number">4.3</span> Hipótesis nula y alternativa</a></li>
+<li><a href="#método-1"><span class="toc-section-number">4.4</span> Método</a></li>
+<li><a href="#cálculos-1"><span class="toc-section-number">4.5</span> Cálculos</a></li>
+<li><a href="#interpretación"><span class="toc-section-number">4.6</span> Interpretación</a></li>
+<li><a href="#reflexión"><span class="toc-section-number">4.7</span> Reflexión</a></li>
 </ul></li>
 </ul>
 </div>
@@ -773,8 +778,8 @@ Dribbling
 }</code></pre>
 <p>Posteriormente, definimos la función que dado un jugador calcule el jugador más similar en términos de edad, peso y altura:</p>
 <pre class="r"><code>my.nn = function(x, sample) {
-  dist_min = integer(.Machine$integer.max)
-  dist = integer(.Machine$integer.max)
+  dist_min = 9999999
+  dist = 9999999
   pos = 0
   
   for(i in 1:nrow(sample)) {
@@ -795,7 +800,7 @@ Dribbling
   
   for(i in 1:nrow(sample1)) {
     pos = my.nn(sample1[i, c(&quot;Height&quot;, &quot;Weight&quot;, &quot;Age&quot;)], sample2[, c(&quot;Height&quot;, &quot;Weight&quot;, &quot;Age&quot;)])
-    Right.paired[i] = sample2[pos]
+    Right.paired = rbind(Right.paired, sample2[pos,])
   }
   
   return(Right.paired)
@@ -806,6 +811,230 @@ Dribbling
 <p>Llegados a este punto, tenemos dos muestras: Left.sample, con los jugadores de campo zurdos. Y Right.paired, que contiene los jugadores diestros más similares a los jugadores de la muestra Left.sample.</p>
 <p>Mostrad las primeras filas de las dos muestras.</p>
 <p>Nota: Puede que el algoritmo del vecino más cercano necesite bastante tiempo en computarse, ya que las muestras contienen muchos datos. Si es así, os recomendamos que apliquéis el cálculo sobre una muestra de 100 jugadores zurdos. Podéis también tomar una muestra de 200 jugadores diestros. Así evitaréis el exceso de tiempo computacional requerido y la actividad se considera igualmente válida.</p>
+<p>Lo primero que vamos a hacer es un sample de la muestra de zurdos de 100 y de diestros de 200:</p>
+<pre class="r"><code>Left.sample = df_copy_players_left[1:100,]
+Right.sample = df_copy_players_right[1:200,]</code></pre>
+<p>Una vez que tenemos las muestras llamamos a la función anterior para que nos devuelva la muestra emparejada:</p>
+<pre class="r"><code>Right.paired = my.nn.sample(Left.sample, Right.sample)</code></pre>
+<p>Mostramos el dataframe correspondiente a la muestra de zurdos:</p>
+<pre class="r"><code>head(Left.sample)</code></pre>
+<pre><code>##    ID              Name Nationality National_Position National_Kit
+## 2   2      Lionel Messi   Argentina                RW           10
+## 8   8       Gareth Bale       Wales                RS           11
+## 14 14        Mesut Özil     Germany               CAM           10
+## 20 20 Antoine Griezmann      France               CAM            7
+## 28 28 Giorgio Chiellini       Italy               LCB            3
+## 35 35   James Rodríguez    Colombia               LAM           10
+##               Club Club_Position Club_Kit Club_Joining Contract_Expiry Rating
+## 2     FC Barcelona            RW       10   2004-07-01            2018     93
+## 8      Real Madrid            RW       11   2013-09-02            2022     90
+## 14         Arsenal           CAM       11   2013-09-02            2018     89
+## 20 Atlético Madrid            RS        7   2014-07-29            2021     88
+## 28        Juventus           LCB        3   2005-07-01            2018     88
+## 35     Real Madrid           CAM       10   2014-07-22            2020     87
+##    Height Weight Preffered_Foot Birth_Date Age Preffered_Position
+## 2     179     72           Left 1987-06-24  29                 RW
+## 8     183     74           Left 1989-07-16  27                 RW
+## 14    180     76           Left 1988-10-15  28             CAM/LW
+## 20    176     67           Left 1991-03-21  25              ST/LW
+## 28    187     84           Left 1984-08-14  32                 CB
+## 35    180     75           Left 1991-07-12  25             CAM/RM
+##          Work_Rate Weak_foot Skill_Moves Ball_Control Dribbling Marking
+## 2  Medium / Medium         4           4           95        97      13
+## 8    High / Medium         3           4           88        89      51
+## 14    Medium / Low         2           4           90        86      22
+## 20   High / Medium         3           4           86        87      23
+## 28      Low / High         2           2           55        56      92
+## 35    Medium / Low         3           4           85        84      25
+##    Sliding_Tackle Standing_Tackle Aggression Reactions Attacking_Position
+## 2              26              28         48        95                 93
+## 8              52              55         65        87                 86
+## 14             19              16         48        87                 84
+## 20             11              22         69        90                 91
+## 28             90              92         90        78                 28
+## 35             30              42         65        84                 80
+##    Interceptions Vision Composure Crossing Short_Pass Long_Pass Acceleration
+## 2             22     90        94       77         88        87           92
+## 8             59     79        85       87         86        80           93
+## 14            24     93        73       82         89        84           77
+## 20            35     76        81       82         79        75           87
+## 28            88     50        78       58         55        59           69
+## 35            55     86        79       88         84        80           77
+##    Speed Stamina Strength Balance Agility Jumping Heading Shot_Power Finishing
+## 2     87      74       59      95      90      68      71         85        95
+## 8     95      78       80      65      77      85      86         91        87
+## 14    68      68       56      70      84      52      54         70        75
+## 20    86      75       61      80      90      87      80         81        88
+## 28    79      69       91      65      59      89      80         78        33
+## 35    75      68       70      73      82      54      62         86        82
+##    Long_Shots Curve Freekick_Accuracy Penalties Volleys GK_Positioning
+## 2          88    89                90        74      85             14
+## 8          90    86                85        76      76              5
+## 14         76    84                79        67      77              6
+## 20         82    84                75        71      87             13
+## 28         49    60                31        50      45              4
+## 35         91    87                86        81      91              5
+##    GK_Diving GK_Kicking GK_Handling GK_Reflexes
+## 2          6         15          11           8
+## 8         15         11          15           6
+## 14         6         10          14          14
+## 20        14         14           8          14
+## 28         3          2           3           3
+## 35        15         15          15          14</code></pre>
+<p>Mostramos el dataframe correspondiente a la muestra de diestros similares a los zurdos:</p>
+<pre class="r"><code>head(Right.paired)</code></pre>
+<pre><code>##      ID              Name Nationality National_Position National_Kit
+## 142 142     Juan Cuadrado    Colombia               RAM           11
+## 146 146     Ander Herrera       Spain               Sub           17
+## 38   38      Arturo Vidal       Chile               CDM            8
+## 231 231   Nathaniel Clyne     England               Sub           12
+## 279 279              Kaká      Brazil                             NA
+## 70   70 Christian Eriksen     Denmark                CM           10
+##               Club Club_Position Club_Kit Club_Joining Contract_Expiry Rating
+## 142       Juventus            RM        7   2015-02-02            2019     83
+## 146 Manchester Utd           RCM       21   2014-06-26            2018     83
+## 38       FC Bayern           LDM       23   2015-07-28            2019     87
+## 231      Liverpool            RB        2   2015-07-01            2020     82
+## 279   Orlando City           Res       10   2014-07-01            2017     82
+## 70           Spurs           CAM       23   2013-08-30            2018     85
+##     Height Weight Preffered_Foot Birth_Date Age Preffered_Position
+## 142    179     71          Right 1988-05-26  28             RM/CAM
+## 146    182     73          Right 1989-08-14  27             CM/CDM
+## 38     180     75          Right 1987-05-22  29             CM/CDM
+## 231    175     67          Right 1991-04-05  25             RB/RWB
+## 279    186     83          Right 1982-04-22  34             CAM/CF
+## 70     180     76          Right 1992-02-14  24             CAM/LM
+##         Work_Rate Weak_foot Skill_Moves Ball_Control Dribbling Marking
+## 142 High / Medium         3           5           85        90      52
+## 146   High / High         4           4           85        81      66
+## 38    High / High         4           3           83        76      76
+## 231 High / Medium         3           3           75        77      81
+## 279 High / Medium         4           4           84        81      14
+## 70  High / Medium         5           4           86        84      38
+##     Sliding_Tackle Standing_Tackle Aggression Reactions Attacking_Position
+## 142             62              52         70        78                 78
+## 146             68              72         85        85                 79
+## 38              84              89         91        89                 80
+## 231             86              83         76        75                 72
+## 279             31              31         45        77                 79
+## 70              22              56         44        82                 81
+##     Interceptions Vision Composure Crossing Short_Pass Long_Pass Acceleration
+## 142            58     70        76       78         77        73           91
+## 146            82     86        82       74         86        80           78
+## 38             89     80        86       76         84        82           77
+## 231            77     64        75       80         76        67           86
+## 279            42     86        85       74         84        73           67
+## 70             45     88        82       84         87        83           78
+##     Speed Stamina Strength Balance Agility Jumping Heading Shot_Power Finishing
+## 142    93      83       59      83      91      75      58         84        71
+## 146    68      85       65      84      85      63      60         72        71
+## 38     74      93       79      77      75      82      81         84        77
+## 231    86      87       71      76      84      67      66         74        54
+## 279    69      55       70      64      69      55      52         76        74
+## 70     74      88       52      81      77      57      52         78        75
+##     Long_Shots Curve Freekick_Accuracy Penalties Volleys GK_Positioning
+## 142         80    76                69        65      73              6
+## 146         74    78                65        79      67              9
+## 38          85    76                68        84      78              2
+## 231         69    64                39        46      45             15
+## 279         77    84                70        84      86              3
+## 70          80    85                87        67      69              7
+##     GK_Diving GK_Kicking GK_Handling GK_Reflexes
+## 142         5         13           5           9
+## 146         9         15          12           8
+## 38          4          4           2           4
+## 231        10         13          11           7
+## 279         3          5           5           3
+## 70          9          7          14           6</code></pre>
+</div>
+<div id="hipótesis-nula-y-alternativa-1" class="section level2" number="4.3">
+<h2 number="4.3"><span class="header-section-number">4.3</span> Hipótesis nula y alternativa</h2>
+<p>A partir de las dos muestras, ¿podemos afirmar que los zurdos son mejores en Rating que los correspondientes jugadores diestros? Escribid la hipótesis nula y alternativa.</p>
+<p>Dada la pregunta establecida en el ejercicio, tenemos las siguientes hipótesis:</p>
+<ul>
+<li><p>H0 (hipótesis nula): rating de zurdos = rating de diestros.</p></li>
+<li><p>H1 (hipótesis alternativa): rating de zurdos &gt; rating de diestros.</p></li>
+</ul>
+</div>
+<div id="método-1" class="section level2" number="4.4">
+<h2 number="4.4"><span class="header-section-number">4.4</span> Método</h2>
+<p>Explicad el método que aplicaréis y el por qué de su elección.</p>
+<p>En este problema estamos hablando de un contraste sobre dos muestras que están relacionadas, ya que, para cada observación de la primera muestra se establece un relación (el jugador diestro más similar, según su peso, altura y edad) con una observación de la segunda muestra.</p>
+<p>Además, sí que podríamos asumir normalidad, para asumir normalidad podemos aplicar el teorema del límite central, el cual nos indica que la media de una muestra que sea lo suficientemente grande (mayor de 30 observaciones) sigue una distribución normal. Al poder calcular la media de ambas muestras esto lo cumplimos, solo nos hace falta comprobar que tenemos el número de observaciones mínimas, pero tal y como vemos a continuación esto también se cumple:</p>
+<pre class="r"><code>cat(&quot;El número de observaciones de zurdos es: &quot;, nrow(Left.sample))</code></pre>
+<pre><code>## El número de observaciones de zurdos es:  100</code></pre>
+<pre class="r"><code>cat(&quot;El número de observaciones de diestros es: &quot;, nrow(Right.paired))</code></pre>
+<pre><code>## El número de observaciones de diestros es:  100</code></pre>
+<p>El test es paramétrico, esto se debe a que los tests paramétricos son aquellos contrastes que trabajan con la asunción de que los datos siguen una determinada distribución, siendo la más habitual la normalidad de los datos, como bien hemos mencionado en el punto anterior sí que podríamos asumir normalidad de los datos por lo tanto es paramétrico.</p>
+<p>Para saber si el bilateral o unilateral nos podemos fijar en cómo está definida la hipótesis alternativa, en nuestro caso está definida con el símbolo mayor “&gt;”, por lo que solo vamos a aceptar la hipótesis alternativa si el valor observado es mayor que el valor crítico, en ese caso rechazaríamos la hipótesis nula. Por lo tanto, este caso se trata de un problema unilateral por la derecha.</p>
+<p>En resumen, estamos ante el contraste de dos muestras emparejadas sobre la media, con un test unilateral por la derecha.</p>
+</div>
+<div id="cálculos-1" class="section level2" number="4.5">
+<h2 number="4.5"><span class="header-section-number">4.5</span> Cálculos</h2>
+<p>Realizad los cálculos de: estadístico de contraste, valor cítico y valor p. Usad un nivel de confianza del 95 %.</p>
+<p>Nota: Los cálculos se deben realizar manualmente. No se pueden usar funciones de R que calculen directamente el contraste. En cambio, sí se pueden usar funciones como qnorm, pnorm, qt y pt.</p>
+<p>Lo primero que debemos de hacer es definir la función que va a realizar los cálculos:</p>
+<pre class="r"><code>muestrasEmparejadas = function(valores_left, valores_right, alfa) {
+  
+  # Calculamos los valores de las diferencias
+  valores = valores_left - valores_right
+  
+  # Calculamos el estadístico de contraste
+  d = mean(valores)
+  sd = sd(valores)
+  n = length(valores)
+  
+  z_obs = d / (sd / sqrt(n))
+  
+  # Calculamos los grados de libertad
+  grados_libertad = n - 1
+  
+  # Calculamos el punto crítico
+  z_cri = qt(alfa, df = grados_libertad, lower.tail = FALSE)
+  
+  # Calculamos el p-valor
+  p_value = pt(z_obs, df = grados_libertad, lower.tail = FALSE)
+  
+  # Devolvemos los valores
+  return(data.frame(L = &quot;-INF&quot;, U = z_cri, Estadistico_Contraste = z_obs, P_Valor = p_value, Grados_Libertad = grados_libertad))
+}</code></pre>
+<p>Una vez que hemos definidos la función que nos calcula los valores, la llamamos:</p>
+<pre class="r"><code>contraste_hipotesis_Rating = muestrasEmparejadas(Left.sample$Rating, Right.paired$Rating, 0.05)
+contraste_hipotesis_Rating</code></pre>
+<pre><code>##      L        U Estadistico_Contraste P_Valor Grados_Libertad
+## 1 -INF 1.660391             -6.311914       1              99</code></pre>
+<pre class="r"><code>t.test(Left.sample$Rating, Right.paired$Rating, paired = TRUE, alternative = &quot;greater&quot;)</code></pre>
+<pre><code>## 
+##  Paired t-test
+## 
+## data:  Left.sample$Rating and Right.paired$Rating
+## t = -6.3119, df = 99, p-value = 1
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+##  -3.006075       Inf
+## sample estimates:
+## mean of the differences 
+##                   -2.38</code></pre>
+</div>
+<div id="interpretación" class="section level2" number="4.6">
+<h2 number="4.6"><span class="header-section-number">4.6</span> Interpretación</h2>
+<p>Interpretad el resultado obtenido.</p>
+<p>Una vez que ya tenemos todos los resultados calculados debemos responder a la pregunta que nos hemos planteado:</p>
+<ul>
+<li>¿podemos afirmar que los zurdos son mejores en Rating que los correspondientes jugadores diestros?</li>
+</ul>
+<p>Para ello realizamos el contraste de hipótesis, y lo podemos resolver de dos maneras diferentes:</p>
+<ul>
+<li><p>La primera, comprobar si valor observado está fuera de la región de aceptación. Si está fuera podemos rechazar la hipótesis nula a favor de la alternativa. En nuestro caso la región de aceptación es un intervalo aproximado [-infinito, 1.66] y el valor observado que hemos obtenido para el Rating es -6.312. Como podemos apreciar, el valor está dentro de la región de aceptación, por lo que no podemos rechazar la hipótesis nula, lo cual significa, que no es verdad que los jugadores zurdos son mejores que los diestros respecto al Rating con un nivel de confianza del 95%.</p></li>
+<li><p>La segunda forma, podemos observar si el p-valor es menor que el nivel de significancia (p-valor &lt; alfa), de ser cierto, podríamos rechazar la hipótesis nula en favor de la alternativa. En nuestro caso, el nivel de significancia es de 0.05, por lo que comprobamos si p-valor &lt; 0.05, la variable analizada tiene un p-valor igual a 1, por lo que el p-valor es mayor que alfa, por lo tanto, no podemos rechazar la hipótesis nula y confirmamos que los jugadores zurdos no son mejores que los diestros con un nivel de confianza del 95%.</p></li>
+</ul>
+</div>
+<div id="reflexión" class="section level2" number="4.7">
+<h2 number="4.7"><span class="header-section-number">4.7</span> Reflexión</h2>
+<p>Comparad el análisis realizado en el apartado 3, con el realizado en este apartado. Explicad también qué sentido puede tener realizar una comparación de este tipo en relación al contraste de la pregunta 3.</p>
+<p>Si recordamos el análisis realizado en el apartado 3, nos indicaba que sí que podíamos asumir que los jugadores zurdos tenían un mejor rating que los jugadores diestros con un nivel de confianza al 95%, mientras que en este ejercicio hemos comprobado para cada jugador zurdo si tenía una diferencia significativa en el rating respecto a los diestros, y hemos visto que no, que no podíamos asumir que los jugadores zurdos tengan un mejor rating que los jugadores diestros con un nivel de confianza al 95%.</p>
+<p>Realizar este tipo de análisis respecto al del ejercicio 3 es muy interesante, ya que como podemos apreciar nos proporcionan resultados contradictorios, en el ejercicio 3 nos indica que sí que hay una diferencia significativa mientras que en este ejercicio no la hay.</p>
+<p>Es interesante hacer este tipo de análisis, es decir, comparar las observaciones similares, ya que en el ejercicio 3 estábamos comparando a todos con todos, lo cual no es del todo correcto, porque si cogemos a Messi y lo comparamos con Puyol lógicamente sí que va a haber una diferencia significativa, tienen diferente altura, peso, edad, posición en el campo, habilidades técnicas… Lo más lógico es comparar aquellos jugadores que son más similares y ver de verdad si hay una diferencia significativa o no, ya que si en este tipo de análisis hay una diferencia significativa si realizamos el otro análisis lo más probable es que también la haya, por lo que considero que es mejor realizar este tipo de análisis (comparar si una muestra es mejor que otra pero con obersvaciones similares).</p>
 </div>
 </div>
 

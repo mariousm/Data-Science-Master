@@ -446,31 +446,123 @@ Mostrad las primeras filas de las dos muestras.
 
 Nota: Puede que el algoritmo del vecino más cercano necesite bastante tiempo en computarse, ya que las muestras contienen muchos datos. Si es así, os recomendamos que apliquéis el cálculo sobre una muestra de 100 jugadores zurdos. Podéis también tomar una muestra de 200 jugadores diestros. Así evitaréis el exceso de tiempo computacional requerido y la actividad se considera igualmente válida.
 
-Lo primero que vamos a hacer es un sample de la muestra de zurdos y de diestros:
+Lo primero que vamos a hacer es un sample de la muestra de zurdos de 100 y de diestros de 200:
 ```{r}
-Left.sample = df_copy_players_left[1:3,]
-Right.sample = df_copy_players_right[1:5,]
-
-head(Left.sample)
-head(Right.sample)
+Left.sample = df_copy_players_left[1:100,]
+Right.sample = df_copy_players_right[1:200,]
 ```
 
 Una vez que tenemos las muestras llamamos a la función anterior para que nos devuelva la muestra emparejada:
 ```{r}
 Right.paired = my.nn.sample(Left.sample, Right.sample)
+```
+
+Mostramos el dataframe correspondiente a la muestra de zurdos:
+```{r}
+head(Left.sample)
+```
+
+Mostramos el dataframe correspondiente a la muestra de diestros similares a los zurdos:
+```{r}
 head(Right.paired)
 ```
 
+## Hipótesis nula y alternativa
 
+A partir de las dos muestras, ¿podemos afirmar que los zurdos son mejores en Rating que los correspondientes
+jugadores diestros? Escribid la hipótesis nula y alternativa.
 
+Dada la pregunta establecida en el ejercicio, tenemos las siguientes hipótesis:
 
+- H0 (hipótesis nula): rating de zurdos = rating de diestros.
 
+- H1 (hipótesis alternativa): rating de zurdos > rating de diestros.
 
+## Método
 
+Explicad el método que aplicaréis y el por qué de su elección.
 
+En este problema estamos hablando de un contraste sobre dos muestras que están relacionadas, ya que, para cada observación de la primera muestra se establece un relación (el jugador diestro más similar, según su peso, altura y edad) con una observación de la segunda muestra.
 
+Además, sí que podríamos asumir normalidad, para asumir normalidad podemos aplicar el teorema del límite central, el cual nos indica que la media de una muestra que sea lo suficientemente grande (mayor de 30 observaciones) sigue una distribución normal. Al poder calcular la media de ambas muestras esto lo cumplimos, solo nos hace falta comprobar que tenemos el número de observaciones mínimas, pero tal y como vemos a continuación esto también se cumple:
+```{r}
+cat("El número de observaciones de zurdos es: ", nrow(Left.sample))
+cat("El número de observaciones de diestros es: ", nrow(Right.paired))
+```
 
+El test es paramétrico, esto se debe a que los tests paramétricos son aquellos contrastes que trabajan con la asunción de que los datos siguen una determinada distribución, siendo la más habitual la normalidad de los datos, como bien hemos mencionado en el punto anterior sí que podríamos asumir normalidad de los datos por lo tanto es paramétrico.
 
+Para saber si el bilateral o unilateral nos podemos fijar en cómo está definida la hipótesis alternativa, en nuestro caso está definida con el símbolo mayor ">", por lo que solo vamos a aceptar la hipótesis alternativa si el valor observado es mayor que el valor crítico, en ese caso rechazaríamos la hipótesis nula. Por lo tanto, este caso se trata de un problema unilateral por la derecha.
+
+En resumen, estamos ante el contraste de dos muestras emparejadas sobre la media, con un test unilateral por la derecha.
+
+## Cálculos
+
+Realizad los cálculos de: estadístico de contraste, valor cítico y valor p. Usad un nivel de confianza del 95 %.
+
+Nota: Los cálculos se deben realizar manualmente. No se pueden usar funciones de R que calculen directamente el contraste. En cambio, sí se pueden usar funciones como qnorm, pnorm, qt y pt.
+
+Lo primero que debemos de hacer es definir la función que va a realizar los cálculos:
+```{r}
+muestrasEmparejadas = function(valores_left, valores_right, alfa) {
+  
+  # Calculamos los valores de las diferencias
+  valores = valores_left - valores_right
+  
+  # Calculamos el estadístico de contraste
+  d = mean(valores)
+  sd = sd(valores)
+  n = length(valores)
+  
+  z_obs = d / (sd / sqrt(n))
+  
+  # Calculamos los grados de libertad
+  grados_libertad = n - 1
+  
+  # Calculamos el punto crítico
+  z_cri = qt(alfa, df = grados_libertad, lower.tail = FALSE)
+  
+  # Calculamos el p-valor
+  p_value = pt(z_obs, df = grados_libertad, lower.tail = FALSE)
+  
+  # Devolvemos los valores
+  return(data.frame(L = "-INF", U = z_cri, Estadistico_Contraste = z_obs, P_Valor = p_value, Grados_Libertad = grados_libertad))
+}
+```
+
+Una vez que hemos definidos la función que nos calcula los valores, la llamamos:
+```{r}
+contraste_hipotesis_Rating = muestrasEmparejadas(Left.sample$Rating, Right.paired$Rating, 0.05)
+contraste_hipotesis_Rating
+```
+
+```{r}
+t.test(Left.sample$Rating, Right.paired$Rating, paired = TRUE, alternative = "greater")
+```
+
+## Interpretación
+
+Interpretad el resultado obtenido.
+
+Una vez que ya tenemos todos los resultados calculados debemos responder a la pregunta que nos hemos planteado:
+
+- ¿podemos afirmar que los zurdos son mejores en Rating que los correspondientes jugadores diestros?
+
+Para ello realizamos el contraste de hipótesis, y lo podemos resolver de dos maneras diferentes:
+
+- La primera, comprobar si valor observado está fuera de la región de aceptación. Si está fuera podemos rechazar la hipótesis nula a favor de la alternativa. En nuestro caso la región de aceptación es un intervalo aproximado [-infinito, 1.66] y el valor observado que hemos obtenido para el Rating es -6.312. Como podemos apreciar, el valor está dentro de la región de aceptación, por lo que no podemos rechazar la hipótesis nula, lo cual significa, que no es verdad que los jugadores zurdos son mejores que los diestros respecto al Rating con un nivel de confianza del 95%.
+
+- La segunda forma, podemos observar si el p-valor es menor que el nivel de significancia (p-valor < alfa), de ser cierto, podríamos rechazar la hipótesis nula en favor de la alternativa. En nuestro caso, el nivel de significancia es de 0.05, por lo que comprobamos si p-valor < 0.05, la variable analizada tiene un p-valor igual a 1, por lo que el p-valor es mayor que alfa, por lo tanto, no podemos rechazar la hipótesis nula y confirmamos que los jugadores zurdos no son mejores que los diestros con un nivel de confianza del 95%.
+
+## Reflexión
+
+Comparad el análisis realizado en el apartado 3, con el realizado en este apartado. Explicad también qué sentido puede tener realizar una comparación de este tipo en relación al contraste de la pregunta 3.
+
+Si recordamos el análisis realizado en el apartado 3, nos indicaba que sí que podíamos asumir que los jugadores zurdos tenían un mejor rating que los jugadores diestros con un nivel de confianza al 95%, mientras que en este ejercicio hemos comprobado para cada jugador zurdo si tenía una diferencia significativa en el rating respecto a los diestros, y hemos visto que no, que no podíamos asumir que los jugadores zurdos tengan un mejor rating que los jugadores diestros con un nivel de confianza al 95%.
+
+Realizar este tipo de análisis respecto al del ejercicio 3 es muy interesante, ya que como podemos apreciar nos proporcionan resultados contradictorios, en el ejercicio 3 nos indica que sí que hay una diferencia significativa mientras que en este ejercicio no la hay.
+
+Es interesante hacer este tipo de análisis, es decir, comparar las observaciones similares, ya que en el ejercicio 3 estábamos comparando a todos con todos, lo cual no es del todo correcto, porque si cogemos a Messi y lo comparamos con Puyol lógicamente sí que va a haber una diferencia significativa, tienen diferente altura, peso, edad, posición en el campo, habilidades técnicas... Lo más lógico es comparar aquellos jugadores que son más similares y ver de verdad si hay una diferencia significativa o no, ya que si en este tipo de análisis hay una diferencia significativa si realizamos el otro análisis lo más probable es que también la haya, por lo que considero que es mejor realizar este tipo de análisis (comparar si una muestra es mejor que otra pero con obersvaciones similares).
 
 
 
