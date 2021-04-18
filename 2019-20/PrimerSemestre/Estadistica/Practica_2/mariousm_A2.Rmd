@@ -83,7 +83,7 @@ Este tipo de gráficos nos proporciona mucha información:
 
 - Con el primer y tercer cuartil sacamos el rango intercuartílico, en este caso, podemos ver que es pequeño dicho rango lo que nos da a entender que muchos de los datos, para ser más exactos el 50%, se mueven entre 63 y 71, es decir, los jugadores de media son regulares.
 
-- También observamos tanto el límite inferior como superior, gracias a ellos podemos identificar outliers, valores fuera de lo común, y vemos que esto tiene un significado positivo y negativo al mismo tiempo, ya que hay jugadores muy  (aunque son pocos) y jugadores muy buenos.
+- También observamos tanto el límite inferior como superior, gracias a ellos podemos identificar outliers, valores fuera de lo común, y vemos que esto tiene un significado positivo y negativo al mismo tiempo, ya que hay jugadores muy malos  (aunque son pocos) y jugadores muy buenos.
 
 ## Intervalo de confianza
 
@@ -151,7 +151,7 @@ Representad visualmente, mediante el gráfico que sea más apropiado el valor de
 de campo (no porteros) diestros y zurdos. Se deben mostrar los valores de forma comparativa entre zurdos y
 diestros. Interpretad los gráficos.
 
-Antes que visualizar los dastos entre zurdos y diestros, tenemos que quedarnos con los jugadores de campo que no son porteros, y vamos a crear dos dataframes uno para los zurdos y otro para los diestros :
+Antes de visualizar los datos entre zurdos y diestros, tenemos que quedarnos con los jugadores de campo que no son porteros, y vamos a crear dos dataframes uno para los zurdos y otro para los diestros :
 ```{r}
 df_copy_players = df_copy[df_copy$Club_Position != "GK",]
 df_copy_players_left = df_copy_players[df_copy_players$Preffered_Foot == "Left",]
@@ -188,7 +188,7 @@ boxplot(df_copy_players_left$Rating,
 
 Al igual que sucedía en el gráfico anterior, la mediana de los zurdos es un poco mayor respecto a la de diestros. Su primer cuartil también es algo mayor junto con el nivel mínimo.
 
-A primera vista sucede lo mismo que en el anterior gráfico, la calidad media del rating de los zurdos respecto a los diestros es algo mejor, pero tendremos que hacer un contraste de hipótisis para ver si es significativa dicha diferencia o no.
+A primera vista sucede lo mismo que en el anterior gráfico, la calidad media del rating de los zurdos respecto a los diestros es algo mayor, pero tendremos que hacer un contraste de hipótisis para ver si es significativa dicha diferencia o no.
 
 Analizamos la variable Dribbling respecto a zurdos y diestros:
 ```{r}
@@ -562,7 +562,7 @@ Si recordamos el análisis realizado en el apartado 3, nos indicaba que sí que 
 
 Realizar este tipo de análisis respecto al del ejercicio 3 es muy interesante, ya que como podemos apreciar nos proporcionan resultados contradictorios, en el ejercicio 3 nos indica que sí que hay una diferencia significativa mientras que en este ejercicio no la hay.
 
-Es interesante hacer este tipo de análisis, es decir, comparar las observaciones similares, ya que en el ejercicio 3 estábamos comparando a todos con todos, lo cual no es del todo correcto, porque si cogemos a Messi y lo comparamos con Puyol lógicamente sí que va a haber una diferencia significativa, tienen diferente altura, peso, edad, posición en el campo, habilidades técnicas... Lo más lógico es comparar aquellos jugadores que son más similares y ver de verdad si hay una diferencia significativa o no, ya que si en este tipo de análisis hay una diferencia significativa si realizamos el otro análisis lo más probable es que también la haya, por lo que considero que es mejor realizar este tipo de análisis (comparar si una muestra es mejor que otra pero con obersvaciones similares).
+Es interesante hacer este tipo de análisis, es decir, comparar las observaciones similares, ya que en el ejercicio 3 estábamos comparando a todos con todos, lo cual no es del todo correcto, porque si cogemos a Messi y lo comparamos con Puyol lógicamente sí que va a haber una diferencia significativa, tienen diferente altura, peso, edad, posición en el campo, habilidades técnicas... Lo más lógico es comparar aquellos jugadores que son más similares y ver de verdad si hay una diferencia significativa o no, ya que si en este tipo de análisis hay una diferencia significativa si realizamos el otro análisis lo más probable es que también la haya, por lo que considero que es mejor realizar este tipo de análisis (comparar si una muestra es mejor que otra pero con observaciones similares).
 
 # Comparación entre clubes
 
@@ -576,9 +576,9 @@ Escribid la hipótesis nula y alternativa.
 
 Las hipótesis que nos planteamos dada la pregunta del ejercicio son:
 
-- H0 (hipótesis nula): proporción de jugadores del Barsa = proporción de jugadores del Madrid
+- H0 (hipótesis nula): proporción de jugadores del Barsa respecto al Rating = proporción de jugadores del Madrid respecto al Rating.
 
-- H1 (hipótesis alternativa): proporción de jugadores del Barsa != proporción de jugadores del Madrid
+- H1 (hipótesis alternativa): proporción de jugadores del Barsa respecto al Rating != proporción de jugadores del Madrid respecto al Rating.
 
 ## Método
 
@@ -638,3 +638,13 @@ prop.test(c(p1 * n1, p2 * n2), c(n1, n2), alternative = "two.sided", correct = F
 Tal y como podemos ver el intervalo de la región de aceptación es próximo a [-2.17, 2.17], nuestro estadístico nos proporciona una valor aproximado de 1.03, como el valor aproximado está dentro de la región de aceptación no podemos rechazar la hipótesis nula, lo que significa que la proporción de los jugadores del barsa con un rating mayor que 90 respecto a la del madrid no es significatva con un nivel de confianza al 97%.
 
 Otra forma de concluir los resultados es a partir del p-valor, si el p-valor < alfa rechazamos la hipótesis nula, en nuestro caso el p-valor es aproximadamente 0.302 y nuestro nivel de significancia es de 0.03, por lo tanto, p-valor > alfa, entonces no podemos rechazar la hipótesis nula.
+
+# Resumen ejecutivo
+
+Una vez resueltos cada uno de los ejercicios, hemos llegado a las siguientes conclusiones:
+
+- Respecto al ejercicio 3, buscábamos comparar si era verdad que los jugadores zurdos eran mejores que los jugadores diestros, pero en este caso todos con todos. Tras el análisis hemos visto que sí que podíamos concluir que los jugadores zurdos eran mejores que los diestros con un nivel de confianza al 95%.
+
+- Respecto al ejercicio 4, hemos vuelto a comparar si era verdad que los jugadores zurdos eran mejores que los diestros, pero haciendo esta comparación entre los similares (peso, edad y altura). Tras haber realizado el análisis correspondiente, llegamos a la conclusión de que no podíamos afirmar que los jugadores zurdos eran mejores que los jugadores diestros similares con un nivel de confianza al 95%.
+
+- Respecto al ejercicio 5, hemos tenido que analizar si la proporción de jugadores del barsa con un rating superior a 90 era mayor que la de los jugadores del madrid, pero hemos llegado a la conclusión de que no era una diferencia significativa con un nivel de confianza del 97%.
