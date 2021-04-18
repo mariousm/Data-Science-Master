@@ -564,7 +564,77 @@ Realizar este tipo de análisis respecto al del ejercicio 3 es muy interesante, 
 
 Es interesante hacer este tipo de análisis, es decir, comparar las observaciones similares, ya que en el ejercicio 3 estábamos comparando a todos con todos, lo cual no es del todo correcto, porque si cogemos a Messi y lo comparamos con Puyol lógicamente sí que va a haber una diferencia significativa, tienen diferente altura, peso, edad, posición en el campo, habilidades técnicas... Lo más lógico es comparar aquellos jugadores que son más similares y ver de verdad si hay una diferencia significativa o no, ya que si en este tipo de análisis hay una diferencia significativa si realizamos el otro análisis lo más probable es que también la haya, por lo que considero que es mejor realizar este tipo de análisis (comparar si una muestra es mejor que otra pero con obersvaciones similares).
 
+# Comparación entre clubes
 
+Es bien conocida la rivalidad entre los clubes de Barcelona y Madrid. Se desea calcular si el porcentaje de jugadores con un Rating superior a 90 es diferente en Barcelona y Madrid con un nivel de confianza del 97 %.
 
+Para ello, seguid los pasos que se especifican a continuación.
 
+## Hipótesis nula y alternativa
 
+Escribid la hipótesis nula y alternativa.
+
+Las hipótesis que nos planteamos dada la pregunta del ejercicio son:
+
+- H0 (hipótesis nula): proporción de jugadores del Barsa = proporción de jugadores del Madrid
+
+- H1 (hipótesis alternativa): proporción de jugadores del Barsa != proporción de jugadores del Madrid
+
+## Método
+
+Explicad qué método aplicaréis para dar respuesta a la pregunta formulada. Justificad vuestra elección.
+
+Dada la pregunta formulada estamos ante un caso de contraste entre dos muestras sobre la proporción, vamos a tener una muestra para los jugadores del Barsa y otra muestra para los jugadores del Madrid, y comprobaremos si la proporción de los jugadores del Barsa con un Rating mayor a 90 es diferente de la del Madrid.
+
+El test por otro lado es paramétrico, esto se debe a que los tests paramétricos son aquellos contrastes que trabajan con la asunción de que los datos siguen una determinada distribución, siendo la más habitual la normalidad de los datos, como este tipo de contraste siguen una distribución normal(0,1) asumimos la normalidad de los datos.
+
+Para saber si el bilateral o unilateral nos podemos fijar en cómo está definida la hipótesis alternativa, en nuestro caso está definida con el símbolo distinto "!=", por lo que vamos a rechazar la hipótesis nula tanto si es menor como si es mayor el valor observado respecto a la región de aceptación, por lo tanto estamos frente un problema bilateral.
+
+## Cálculos
+
+Preparad las muestras y realizad los cálculos oportunos. Al igual que anteriormente, no podéis usar funciones que ya realicen este contraste automáticamente. Sí podéis usar pnorm, qnorm, pt, qt.
+
+Lo primero que debemos hacer es definir la función que nos va a proporcionar los calculos:
+```{r}
+muestrasProporcion = function(p1, p2, n1, n2, alfa) {
+  
+  # Calculamos el parámetro p a partir de la estimación
+  p = ((n1 * p1) + (n2 * p2)) / (n1 + n2)
+  
+  # Calculamos el estadístico de contraste
+  z_obs = (p1 - p2) / sqrt((p * (1 - p)) * ((1 / n1) + (1 / n2)))
+  
+  # Calculamos el punto crítico
+  z_cri_left = qnorm(alfa/2, lower.tail = TRUE)
+  z_cri_right = qnorm(alfa/2, lower.tail = FALSE)
+  
+  # Calculamos el p-valor
+  p_value = pnorm(z_obs, lower.tail = FALSE) * 2
+  
+  # Devolvemos los valores
+  return(data.frame(L = z_cri_left, U = z_cri_right, Estadistico_Contraste = z_obs, P_Valor = p_value))
+}
+```
+
+Una vez definida la función la llamamos con los datos correspondientes, en este caso tenemos en cuenta también a los porteros:
+```{r}
+df_barsa = df_copy[df_copy$Club == "FC Barcelona",]
+df_madrid = df_copy[df_copy$Club == "Real Madrid",]
+n1 = nrow(df_barsa)
+n2 = nrow(df_madrid)
+p1 = nrow(df_barsa[df_barsa$Rating > 90, ]) / n1
+p2 = nrow(df_madrid[df_madrid$Rating > 90, ]) / n2
+
+contraste_hipotesis_proporcion = muestrasProporcion(p1, p2, n1, n2, 0.03)
+contraste_hipotesis_proporcion
+```
+
+```{r}
+prop.test(c(p1 * n1, p2 * n2), c(n1, n2), alternative = "two.sided", correct = FALSE, conf.level = 0.97)
+```
+
+## Resultados e interpretación
+
+Tal y como podemos ver el intervalo de la región de aceptación es próximo a [-2.17, 2.17], nuestro estadístico nos proporciona una valor aproximado de 1.03, como el valor aproximado está dentro de la región de aceptación no podemos rechazar la hipótesis nula, lo que significa que la proporción de los jugadores del barsa con un rating mayor que 90 respecto a la del madrid no es significatva con un nivel de confianza al 97%.
+
+Otra forma de concluir los resultados es a partir del p-valor, si el p-valor < alfa rechazamos la hipótesis nula, en nuestro caso el p-valor es aproximadamente 0.302 y nuestro nivel de significancia es de 0.03, por lo tanto, p-valor > alfa, entonces no podemos rechazar la hipótesis nula.
