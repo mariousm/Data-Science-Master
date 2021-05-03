@@ -8,7 +8,7 @@ output:
     number_sections: yes
     theme: cosmo
     toc: yes
-    toc_depth: 2
+    toc_depth: 3
     includes:
       in_header: 75.584-PEC-header.html
   word_document: default
@@ -153,6 +153,8 @@ Cuando ya tenemos todos los datos limpios debemos construir el modelo, como bien
 
 Aunque inicialmente sea un problema más acorde con la clasificación, esto no significa que no se puedan usar otros algoritmos, ya que por ejemplo podemos hacer uso del clustering, para saber cómo se agrupan las células, aunque sabemos que hay solo dos tipos (benignas y malignas), al hacer uso del clustering dejamos a manos de un algoritmo que agrupe sin nostros indicarle nada, gracias a esto podemos saber qué caracteriza a un paciente con cáncer de mama respecto a un paciente que no padece de dicha enfermedad.
 
+Además, podríamos hacer uso de algoritmos de reglas de asociación para ver cómo están relacioandas cada una de las variables, es decir, si el el tamaño de una célula implica que aumenta la forma y el grosor...
+
 En resumen, podemos hacer uso de árboles de decisión y algoritmos de clustering para alcanzar los objetivos de nuestro proyecto que son dos: saber si una persona padece cáncer de mama o no, y saber qué le caracteriza al cáncer, es decir, cómo es el cáncer de mama.
 
 ### Evaluación e interpretación del modelo
@@ -235,6 +237,340 @@ Aunque algun concepto es fácil de entender los demás no, es por ello que vamos
 Toda esta información se ha obtenido de la siguiente página [https://core.ac.uk/download/pdf/77274625.pdf], cabe destacar que a mayor valor de cada atributo más probable es que la célula sea anormal y dentro de esta anormalidad sea cancerígena.
 
 Por último, tenemos 699 observaciones y 11 atributos.
+
+
+## Análisis exploratorio
+
+Antes de analizar cómo son las distribuciones, correlaciones, vamos a obtener unas estadísticas básicas para saber qué datos estamos manejando, para ello lo primero que debemos hacer es cargar el dataset:
+```{r}
+# Cargamos el juego de datos
+df = read.table(file="./data/breast-cancer-wisconsin.data", fileEncoding="UTF-8", sep=",", na.strings = "NA")
+
+# Cambiamos el nombre de las columnas tal y como se llaman según la página web
+colnames(df) = c("Id", "Thickness", "Cell_Size", "Cell_Shape", "Adhesion", "Epithelial_Cell_Size", "Bare_Nuclei", "Bland_Chromatin", "Normal_Nucleoli", "Mitoses", "Class")
+
+# Creamos una copia del dataframe, ya que va a ser la copia sobre la que vamos a realizar las modificaciones
+df_copy = df
+
+# Visualizamos los datos
+str(df_copy)
+```
+
+### Estadísticas iniciales
+
+Como podemos observar de la anterior ejecución, todos los campos los atribuye bien menos Bare_Nuclei, esto se debe a que en dicho campo tenemos tanto valores númericos como un interrogante "?" para los valores desconocidos, este problema se solventará en el siguiente punto cuando hagamos la limpieza del dataset, mientras tanto vamos a establecer que donde haya un interrogante lo añada como NA, para así poder hacer los cálculos y analizar el dataset de forma completa:
+```{r}
+df_copy[df_copy$Bare_Nuclei == "?", "Bare_Nuclei"] = NA
+df_copy$Bare_Nuclei = as.integer(df_copy$Bare_Nuclei)
+
+str(df_copy)
+```
+Una vez solventado ese problema, podríamos considerar que la variable Class es categórica, ya que solo representa un 2 si es benigno el cáncer o un 4 en caso contrario, pero como es indiferente hacer ese cambio mantenemos que siga siendo de tipo integer. 
+
+Finalmente, sacamos las estadísticas iniciales:
+```{r}
+summary(df_copy)
+```
+
+De la anterior ejecución podemos ver que a excepción de la variable Id y Class, el resto el valor mínimo es 1 y el máximo es 10.
+
+Respecto a Thickness (grosor) vemos que están bastante equilibrados los datos, es decir, la media y la mediana casi coinciden, y ambas están cerca del valor 4.5 que es la mitad a nivel numérico del rango [1,10], esto nos da a entender que está bien repartidos los datos, ya que además el primer cuartil tiene un valor de 2 que es practicamente la mitad de la media y el tercer cuartíl un valor de 6 que es prácticamente la mitad posterior a la media.
+
+Respecto a Cell_Size, Cell_Shape y Epithelial_Cell_size, vemos que lo datos ya no están tan equilibrados, hay bastante diferencia entre la media y la mediana, lo cual a la vista podemos ver que es más común tener tamaños y formas pequeñas que grandes.
+
+Con el atributo Adhesion pasa algo parecido, aunque no sabemos cómo se mide, a priori según los datos a menor valor de Adhesion menos probable es que tengas cáncer, es decir, más juntas están las células, por lo que vemos que la media y la mediana son bajas, esto nos da a entender que la gran mayoría de datos que tenemos las células esán muy juntas, es decir, la mayoría de los casos son beningnos.
+
+Por otro lado, respecto a los atributos Bare_Nuclei, Bland_Chromain, Normal_Nucleoli y Mitoses no sabemos cómo están definidos los datos, es decir, en la documentación del dataset no se explica si a menor número menos probabilidades de cáncer, pero analizando los datos de forma manual vemos que sigue esta tendencia, es decir, cuanto más pequeño sean dichos valores mejor. Por lo tanto, observamos que la media y la mediana son pequeñas, algo muy significativo ya que de tener valores altos indicaría un mayor riesgo de cáncer.
+
+En resumen, de esta primer análisis podemos ver que la mayoría de las observaciones que tenemos representan casos benignos, aunque es verdad que también hay casos malignos.
+
+### Distribuciones
+
+Teniendo claro esto, vamos a ver cómo son las distribuciones de las variables representativas, es decir, todas menos los atributos Id y Class.
+
+La distribución de Thickness:
+```{r}
+hist(df_copy$Thickness, 
+     main = "Histograma del atributo Thickness",
+     ylab = "Frecuencia",
+     xlab = "Thickness",
+     col = "steelblue")
+```
+
+Tal y como podemos ver no sigue una distribución normal ya que la gran mayoría de los casos se encuentran entre una thickness de 1 a 5.
+
+A menor grosor o menor Thickness más probable es que el cáncer sea benigno, por lo que si la gran mayoría tiene un grosor pequeño significa que la mayoría de los casos no suponen un cáncer.
+
+Cabe destacar que el último grupo, es decir, aquel con una Thickness mayor que 9 tenemos alrededor de 75 casos, lo cuál es más probable que o tengas un grosor pequeño o que tu grosor sea demasiado grande.
+
+La distribución de Cell_Size:
+```{r}
+hist(df_copy$Cell_Size, 
+     main = "Histograma del atributo Cell_Size",
+     ylab = "Frecuencia",
+     xlab = "Cell_Size",
+     col = "steelblue")
+```
+
+Al igual que sucedía antes, no sigue una distribución normal, ya que la gran mayoría de los casos tenemos un tamaño de célula pequeño. Esto es positivo ya que a menor tamaño de célula menos probable es que tengamos cáncer de mama, pero este tamaño de célula o es pequeño o es demasiado grande no hay un termino medio.
+
+La distribución de Cell_Shape:
+```{r}
+hist(df_copy$Cell_Shape, 
+     main = "Histograma del atributo Cell_Shape",
+     ylab = "Frecuencia",
+     xlab = "Cell_Shape",
+     col = "steelblue")
+```
+
+Vemos que la tónica de los atributos es la misma, no siguen una distribución normal y la gran mayoría de los casos se encuentran con una forma de célula pequeña, sin embargo, hay bastantes casos en los que la forma de la célula es excesivamente grande.
+
+Vemos que tanto el tamñao de la célula como la forma de la misma, están altamente correlacionados positivamente, ya que al aumentar uno aumenta el otro y viceversa, aún así este punto se verá de forma más clara en el siguietne apartado de correlaciones.
+
+La distribución de Adhesion:
+```{r}
+hist(df_copy$Adhesion, 
+     main = "Histograma del atributo Adhesion",
+     ylab = "Frecuencia",
+     xlab = "Adhesion",
+     col = "steelblue")
+```
+
+Siguiendo con la tónica de las distribuciones, no es una distribución normal, y por norma general lo más común es que las células estén muy cercanas las unas de las otras, aún así seguimos viendo que hay una correlación muy fuerte respecto a si el cancer es benigno o maligno.
+
+La distribución de Epithelial_Cell_Size:
+```{r}
+hist(df_copy$Epithelial_Cell_Size, 
+     main = "Histograma del atributo Epithelial_Cell_Size",
+     ylab = "Frecuencia",
+     xlab = "Epithelial_Cell_Size",
+     col = "steelblue")
+```
+
+Al igual que sucedía en los casos anteriores, no sigue una distribución normal y es llamativo que en respecto al tamaño de las células epiteliales suelen ser mayoritariamente más pequeñas, es decir, no hay tantos casos en los que la célula epitelial sea grande.
+
+La distribución de Bare_Nuclei:
+```{r}
+hist(df_copy$Bare_Nuclei, 
+     main = "Histograma del atributo Bare_Nuclei",
+     ylab = "Frecuencia",
+     xlab = "Bare_Nuclei",
+     col = "steelblue")
+```
+
+Este atributo tampoco sigue una distribución normal y vemos que estos datos están muy polarizados, es decir, o tienes un valor muy pequeño o tienes un valor muy grande, esto puede hacernos a la idea que respecto al Bare_Nuclei sí que determina si un cáncer es benigno o maligno.
+
+La distribución de Bland_Chromatin:
+```{r}
+hist(df_copy$Bland_Chromatin, 
+     main = "Histograma del atributo Bland_Chromatin",
+     ylab = "Frecuencia",
+     xlab = "Bland_Chromatin",
+     col = "steelblue")
+```
+
+Al igual que sucedía antes, continua sin seguir una distribución normal, pero en este caso es más probable que estos valores sean pequeños, ya que apenas hay casos en los que sea excesivamente grande, esto nos hace una idea que no es tan fácil determinar si el cáncer es benigno o maligno a partir de este atributo.
+
+La distribución de Normal_Nucleoli:
+```{r}
+hist(df_copy$Normal_Nucleoli, 
+     main = "Histograma del atributo Normal_Nucleoli",
+     ylab = "Frecuencia",
+     xlab = "Normal_Nucleoli",
+     col = "steelblue")
+```
+
+Seguimos sin ver una distribución normal y vemos que los datos están polarizados, es decir, aunque mayoritariamente los casos son que el tamaño de los nucleólos son pequeños (esto significa que el cáncer es benigno), hay casos significativos en los que los nucleólos son excesivamente grandes (cáncer de mama maligno).
+
+La distribución de Mitoses:
+```{r}
+hist(df_copy$Mitoses, 
+     main = "Histograma del atributo Mitoses",
+     ylab = "Frecuencia",
+     xlab = "Mitoses",
+     col = "steelblue")
+```
+
+Continuamos sin ver una distribución normal, y vemos que prácticamente todos los casos presentan un valor de Mitoses muy pequeño, lo cual nos hace indicar que probablemente este atributo no sea significativo para determinar si un cáncer es benigno o maligno.
+
+#### Resumen
+
+Tras analizar la distribución de cada variable, podemos ver que ninguna sigue una distribución normal.
+
+Por otro lado, hay determinadas características como como el grosor, tamaño y forma de la célula las cuales a priori paracen que son determinantes para saber si un cáncer es benigno o maligno, también hay otras como el tamaño de la estructura de los nucleólos junto con si el núcleo está rodeado de citoplasma, que nos permite saber si el cáncer es benigno o maligno.
+
+Sin embargo, hay características como la mitosis, o la textura del núcleo que no son tan determinantes a la hora de decidir si el cáncer de mama es benigno o maligno.
+
+### Correlaciones
+
+Una vez que hemos visto las distribuciones de cada variable, vamos a ver cómo de correlacionadas están entre ellas.
+
+Para ello, lo primero que vamos a hacer es crear un dataset con las variables que nos interesan (todas, menos el Id y la Class) y vamos a eliminar aquellas filas cuyo Bare_Nuclei sea NA, tan solo son 16 filas, por lo que no perdemos mucha información, y aunque estas filas se usarán depués para hacer la limpieza, en un primer análisis del dataset no nos hacen falta:
+```{r}
+df_copy_noNA = df_copy[is.na(df_copy$Bare_Nuclei) == FALSE, c(2:10)]
+cor(df_copy_noNA)
+```
+
+Podemos obtener también el siguiente gráfico, para poder visualizar las correlaciones de una mejor forma:
+```{r}
+library(corrplot)
+
+corrplot(cor(df_copy_noNA), type = "upper", 
+         order = "original", 
+         tl.col = "black", 
+         tl.srt = 45)
+```
+
+La forma de interpretar los resultados obtenidos de las dos anteriores ejecuciones es la siguiente, el valor de correlación es un número entre -1 y 1, si el valor es -1 indica que las variables están altamente correlacionadas pero negativamente, es decir, cuando una variable aumenta la otra disminuye, por otro lado, cuando el valor es 1 las variables están correlacionadas positivamente, esto significa que cuando una aumenta la otra también aumenta.
+
+Entendiendo lo que es la correlación, vemos que tanto a nivel gráfico como a nivel númerico todas las variables están correlacionadas entre sí positivamente, con la excepción del atributo Mitoses, ya que aunque están correlacionadas positivamente con dicho atributo, esta correlación no es fuerte, es decir, todas las variables cuando aumenta una aumenta la otra en mayor o menor medida.
+
+Por lo tanto, vamos a analizar las correlaciones más llamativas, es decir, aquellas en las que hay una correlación bastante elevada entre variables.
+
+La correlaciones más altas las conseguimos a partir de la variable Size y Shape, es decir, del tamaño y la forma, por lo que vamos a analizar las correlaciones más significativas de estas dos variables.
+
+La correlación de Cell_Size respecto a Cell_Shape es la siguiente:
+```{r}
+library(PerformanceAnalytics)
+
+chart.Correlation(data.frame(df_copy_noNA$Cell_Size, df_copy_noNA$Cell_Shape))
+```
+
+Tal y como podemos apreciar, esta correlación es muy fuerte, es decir a medida que aumentamos el tamaño de la célula aumenta también la forma. Recordando que cuando aumenta el tamaño de la célula o de la forma o ambas significa que es más probable que el cáncer sea maligno, por lo tanto si aumenta una de las dos variables es muy probable que tengamos cáncer.
+
+Otra correlación fuerte es la de Cell_Size respecto a Epithelial_Cell_Size es la siguiente:
+```{r}
+chart.Correlation(data.frame(df_copy_noNA$Cell_Size, df_copy_noNA$Epithelial_Cell_Size))
+```
+
+Lógicamente al aumentar el tamaño de las células va a aumentar también el tamaño de las células epiteliales, ya que siguen siendo células que se encuentran en la piel. Por lo tanto, si aumenta el tamaño de cualquiera de estas dos variabels el riesgo de que padezcamos cáncer de mama es elevado.
+
+Otra correlación significativa es la de Cell_Size respecto a Epithelial_Cell_Size es la siguiente:
+```{r}
+chart.Correlation(data.frame(df_copy_noNA$Cell_Size, df_copy_noNA$Bland_Chromatin))
+```
+
+Bland_Chromatin hace referencia a la textura del núcleo de la célula, cuando ésta es maligna su núcleo tiende a ser más burdo, por lo que lógicamente si antes hemos dicho que el tamaño de la célula implica mayor riesgo de cáncer, al aumentar el tamaño la textura se ve afectada.
+
+Por otro lado, una de las correlaciones más significativas respecto a la forma (Cell_Shape) es junto a el tamaño de la célula (Cell_Size) tal y como hemos visto en este punto, como esta gráfica ya ha sido representada vamos a mostrar la siguiente correlación más significativa, la cual es Cell_Shape respecto a Epithelial_Cell_Size:
+```{r}
+chart.Correlation(data.frame(df_copy_noNA$Cell_Shape, df_copy_noNA$Epithelial_Cell_Size))
+```
+
+Tal y como podemos apreciar al aumentar la forma de la célula aumenta también el tamaño, lo que tiene la mayor lógica posible, es decir, si la forma de un objeto aumenta va a aumentar su tamaño en mayor o menor medida. Recapitulando, a mayor forma o mayor tamaño de células epitetales implica un mayor riesgo de cáncer de mama.
+
+Finalmente, la otra correlación más significativa de este dataset es la que forman Cell_Shape y Bland_Chromatin:
+```{r}
+chart.Correlation(data.frame(df_copy_noNA$Cell_Shape, df_copy_noNA$Bland_Chromatin))
+```
+
+Al igual que sucecía con el tamaño de la célula, al aumentar la forma mayor riesgo de cáncer y eso se traduce a que la textura del núcleo de la célula es más burda, por lo tanto, si la textura es más burda es más probable que haya aumentado la forma de la célula.
+
+#### Resumen
+
+Tal y como hemos podido ver en este apartado de las correlaciones, todas las variables están correlacionadas positivamente en mayor o menor medida, y hemos visto que la correlación más fuerte se producía entre el tamaño de la célula y su forma, ya que a mayor tamaño aumentaba también la forma. Con esto podemos identificar que la gran mayoría de atributos van de la mano, es decir, cuando aumenta el uno aumenta el otro, y por tanto en nuestro caso, si aumenta un valor esto supone un mayor riesgo de padecer cáncer de mama.
+
+### Valores anormales/outliers
+
+En este apartado vamos a analizar si hay outliers, o valores anormales dentro de cada distribución de variables.
+
+Por lo tanto, en el siguiente boxplot podemos ver los outliers dentro de la variable Thickness:
+```{r}
+boxplot(df_copy_noNA$Thickness,
+        main = "Boxplot de la variable Thickness",
+        ylab = "Thickness")
+```
+
+Como era de apreciar, el valor mínimo está acotado a 1 y el máximo a 10 y vemos que el 75% de los datos de esta variable se mueven entre 1 y 6, por lo que de media el grosor no es muy elevado. Cabe destacar que no hay outliers ni por encima ni por debajo.
+
+El siguiente boxplot muestra información sobre la variable Cell_Size:
+```{r}
+boxplot(df_copy_noNA$Cell_Size,
+        main = "Boxplot de la variable Cell_Size",
+        ylab = "Cell_Size")
+```
+
+En el anterior gráfico observamos que tampoco hay valores anormales, y que el 75% de los datos se mueven entre el 1 y el 5. Sin embargo, lo más destacado es que el valor mínimo coincide que el primer cuartil y con la mediana, esto lo que nos quiere indicar es que tenemos muchas observaciones cuya tamaño de célula es 1.
+
+El siguiente boxplot muestra información sobre la variable Cell_Shape:
+```{r}
+boxplot(df_copy_noNA$Cell_Shape,
+        main = "Boxplot de la variable Cell_Shape",
+        ylab = "Cell_Shape")
+```
+
+Al igual que sucedía en los casos anteriores no tenemos valores outliers, pero el primer cuartil, la mediana y el mínimo coinciden, esto nos da a entender que la gran mayoría de valores respecto a la forma es igual a 1.
+
+El siguiente boxplot muestra información sobre la variable Adhesion:
+```{r}
+boxplot(df_copy_noNA$Adhesion,
+        main = "Boxplot de la variable Adhesion",
+        ylab = "Adhesion")
+```
+
+Respecto a este atributo vemos que sí que tenemos valores outliers, para ser más exactos dos, es decir, que hay dos observaciones en las cuales el valor para medir cómo de separadas están esas células vemos que es elevado respecto a lo normal, sin embargo, eso no significa que sean valores outliers ya que el dataset está acotado a valores ente 1 y 10, por lo que estos valores son totalmente válidos.
+
+Al igual que sucedía en los casos anteriores el primer cuartil, junto con la mediana y el mínimo coinciden, por lo que nos da a enteder que valor más común para este atributo es 1.
+
+El siguiente boxplot muestra información sobre la variable Epithelial_Cell_Size:
+```{r}
+boxplot(df_copy_noNA$Epithelial_Cell_Size,
+        main = "Boxplot de la variable Epithelial_Cell_Size",
+        ylab = "Epithelial_Cell_Size")
+```
+
+En este caso tenemos también tres observaciones con outliers, es decir, tres observaciones cuyo valores se alejan de lo normal, pero al igual que sucedía antes esto no significa que sean valores anormales en sí ya que están acotados a 10.
+
+Por otro lado el valor máximo en este atributo ha disminuido respecto a los otros, y por tanto el rango intercuartílico es menor, sin embargo, la mediana y el primer cuartil siguen coincidiendo, esto nos sigue indicando que el valor más común es bajo, en este caso 2.
+
+El siguiente boxplot muestra información sobre la variable Bare_Nuclei:
+```{r}
+boxplot(df_copy_noNA$Bare_Nuclei,
+        main = "Boxplot de la variable Bare_Nuclei",
+        ylab = "Bare_Nuclei")
+```
+
+En este caso, no tenemos valores anormales y el rango intercuartílico es bastante grande, aunque el valor mínimo, el primer cuartil y la mediana coinciden, por lo que el valor más común sigue siendo 1.
+
+El siguiente boxplot muestra información sobre la variable Bland_Chromatin:
+```{r}
+boxplot(df_copy_noNA$Bland_Chromatin,
+        main = "Boxplot de la variable Bland_Chromatin",
+        ylab = "Bland_Chromatin")
+```
+
+En este caso, tenemos una observación cuyo valor está alejado de lo normal, pero al estar acotado dichos valores entre 1 y 10 lo podemos considerar normal perfectamente.
+
+Por otro lado, el rango intercuartílico no es muy grande, pero en este caso la mediana ya no coincide con el primer cuartil, esto nos permite saber que el valor más común está más alejado que antes, en este caso dicho valor es 3.
+
+El siguiente boxplot muestra información sobre la variable Normal_Nucleoli:
+```{r}
+boxplot(df_copy_noNA$Normal_Nucleoli,
+        main = "Boxplot de la variable Normal_Nucleoli",
+        ylab = "Normal_Nucleoli")
+```
+
+En este caso, tenemos dos observaciones que tienen valores fuera de lo normal, pero al igual que en todas las variables anteriores los podemos considerar normales ya que están acotados.
+
+Cabe destacar que en esta variable el valor mínimo, primer cuartil y mediana coinciden, lo cual nos indica que el valor más común es muy pequeño, en este caso 1.
+
+El siguiente boxplot muestra información sobre la variable Mitores:
+```{r}
+boxplot(df_copy_noNA$Mitoses,
+        main = "Boxplot de la variable Mitores",
+        ylab = "Mitores")
+```
+
+A la vista está que este atributo es bastante especial, ya que apenas tiene rango intercuartílico, es decir, el 75% de los datos es el mismo, que en este caso es 1. Tenemos bastantes outliers, que los podríamos considerar como tal si no estuvieran acotados, es por ello que los consideramos normales.
+
+#### Resumen
+
+Aunque hay ciertas variables que tienen valores anormales, no los podemos considerar como tal ya que están acotados entre 1 y 10.
+
+Por otro lado, hemos visto que por norma general la mediana de los atributos coinciden con el valor mínimo o con un valor muy próximo al mínimo, esto nos indica que de media los valores que suelen tomar cada variable son pequeños. De esto concluimos que la gran mayoría de los casos son benignos, ya que a menor valor de cada atributo menos riesgo de padecer cáncer de mama.
+
+## Limpieza del dataset
+
 
 
 ******
