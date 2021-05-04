@@ -113,7 +113,7 @@ El cáncer es una de las mayores enfermades que sufrimos diariamente, todo el mu
 
 Al no conocer bien las diferentes causas de esta enfermedad no sabemos cuándo empieza hasta que no tenemos síntomas a nivel celular de que nuestras células están cambiando/mutando, de ser células beningnas a malignas.
 
-Por experiencia personal este es un tema delicado ya que ha afectado a mi familia directamente, para ser más concisos, algunas mujeres de mi familia padecieron cáncer de mama. Este tipo de cáncer sobre todo en las mujeres es el segundo tipo de cáncer que más ocurre entre ellas, solo en España según la AECC (la Asociación Española Contra el Cáncer), en 2018 se estimó que 130000 mujeres fueron diagnósticadas con dicha enfermedad.
+Por experiencia personal este es un tema delicado ya que ha afectado a mi familia directamente, este tipo de cáncer sobre todo en las mujeres es el segundo tipo de cáncer que más ocurre entre ellas, solo en España según la AECC (la Asociación Española Contra el Cáncer), en 2018 se estimó que 130000 mujeres fueron diagnósticadas con dicha enfermedad.
 
 A día de hoy seguimos teniendo miedo del cáncer debido a que no tenemos un cura como tal, sino que la única forma de superarlo es diagnosticarlo pronto, y es aquí donde entra en juego la minería de datos, ya que gracias a diferentes algoritmos podemos identificar si un persona padece cáncer o no antes de que sea demasiado tarde.
 
@@ -258,7 +258,7 @@ str(df_copy)
 
 ### Estadísticas iniciales
 
-Como podemos observar de la anterior ejecución, todos los campos los atribuye bien menos Bare_Nuclei, esto se debe a que en dicho campo tenemos tanto valores númericos como un interrogante "?" para los valores desconocidos, este problema se solventará en el siguiente punto cuando hagamos la limpieza del dataset, mientras tanto vamos a establecer que donde haya un interrogante lo añada como NA, para así poder hacer los cálculos y analizar el dataset de forma completa:
+Como podemos observar de la anterior ejecución, todos los campos los atribuye bien menos Bare_Nuclei, esto se debe a que en dicho campo tenemos tanto valores numéricos como un interrogante "?" para los valores desconocidos, este problema se solventará en el siguiente punto cuando hagamos la limpieza del dataset, mientras tanto vamos a establecer que donde haya un interrogante lo añada como NA, para así poder hacer los cálculos y analizar el dataset de forma completa:
 ```{r}
 df_copy[df_copy$Bare_Nuclei == "?", "Bare_Nuclei"] = NA
 df_copy$Bare_Nuclei = as.integer(df_copy$Bare_Nuclei)
@@ -278,7 +278,7 @@ Respecto a Thickness (grosor) vemos que están bastante equilibrados los datos, 
 
 Respecto a Cell_Size, Cell_Shape y Epithelial_Cell_size, vemos que lo datos ya no están tan equilibrados, hay bastante diferencia entre la media y la mediana, lo cual a la vista podemos ver que es más común tener tamaños y formas pequeñas que grandes.
 
-Con el atributo Adhesion pasa algo parecido, aunque no sabemos cómo se mide, a priori según los datos a menor valor de Adhesion menos probable es que tengas cáncer, es decir, más juntas están las células, por lo que vemos que la media y la mediana son bajas, esto nos da a entender que la gran mayoría de datos que tenemos las células esán muy juntas, es decir, la mayoría de los casos son beningnos.
+Con el atributo Adhesion pasa algo parecido, aunque no sabemos cómo se mide, a priori según los datos a menor valor de Adhesion menos probable es que tengas cáncer, es decir, más juntas están las células, por lo que vemos que la media y la mediana son bajas, esto nos da a entender que la gran mayoría de datos que tenemos las células están muy juntas, es decir, la mayoría de los casos son benignos.
 
 Por otro lado, respecto a los atributos Bare_Nuclei, Bland_Chromain, Normal_Nucleoli y Mitoses no sabemos cómo están definidos los datos, es decir, en la documentación del dataset no se explica si a menor número menos probabilidades de cáncer, pero analizando los datos de forma manual vemos que sigue esta tendencia, es decir, cuanto más pequeño sean dichos valores mejor. Por lo tanto, observamos que la media y la mediana son pequeñas, algo muy significativo ya que de tener valores altos indicaría un mayor riesgo de cáncer.
 
@@ -325,7 +325,7 @@ hist(df_copy$Cell_Shape,
 
 Vemos que la tónica de los atributos es la misma, no siguen una distribución normal y la gran mayoría de los casos se encuentran con una forma de célula pequeña, sin embargo, hay bastantes casos en los que la forma de la célula es excesivamente grande.
 
-Vemos que tanto el tamñao de la célula como la forma de la misma, están altamente correlacionados positivamente, ya que al aumentar uno aumenta el otro y viceversa, aún así este punto se verá de forma más clara en el siguietne apartado de correlaciones.
+Vemos que tanto el tamaño de la célula como la forma de la misma, están altamente correlacionados positivamente, ya que al aumentar uno aumenta el otro y viceversa, aún así este punto se verá de forma más clara en el siguiente apartado de correlaciones.
 
 La distribución de Adhesion:
 ```{r}
@@ -369,7 +369,7 @@ hist(df_copy$Bland_Chromatin,
      col = "steelblue")
 ```
 
-Al igual que sucedía antes, continua sin seguir una distribución normal, pero en este caso es más probable que estos valores sean pequeños, ya que apenas hay casos en los que sea excesivamente grande, esto nos hace una idea que no es tan fácil determinar si el cáncer es benigno o maligno a partir de este atributo.
+Al igual que sucedía antes, continua sin seguir una distribución normal, pero en este caso es más probable que estos valores sean pequeños, ya que apenas hay casos en los que sea excesivamente grande.
 
 La distribución de Normal_Nucleoli:
 ```{r}
@@ -397,7 +397,7 @@ Continuamos sin ver una distribución normal, y vemos que prácticamente todos l
 
 Tras analizar la distribución de cada variable, podemos ver que ninguna sigue una distribución normal.
 
-Por otro lado, hay determinadas características como como el grosor, tamaño y forma de la célula las cuales a priori paracen que son determinantes para saber si un cáncer es benigno o maligno, también hay otras como el tamaño de la estructura de los nucleólos junto con si el núcleo está rodeado de citoplasma, que nos permite saber si el cáncer es benigno o maligno.
+Por otro lado, hay determinadas características como el grosor, tamaño y forma de la célula las cuales a priori paracen que son determinantes para saber si un cáncer es benigno o maligno, también hay otras como el tamaño de la estructura de los nucléolos junto con si el núcleo está rodeado de citoplasma, que nos permite saber si el cáncer es benigno o maligno.
 
 Sin embargo, hay características como la mitosis, o la textura del núcleo que no son tan determinantes a la hora de decidir si el cáncer de mama es benigno o maligno.
 
@@ -443,7 +443,7 @@ Otra correlación fuerte es la de Cell_Size respecto a Epithelial_Cell_Size es l
 chart.Correlation(data.frame(df_copy_noNA$Cell_Size, df_copy_noNA$Epithelial_Cell_Size))
 ```
 
-Lógicamente al aumentar el tamaño de las células va a aumentar también el tamaño de las células epiteliales, ya que siguen siendo células que se encuentran en la piel. Por lo tanto, si aumenta el tamaño de cualquiera de estas dos variabels el riesgo de que padezcamos cáncer de mama es elevado.
+Lógicamente al aumentar el tamaño de las células va a aumentar también el tamaño de las células epiteliales, ya que siguen siendo células que se encuentran en la piel. Por lo tanto, si aumenta el tamaño de cualquiera de estas dos variables el riesgo de que padezcamos cáncer de mama es elevado.
 
 Otra correlación significativa es la de Cell_Size respecto a Epithelial_Cell_Size es la siguiente:
 ```{r}
@@ -452,7 +452,7 @@ chart.Correlation(data.frame(df_copy_noNA$Cell_Size, df_copy_noNA$Bland_Chromati
 
 Bland_Chromatin hace referencia a la textura del núcleo de la célula, cuando ésta es maligna su núcleo tiende a ser más burdo, por lo que lógicamente si antes hemos dicho que el tamaño de la célula implica mayor riesgo de cáncer, al aumentar el tamaño la textura se ve afectada.
 
-Por otro lado, una de las correlaciones más significativas respecto a la forma (Cell_Shape) es junto a el tamaño de la célula (Cell_Size) tal y como hemos visto en este punto, como esta gráfica ya ha sido representada vamos a mostrar la siguiente correlación más significativa, la cual es Cell_Shape respecto a Epithelial_Cell_Size:
+Por otro lado, una de las correlaciones más significativas respecto a la forma (Cell_Shape) es junto al tamaño de la célula (Cell_Size) tal y como hemos visto en este punto, como esta gráfica ya ha sido representada vamos a mostrar la siguiente correlación más significativa, la cual es Cell_Shape respecto a Epithelial_Cell_Size:
 ```{r}
 chart.Correlation(data.frame(df_copy_noNA$Cell_Shape, df_copy_noNA$Epithelial_Cell_Size))
 ```
@@ -655,16 +655,16 @@ df_discretizado["d-Cell_Size"] = ordered(cut(df_discretizado[["Cell_Size"]], bre
 df_discretizado["d-Cell_Shape"] = ordered(cut(df_discretizado[["Cell_Shape"]], breaks = c(0,4,7,10), labels = c("Clase1", "Clase2", "Clase3")))
 
 # Dicretización a la adhesión marginal
-df_discretizado["d-Adhesion"] = ordered(cut(df_discretizado[["Adhesion"]], breaks = c(0,5,10), labels = c("Débil", "Fuerte")))
+df_discretizado["d-Adhesion"] = factor(cut(df_discretizado[["Adhesion"]], breaks = c(0,5,10), labels = c("Alta", "Baja")))
 
 # Dicretización del tamaño de las células epiteliales
 df_discretizado["d-Epithelial_Cell_Size"] = ordered(cut(df_discretizado[["Epithelial_Cell_Size"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
 
 # Dicretización los núcleos desnudos
-df_discretizado["d-Bare_Nuclei"] = ordered(cut(df_discretizado[["Bare_Nuclei"]], breaks = c(0,4,7,10), labels = c("Ausente", "Ausente/Presente", "Presente")))
+df_discretizado["d-Bare_Nuclei"] = factor(cut(df_discretizado[["Bare_Nuclei"]], breaks = c(0,4,7,10), labels = c("Presente", "Presente/Ausente", "Ausente")))
 
 # Dicretización de la textura de la núcleos
-df_discretizado["d-Bland_Chromatin"] = ordered(cut(df_discretizado[["Bland_Chromatin"]], breaks = c(0,4,7,10), labels = c("Uniforme", "Uniforme/Burda", "Burda")))
+df_discretizado["d-Bland_Chromatin"] = factor(cut(df_discretizado[["Bland_Chromatin"]], breaks = c(0,4,7,10), labels = c("Uniforme", "Uniforme/Burda", "Burda")))
 
 # Dicretización de la estructoras de los nucleólis
 df_discretizado["d-Normal_Nucleoli"] = ordered(cut(df_discretizado[["Normal_Nucleoli"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
@@ -693,7 +693,7 @@ Con esto hemos finalizado el apartado de limpieza de datos, y en el siguiente va
 
 Otro aspecto a tener en cuenta es el análisis de componentes principales, éste nos permite saber qué componentes representan la máxima variabilidad medida a partir de la varianza.
 
-El análisis de componentes principales lo debemos hacer sobre las variable numéricas, por lo que vamos a hacer uso del dataframe correspondiente:
+El análisis de componentes principales lo debemos hacer sobre las variables numéricas, por lo que vamos a hacer uso del dataframe correspondiente:
 ```{r}
 df_PCA = df_copy[, c(2:10)]
 ```
@@ -728,6 +728,105 @@ cat("La media de los valores propios es: ", media_valores_propios)
 Según Kaiser-Guttman hay que elegir como componentes principales aquellos que cuyos valores propios superen la media de los mismos, en este caso solo el primer componente supera la media, por lo que eligiendo el primer componente conseguimos reducir la dimensionalidad y proyectar más o menos la misma información que en el dataset original.
 
 ## Análisis visual
+
+Finalmente, para concluir con esta primera práctica vamos a realizar un análisis visual de los datos. Este análisis nos va a permitir darnos respuestas sobre cómo los diferentes atributos afectan al cáncer de mama.
+
+La primer pregunta que nos podemos hacer es, ¿cuántas de las observaciones son cáncer y cuántas no?:
+```{r}
+library(ggplot2)
+
+ggplot(df_discretizado, aes(`d-Class`, fill = `d-Class`)) + geom_bar() +
+  xlab("Tipo de Cáncer") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Frecuencia del cáncer de mama")
+```
+
+Tal y como podemos apreciar, hay más casos de cáncer benigno que maligno, para ser más precisos solamente un tercio de las observaciones que tenemos implica que el cáncer de mama sea maligno. De aquí podemos extraer la información de que por norma general el cáncer va a ser benigno, es decir, de todos los casos que se estudian prácticamente tenemos un 66% de que nuestra anomalía en las células no implique un cáncer de mama.
+
+Otro pregunta que nos podemos hacer es, ¿cómo afecta el tamaño y la forma de la célula a que el cáncer sea benigno o maligno?:
+```{r}
+ggplot(data = df_discretizado, aes(x=`d-Cell_Size`,fill=`d-Class`)) + geom_bar(position = "fill") +
+  facet_wrap(~`d-Cell_Shape`) +
+  xlab("Tamaño de la célula") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Tipo de cáncer respecto al tamaño y forma de la célula") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+El anterior gráfico nos muestra información muy importante, y es que prácticamente si la forma de la célula es de clase2 o clase3, podemos garantizar casi que el cáncer es maligno. Sin embargo, cuando la forma de la célula es pequeña dependiendo de si el tamaño de la misma es pequeño el cáncer lo más probable es que sea benigno, si por contra el tamaño de la célula es mediano o grande es muy probable que el cáncer sea maligno.
+
+Como podemos ver sí que se guarda una relación de que a mayor tamaño de las células más riesgo de que el cáncer sea maligno, y como el tamaño y la forma están altamente correlacionadas positivamente, al aumentar el tamaño de la célula aumenta la forma lo que significa que mayor riesgo de cáncer.
+
+Otra pregunta interesante sería, ¿cómo afecta el grosor de una célula a que las células estén más juntas o no?:
+```{r}
+ggplot(data = df_discretizado, aes(x=`d-Thickness`,fill=`d-Class`)) + geom_bar(position = "fill") +
+  facet_wrap(~`d-Adhesion`) +
+  xlab("Grosor de la célula") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Tipo de cáncer respecto al grosor y adhesión marginal de la célula") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+```
+
+Como es lógico y vimos en el apartado de correlaciones, a mayor grosor de la célula mayor riesgo de padecer cáncer. Además, cúanto más juntas estén las células menos riesgo de que el cáncer sea maligno, sin embargo, cuanto más separadas estén las células (la capacidad de adhesión sea más baja) implica un mayor riesgo de padecer cáncer.
+
+Podemos hacernos también la pregunta de cómo el tamaño de las células epiteliales afecta al cáncer:
+```{r}
+ggplot(df_discretizado, aes(`d-Epithelial_Cell_Size`, fill = `d-Class`)) + geom_bar() +
+  xlab("Tamaño del tamaño de la célula epiteliales") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Frecuencia de las células epiteliales respecto al tipo de cáncer")
+```
+
+Tal y como podemos ver, a mayor tamaño de la célula epitelial más probable es que el cáncer sea maligno, esto tiene todo el sentido del mundo porque como ya hemos visto cuando aumenta el tamaño de las células el riesgo de padecer un cáncer maligno aumentan.
+
+También es interesante el ver cómo las célulos cuyos núclos no están rodeados de citoplasma afecta al cáncer:
+```{r}
+ggplot(df_discretizado, aes(`d-Bare_Nuclei`, fill = `d-Class`)) + geom_bar() +
+  xlab("Tipo de célula desnuda") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Frecuencia de las células desnudas respecto al tipo de cáncer")
+```
+
+Como podemos observar, si el citoplasma que rodea al núcleo no está presente prácticamente podemos asegurar de que el cáncer es maligno, sin embargo, cuando el citoplasma está presente (esto no es una anomalía) podemos ver que en la gran mayoría de casos el cáncer es benigno. Finalmente, cuando sí que hay citoplasma pero éste es poco, es un poco más probable que el cáncer sea maligno.
+
+Otra pregunta interesante es el ver cómo el cáncer es afectado según la textura del núcleo de la célula:
+```{r}
+ggplot(df_discretizado, aes(`d-Bland_Chromatin`, fill = `d-Class`)) + geom_bar() +
+  xlab("Tipo de textura del núcleo") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Frecuencia de la textura del núcleo respecto al tipo de cáncer")
+```
+
+Como era de esperar, cuánto más burda sea la textura del núcleo de la célula, más probable es que el cáncer sea maligno, es llamativo ver que cuando es uniforme la gran mayoría de las veces el cáncer es benigno.
+
+Finalmente, nos podemos hacer la siguienre pregunta, ¿la estructura de los nuclélos afecta al cáncer?
+```{r}
+ggplot(df_discretizado, aes(`d-Normal_Nucleoli`, fill = `d-Class`)) + geom_bar() +
+  xlab("Tamaño de estructura de los nucléolos") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Frecuencia del tamaño de los nucléolos respecto al tipo de cáncer")
+```
+
+Como podemos apreciar cuanto más grande sea la estructura del nucléolo más probabilidades tenemos de que el cáncer de mama sea maligno. Al igual que antes cabe destacar que, el número de casos cuyo cáncer es benigno cuando el nucléolo es pequeño es muy elevado.
+
+### Conclusiones
+
+Resumiendo, hemos visto que dos tercios de los datos son sobre observaciones cuyo tumor es benigno, sin embargo, el otro tercio restante implica que el tumor es maligno.
+
+Por otro lado, al comparar el tamaño de la célula y su forma respecto al tipo de cáncer, hemos podido ver que a mayor tamaño y forma más riesgo de padecer cáncer.
+
+Analiando el grosor junto con la capacidad de adherirse las células, vemos que a mayor grosor más riesgo de padecer cáncer, y cuanto menor sea la capacidad de adherirse las células (más separadas están entre sí), significa que probablemente el cáncer sea maligno.
+
+Siguiendo con el análisis, estudiando el tamaño de las células epiteliales, lógicamente a mayor tamaño mayor riesgo. Esto mismo sucedía con los núcleos denudos, es decir, si no hay citoplasma rodeando al núcleo mayor riesgo.
+
+Finalmente, respecto a la textura del núcleo, cuanto más burda sea la textura mayor riesgo de padecer cáncer tenemos, y si el tamaño de los nucléolos es grande el riesgo sigue aumentando.
 
 
 
