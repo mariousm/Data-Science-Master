@@ -221,7 +221,14 @@ pre code {
 <li><a href="#correlaciones"><span class="toc-section-number">3.3.3</span> Correlaciones</a></li>
 <li><a href="#valores-anormalesoutliers"><span class="toc-section-number">3.3.4</span> Valores anormales/outliers</a></li>
 </ul></li>
-<li><a href="#limpieza-del-dataset"><span class="toc-section-number">3.4</span> Limpieza del dataset</a></li>
+<li><a href="#limpieza-del-dataset"><span class="toc-section-number">3.4</span> Limpieza del dataset</a>
+<ul>
+<li><a href="#imputación-de-valores"><span class="toc-section-number">3.4.1</span> Imputación de valores</a></li>
+<li><a href="#normalización"><span class="toc-section-number">3.4.2</span> Normalización</a></li>
+<li><a href="#outliers"><span class="toc-section-number">3.4.3</span> Outliers</a></li>
+<li><a href="#discretización"><span class="toc-section-number">3.4.4</span> Discretización</a></li>
+</ul></li>
+<li><a href="#análisis-de-componentes-principales-pca"><span class="toc-section-number">3.5</span> Análisis de componentes principales (PCA)</a></li>
 </ul></li>
 <li><a href="#rúbrica"><span class="toc-section-number">4</span> Rúbrica</a></li>
 <li><a href="#recursos-de-programación"><span class="toc-section-number">5</span> Recursos de programación</a></li>
@@ -716,6 +723,191 @@ cor(df_copy_noNA)</code></pre>
 </div>
 <div id="limpieza-del-dataset" class="section level2" number="3.4">
 <h2 number="3.4"><span class="header-section-number">3.4</span> Limpieza del dataset</h2>
+<p>Una vez que hemos realizado un primer análisis sobre el conjunto de los datos, vamos a proceder a la limpieza de los mismos para así poder hacer un uso posterior de ellos.</p>
+<div id="imputación-de-valores" class="section level3" number="3.4.1">
+<h3 number="3.4.1"><span class="header-section-number">3.4.1</span> Imputación de valores</h3>
+<p>Lo primero que vamos a comprobar es si hay valores nulos:</p>
+<pre class="r"><code>colSums(is.na(df_copy))</code></pre>
+<pre><code>##                   Id            Thickness            Cell_Size 
+##                    0                    0                    0 
+##           Cell_Shape             Adhesion Epithelial_Cell_Size 
+##                    0                    0                    0 
+##          Bare_Nuclei      Bland_Chromatin      Normal_Nucleoli 
+##                   16                    0                    0 
+##              Mitoses                Class 
+##                    0                    0</code></pre>
+<p>Como vemos, todos los campos tienen valores excepto el atributo Bare_Nuclei, ya que éste tal y como viene en la documentación del dataset, hay determinadas observaciones que no tienen valor.</p>
+<p>Por lo tanto, vamos a realizar una imputación de valores para solventar este problema con el fin de mejorar los resultados de nuestros modelos, para ello podríamos establecer que se tome el valor de la media o de la mediana, es decir, una medida de tendencia central. En nuestro caso hemos decidido que lo mejor es la mediana, ya que de introducir la media, tal y como vimos en el apartado anterior puede suponer que esté bastante alejada de la mediana y esto nos dé información sesgada respecto al valor “más común”.</p>
+<p>Es por ello, que calculamos la mediana de dicho campo, es decir, de Bare_Nuclei:</p>
+<pre class="r"><code>nMediana = median(df_copy$Bare_Nuclei, na.rm = TRUE)
+
+cat(&quot;El valor de la mediana es:&quot;,nMediana)</code></pre>
+<pre><code>## El valor de la mediana es: 1</code></pre>
+<p>La mediana nos da un valor de uno, por lo tanto, vamos a imputar dicho valor en las obsevaciones que tienen como valor NA en el atributo Bare_Nuclei, lo primero que vamos a hacer es visualizar estos regitros sin imputar el valor:</p>
+<pre class="r"><code>head(df_copy[is.na(df_copy$Bare_Nuclei),])</code></pre>
+<pre><code>##          Id Thickness Cell_Size Cell_Shape Adhesion Epithelial_Cell_Size
+## 24  1057013         8         4          5        1                    2
+## 41  1096800         6         6          6        9                    6
+## 140 1183246         1         1          1        1                    1
+## 146 1184840         1         1          3        1                    2
+## 159 1193683         1         1          2        1                    3
+## 165 1197510         5         1          1        1                    2
+##     Bare_Nuclei Bland_Chromatin Normal_Nucleoli Mitoses Class
+## 24           NA               7               3       1     4
+## 41           NA               7               8       1     2
+## 140          NA               2               1       1     2
+## 146          NA               2               1       1     2
+## 159          NA               1               1       1     2
+## 165          NA               3               1       1     2</code></pre>
+<p>Ahora imputamos el valor de la mediana a todos estos registros y comprobamos que se ha realizado la imputación:</p>
+<pre class="r"><code>df_copy$Bare_Nuclei[is.na(df_copy$Bare_Nuclei)] = nMediana
+head(df_copy[is.na(df_copy$Bare_Nuclei),])</code></pre>
+<pre><code>##  [1] Id                   Thickness            Cell_Size           
+##  [4] Cell_Shape           Adhesion             Epithelial_Cell_Size
+##  [7] Bare_Nuclei          Bland_Chromatin      Normal_Nucleoli     
+## [10] Mitoses              Class               
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<p>Como podemos comprobar ya no hay registros con valores NA, y cómo es lógico ha disminuido un poco la media y el tercer cuartil:</p>
+<pre class="r"><code>summary(df_copy$Bare_Nuclei)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   1.000   1.000   1.000   3.486   5.000  10.000</code></pre>
+<p>Comprobamos de nuevo que no hay observaciones sin valores:</p>
+<pre class="r"><code>summary(df_copy)</code></pre>
+<pre><code>##        Id             Thickness        Cell_Size        Cell_Shape    
+##  Min.   :   61634   Min.   : 1.000   Min.   : 1.000   Min.   : 1.000  
+##  1st Qu.:  870688   1st Qu.: 2.000   1st Qu.: 1.000   1st Qu.: 1.000  
+##  Median : 1171710   Median : 4.000   Median : 1.000   Median : 1.000  
+##  Mean   : 1071704   Mean   : 4.418   Mean   : 3.134   Mean   : 3.207  
+##  3rd Qu.: 1238298   3rd Qu.: 6.000   3rd Qu.: 5.000   3rd Qu.: 5.000  
+##  Max.   :13454352   Max.   :10.000   Max.   :10.000   Max.   :10.000  
+##     Adhesion      Epithelial_Cell_Size  Bare_Nuclei     Bland_Chromatin 
+##  Min.   : 1.000   Min.   : 1.000       Min.   : 1.000   Min.   : 1.000  
+##  1st Qu.: 1.000   1st Qu.: 2.000       1st Qu.: 1.000   1st Qu.: 2.000  
+##  Median : 1.000   Median : 2.000       Median : 1.000   Median : 3.000  
+##  Mean   : 2.807   Mean   : 3.216       Mean   : 3.486   Mean   : 3.438  
+##  3rd Qu.: 4.000   3rd Qu.: 4.000       3rd Qu.: 5.000   3rd Qu.: 5.000  
+##  Max.   :10.000   Max.   :10.000       Max.   :10.000   Max.   :10.000  
+##  Normal_Nucleoli     Mitoses           Class     
+##  Min.   : 1.000   Min.   : 1.000   Min.   :2.00  
+##  1st Qu.: 1.000   1st Qu.: 1.000   1st Qu.:2.00  
+##  Median : 1.000   Median : 1.000   Median :2.00  
+##  Mean   : 2.867   Mean   : 1.589   Mean   :2.69  
+##  3rd Qu.: 4.000   3rd Qu.: 1.000   3rd Qu.:4.00  
+##  Max.   :10.000   Max.   :10.000   Max.   :4.00</code></pre>
+</div>
+<div id="normalización" class="section level3" number="3.4.2">
+<h3 number="3.4.2"><span class="header-section-number">3.4.2</span> Normalización</h3>
+<p>Una vez que tenemos ya todos los datos completos, vamos a normalizar el dataset y generar un fichero, ya que en esta práctica al no saber qué datos van a funcionar mejor a cada modelo, vamos a generar un fichero con los datos numéricos normalizados, y otro fichero que va a ser como el fichero orignal pero con los datos completos y discretizados.</p>
+<p>Por lo tanto, lo primero de todo es normalizar los datos, a priori no haría falta porque todos los datos están medidos en la misma escala, es decir, del 1 al 10, pero puede ser que si aplicamos la normalización funcione mejor en determinados modelos:</p>
+<pre class="r"><code>library(scales)
+
+df_normalizado = scale(df_copy)
+head(df_normalizado)</code></pre>
+<pre><code>##               Id  Thickness  Cell_Size Cell_Shape    Adhesion
+## [1,] -0.11615556  0.2067876 -0.6994942 -0.7427672 -0.63279404
+## [2,] -0.11142371  0.2067876  0.2836421  0.2666837  0.76807067
+## [3,] -0.09119995 -0.5035050 -0.6994942 -0.7427672 -0.63279404
+## [4,] -0.08981929  0.5619340  1.5944904  1.6126183 -0.63279404
+## [5,] -0.08861040 -0.1483587 -0.6994942 -0.7427672  0.06763832
+## [6,] -0.08844997  1.2722267  2.2499145  2.2855855  1.81871920
+##      Epithelial_Cell_Size Bare_Nuclei Bland_Chromatin Normal_Nucleoli
+## [1,]           -0.5491681  -0.6864876      -0.1795336      -0.6113872
+## [2,]            1.7088820   1.7983763      -0.1795336      -0.2839086
+## [3,]           -0.5491681  -0.4103916      -0.1795336      -0.6113872
+## [4,]           -0.0975581   0.1418004      -0.1795336       1.3534848
+## [5,]           -0.5491681  -0.6864876      -0.1795336      -0.6113872
+## [6,]            1.7088820   1.7983763       2.2811324       1.3534848
+##         Mitoses     Class
+## [1,] -0.3436657 -0.724878
+## [2,] -0.3436657 -0.724878
+## [3,] -0.3436657 -0.724878
+## [4,] -0.3436657 -0.724878
+## [5,] -0.3436657 -0.724878
+## [6,] -0.3436657  1.377569</code></pre>
+<p>Como podemos apreciar hemos normalizado también el atributo Id y Class, si en un futuro no hacen falta los podríamos ignorar.</p>
+<p>Una vez normalizados los datos generamos un fichero con los mismos:</p>
+<pre class="r"><code>write.csv(df_normalizado, file = &quot;./data/breast-cancer-clean-normalized.csv&quot;, row.names = FALSE)</code></pre>
+</div>
+<div id="outliers" class="section level3" number="3.4.3">
+<h3 number="3.4.3"><span class="header-section-number">3.4.3</span> Outliers</h3>
+<p>Otro aspecto a tener en cuenta en la limpieza del dataset son los outliers, es decir, esos valores que se elejan más de lo normal respecto a cada atributo. Tal y como vimos en el análisis de outliers, no podemos considerar que los valores extremos que tenemos sean realmente outliers, ya que los datos están acotados entre 1 y 10, por ello, no vamos a hacer nada al respecto, es decir, mantenemos la misma información.</p>
+</div>
+<div id="discretización" class="section level3" number="3.4.4">
+<h3 number="3.4.4"><span class="header-section-number">3.4.4</span> Discretización</h3>
+<p>Cuando hacemos la limpieza de los datos, debemos de tener en cuenta las discretizaciones. La discretización tiene como objetivo dividir los valores en diferentes grupos.</p>
+<p>Al hacer uso de discretizaciones conseguimos mejorar la eficiencia de los modelos ya que van a tener que realizar menos comparaciones, cuando trabajamos con árboles de decisión, como va a ser nuestro caso, al hacer uso de variables numéricas se obtienen árboles con ramificaciones mucho más grandes que si estos valores estuvieran discretizados…</p>
+<p>Por todo ello, realizamos la dicretización de todas los valores numéricos que están acotados entre 1 y 10, a demás de la clase, en la cual vamos a definir si es el cáncer es benigno o maligno (la terminología usada en la discretización se ha obtenido a partir de <a href="https://core.ac.uk/download/pdf/77274625.pdf" class="uri">https://core.ac.uk/download/pdf/77274625.pdf</a>):</p>
+<pre class="r"><code>df_discretizado = df_copy
+
+# Dicretización del grosor
+df_discretizado[&quot;d-Thickness&quot;] = ordered(cut(df_discretizado[[&quot;Thickness&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Delgado&quot;, &quot;Mediano&quot;, &quot;Grueso&quot;)))
+
+# Dicretización del tamaño
+df_discretizado[&quot;d-Cell_Size&quot;] = ordered(cut(df_discretizado[[&quot;Cell_Size&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Pequeño&quot;, &quot;Mediano&quot;, &quot;Grande&quot;)))
+
+# Dicretización del forma
+df_discretizado[&quot;d-Cell_Shape&quot;] = ordered(cut(df_discretizado[[&quot;Cell_Shape&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Clase1&quot;, &quot;Clase2&quot;, &quot;Clase3&quot;)))
+
+# Dicretización a la adhesión marginal
+df_discretizado[&quot;d-Adhesion&quot;] = ordered(cut(df_discretizado[[&quot;Adhesion&quot;]], breaks = c(0,5,10), labels = c(&quot;Débil&quot;, &quot;Fuerte&quot;)))
+
+# Dicretización del tamaño de las células epiteliales
+df_discretizado[&quot;d-Epithelial_Cell_Size&quot;] = ordered(cut(df_discretizado[[&quot;Epithelial_Cell_Size&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Pequeño&quot;, &quot;Mediano&quot;, &quot;Grande&quot;)))
+
+# Dicretización los núcleos desnudos
+df_discretizado[&quot;d-Bare_Nuclei&quot;] = ordered(cut(df_discretizado[[&quot;Bare_Nuclei&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Ausente&quot;, &quot;Ausente/Presente&quot;, &quot;Presente&quot;)))
+
+# Dicretización de la textura de la núcleos
+df_discretizado[&quot;d-Bland_Chromatin&quot;] = ordered(cut(df_discretizado[[&quot;Bland_Chromatin&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Uniforme&quot;, &quot;Uniforme/Burda&quot;, &quot;Burda&quot;)))
+
+# Dicretización de la estructoras de los nucleólis
+df_discretizado[&quot;d-Normal_Nucleoli&quot;] = ordered(cut(df_discretizado[[&quot;Normal_Nucleoli&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Pequeño&quot;, &quot;Mediano&quot;, &quot;Grande&quot;)))
+
+# Dicretización de la mitosis
+df_discretizado[&quot;d-Mitoses&quot;] = ordered(cut(df_discretizado[[&quot;Mitoses&quot;]], breaks = c(0,4,7,10), labels = c(&quot;Mitosis1&quot;, &quot;Mitosis2&quot;, &quot;Mitosis3&quot;)))
+
+# Creamos una columna respecto a la clase, aunque no es discretización como tal, es más fácil ver si un cáncer es benigno respecto a su nombre que no respecto a su valor.
+df_discretizado$`d-Class`[df_discretizado$Class == 2] = &quot;Benigno&quot; 
+df_discretizado$`d-Class`[df_discretizado$Class == 4] = &quot;Maligno&quot;
+df_discretizado$`d-Class` = as.factor(df_discretizado$`d-Class`)
+
+head(df_discretizado)</code></pre>
+<pre><code>##        Id Thickness Cell_Size Cell_Shape Adhesion Epithelial_Cell_Size
+## 1 1000025         5         1          1        1                    2
+## 2 1002945         5         4          4        5                    7
+## 3 1015425         3         1          1        1                    2
+## 4 1016277         6         8          8        1                    3
+## 5 1017023         4         1          1        3                    2
+## 6 1017122         8        10         10        8                    7
+##   Bare_Nuclei Bland_Chromatin Normal_Nucleoli Mitoses Class d-Thickness
+## 1           1               3               1       1     2     Mediano
+## 2          10               3               2       1     2     Mediano
+## 3           2               3               1       1     2     Delgado
+## 4           4               3               7       1     2     Mediano
+## 5           1               3               1       1     2     Delgado
+## 6          10               9               7       1     4      Grueso
+##   d-Cell_Size d-Cell_Shape d-Adhesion d-Epithelial_Cell_Size d-Bare_Nuclei
+## 1     Pequeño       Clase1      Débil                Pequeño       Ausente
+## 2     Pequeño       Clase1      Débil                Mediano      Presente
+## 3     Pequeño       Clase1      Débil                Pequeño       Ausente
+## 4      Grande       Clase3      Débil                Pequeño       Ausente
+## 5     Pequeño       Clase1      Débil                Pequeño       Ausente
+## 6      Grande       Clase3     Fuerte                Mediano      Presente
+##   d-Bland_Chromatin d-Normal_Nucleoli d-Mitoses d-Class
+## 1          Uniforme           Pequeño  Mitosis1 Benigno
+## 2          Uniforme           Pequeño  Mitosis1 Benigno
+## 3          Uniforme           Pequeño  Mitosis1 Benigno
+## 4          Uniforme           Mediano  Mitosis1 Benigno
+## 5          Uniforme           Pequeño  Mitosis1 Benigno
+## 6             Burda           Mediano  Mitosis1 Maligno</code></pre>
+<p>Una vez que hemos dicretizado los valores y hemos comprobado que está todo de forma correcta, generamos otro fichero para saber si los modelos fucionan mejor con los valores normalizados o con los valores discretizados:</p>
+<pre class="r"><code>write.csv(df_discretizado, file = &quot;./data/breast-cancer-clean-discretized.csv&quot;, row.names = FALSE)</code></pre>
+<p>Cabe destacar que generamos el fichero con todos los campos, si después no los necesitamos no haremos uso de ellos.</p>
+<p>Con esto hemos finalizado el apartado de limpieza de datos, y en el siguiente vamos a realizar el análisis de componentes principales.</p>
+</div>
+</div>
+<div id="análisis-de-componentes-principales-pca" class="section level2" number="3.5">
+<h2 number="3.5"><span class="header-section-number">3.5</span> Análisis de componentes principales (PCA)</h2>
 <hr />
 </div>
 </div>

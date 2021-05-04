@@ -571,6 +571,164 @@ Por otro lado, hemos visto que por norma general la mediana de los atributos coi
 
 ## Limpieza del dataset
 
+Una vez que hemos realizado un primer análisis sobre el conjunto de los datos, vamos a proceder a la limpieza de los mismos para así poder hacer un uso posterior de ellos.
+
+### Imputación de valores
+
+Lo primero que vamos a comprobar es si hay valores nulos:
+```{r}
+colSums(is.na(df_copy))
+```
+
+Como vemos, todos los campos tienen valores excepto el atributo Bare_Nuclei, ya que éste tal y como viene en la documentación del dataset, hay determinadas observaciones que no tienen valor.
+
+Por lo tanto, vamos a realizar una imputación de valores para solventar este problema con el fin de mejorar los resultados de nuestros modelos, para ello podríamos establecer que se tome el valor de la media o de la mediana, es decir, una medida de tendencia central. En nuestro caso hemos decidido que lo mejor es la mediana, ya que de introducir la media, tal y como vimos en el apartado anterior puede suponer que esté bastante alejada de la mediana y esto nos dé información sesgada respecto al valor "más común".
+
+Es por ello, que calculamos la mediana de dicho campo, es decir, de Bare_Nuclei:
+```{r}
+nMediana = median(df_copy$Bare_Nuclei, na.rm = TRUE)
+
+cat("El valor de la mediana es:",nMediana)
+```
+
+La mediana nos da un valor de uno, por lo tanto, vamos a imputar dicho valor en las obsevaciones que tienen como valor NA en el atributo Bare_Nuclei, lo primero que vamos a hacer es visualizar estos regitros sin imputar el valor:
+```{r}
+head(df_copy[is.na(df_copy$Bare_Nuclei),])
+```
+
+Ahora imputamos el valor de la mediana a todos estos registros y comprobamos que se ha realizado la imputación:
+```{r}
+df_copy$Bare_Nuclei[is.na(df_copy$Bare_Nuclei)] = nMediana
+head(df_copy[is.na(df_copy$Bare_Nuclei),])
+```
+
+Como podemos comprobar ya no hay registros con valores NA, y cómo es lógico ha disminuido un poco la media y el tercer cuartil:
+```{r}
+summary(df_copy$Bare_Nuclei)
+```
+
+Comprobamos de nuevo que no hay observaciones sin valores:
+```{r}
+summary(df_copy)
+```
+
+### Normalización
+
+Una vez que tenemos ya todos los datos completos, vamos a normalizar el dataset y generar un fichero, ya que en esta práctica al no saber qué datos van a funcionar mejor a cada modelo, vamos a generar un fichero con los datos numéricos normalizados, y otro fichero que va a ser como el fichero orignal pero con los datos completos y discretizados.
+
+Por lo tanto, lo primero de todo es normalizar los datos, a priori no haría falta porque todos los datos están medidos en la misma escala, es decir, del 1 al 10, pero puede ser que si aplicamos la normalización funcione mejor en determinados modelos:
+```{r}
+library(scales)
+
+df_normalizado = scale(df_copy)
+head(df_normalizado)
+```
+
+Como podemos apreciar hemos normalizado también el atributo Id y Class, si en un futuro no hacen falta los podríamos ignorar.
+
+Una vez normalizados los datos generamos un fichero con los mismos:
+```{r}
+write.csv(df_normalizado, file = "./data/breast-cancer-clean-normalized.csv", row.names = FALSE)
+```
+
+### Outliers
+
+Otro aspecto a tener en cuenta en la limpieza del dataset son los outliers, es decir, esos valores que se elejan más de lo normal respecto a cada atributo. Tal y como vimos en el análisis de outliers, no podemos considerar que los valores extremos que tenemos sean realmente outliers, ya que los datos están acotados entre 1 y 10, por ello, no vamos a hacer nada al respecto, es decir, mantenemos la misma información.
+
+### Discretización
+
+Cuando hacemos la limpieza de los datos, debemos de tener en cuenta las discretizaciones. La discretización tiene como objetivo dividir los valores en diferentes grupos.
+
+Al hacer uso de discretizaciones conseguimos mejorar la eficiencia de los modelos ya que van a tener que realizar menos comparaciones, cuando trabajamos con árboles de decisión, como va a ser nuestro caso, al hacer uso de variables numéricas se obtienen árboles con ramificaciones mucho más grandes que si estos valores estuvieran discretizados...
+
+Por todo ello, realizamos la dicretización de todas los valores numéricos que están acotados entre 1 y 10, a demás de la clase, en la cual vamos a definir si es el cáncer es benigno o maligno (la terminología usada en la discretización se ha obtenido a partir de https://core.ac.uk/download/pdf/77274625.pdf):
+```{r}
+df_discretizado = df_copy
+
+# Dicretización del grosor
+df_discretizado["d-Thickness"] = ordered(cut(df_discretizado[["Thickness"]], breaks = c(0,4,7,10), labels = c("Delgado", "Mediano", "Grueso")))
+
+# Dicretización del tamaño
+df_discretizado["d-Cell_Size"] = ordered(cut(df_discretizado[["Cell_Size"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
+
+# Dicretización del forma
+df_discretizado["d-Cell_Shape"] = ordered(cut(df_discretizado[["Cell_Shape"]], breaks = c(0,4,7,10), labels = c("Clase1", "Clase2", "Clase3")))
+
+# Dicretización a la adhesión marginal
+df_discretizado["d-Adhesion"] = ordered(cut(df_discretizado[["Adhesion"]], breaks = c(0,5,10), labels = c("Débil", "Fuerte")))
+
+# Dicretización del tamaño de las células epiteliales
+df_discretizado["d-Epithelial_Cell_Size"] = ordered(cut(df_discretizado[["Epithelial_Cell_Size"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
+
+# Dicretización los núcleos desnudos
+df_discretizado["d-Bare_Nuclei"] = ordered(cut(df_discretizado[["Bare_Nuclei"]], breaks = c(0,4,7,10), labels = c("Ausente", "Ausente/Presente", "Presente")))
+
+# Dicretización de la textura de la núcleos
+df_discretizado["d-Bland_Chromatin"] = ordered(cut(df_discretizado[["Bland_Chromatin"]], breaks = c(0,4,7,10), labels = c("Uniforme", "Uniforme/Burda", "Burda")))
+
+# Dicretización de la estructoras de los nucleólis
+df_discretizado["d-Normal_Nucleoli"] = ordered(cut(df_discretizado[["Normal_Nucleoli"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
+
+# Dicretización de la mitosis
+df_discretizado["d-Mitoses"] = ordered(cut(df_discretizado[["Mitoses"]], breaks = c(0,4,7,10), labels = c("Mitosis1", "Mitosis2", "Mitosis3")))
+
+# Creamos una columna respecto a la clase, aunque no es discretización como tal, es más fácil ver si un cáncer es benigno respecto a su nombre que no respecto a su valor.
+df_discretizado$`d-Class`[df_discretizado$Class == 2] = "Benigno" 
+df_discretizado$`d-Class`[df_discretizado$Class == 4] = "Maligno"
+df_discretizado$`d-Class` = as.factor(df_discretizado$`d-Class`)
+
+head(df_discretizado)
+```
+
+Una vez que hemos dicretizado los valores y hemos comprobado que está todo de forma correcta, generamos otro fichero para saber si los modelos fucionan mejor con los valores normalizados o con los valores discretizados:
+```{r}
+write.csv(df_discretizado, file = "./data/breast-cancer-clean-discretized.csv", row.names = FALSE)
+```
+
+Cabe destacar que generamos el fichero con todos los campos, si después no los necesitamos no haremos uso de ellos.
+
+Con esto hemos finalizado el apartado de limpieza de datos, y en el siguiente vamos a realizar el análisis de componentes principales.
+
+## Análisis de componentes principales (PCA)
+
+Otro aspecto a tener en cuenta es el análisis de componentes principales, éste nos permite saber qué componentes representan la máxima variabilidad medida a partir de la varianza.
+
+El análisis de componentes principales lo debemos hacer sobre las variable numéricas, por lo que vamos a hacer uso del dataframe correspondiente:
+```{r}
+df_PCA = df_copy[, c(2:10)]
+```
+
+Luego calculamos la matriz de coorrelaciones o de covarianzas, al estar todos los atributos normalizados del 1 al 10 y no sabemos la magnitud de cada atributo, es mejor hacer uso de la matriz de covarianzas, ya que la de correlaciones la usamos cuando tenemos diferentes magnitudes y estas variables toman valores muy dispares:
+```{r}
+cov(df_PCA)
+```
+
+Una vez que tenemos la matriz de covarianzas, podemos hacer el análisis de componentes principales:
+```{r}
+ACP.cov = prcomp(x = df_PCA, center = TRUE, scale. = FALSE)
+summary(ACP.cov)
+```
+
+Con los resultados obtenidos vemos que la proporción de varianza es diferente para cada uno de los componentes.
+
+Por lo tanto, si seleccionamos los cuatro primeros componentes podemos proyectar más o menos la misma información que en el dataset original, pero reduciendo la dimensionalidad. Con las cuatro primeras dimensiones conseguimos representar la mayor parte de la varianza total con un 86.72%, y si elegimos la cinco primeras dimensiones conseguimos representar el 90.60% de la variabilidad.
+
+Pero a ojo no sabemos qué es lo mejor, si elegir 4 componentes, 5... Es por ello que existen modelos matemáticos que nos permiten saber qué elección de componentes es la mejor, para ello podemos hacer uso de la regla de Kaiser-Guttman:
+```{r}
+# Realizamos el cálculo de la regla de Kaiser-Guttman
+valores_propios = ACP.cov$sdev^2
+media_valores_propios = sum(valores_propios) / length(valores_propios)
+cat("Los valores propios son: ", valores_propios)
+```
+
+```{r}
+cat("La media de los valores propios es: ", media_valores_propios)
+```
+
+Según Kaiser-Guttman hay que elegir como componentes principales aquellos que cuyos valores propios superen la media de los mismos, en este caso solo el primer componente supera la media, por lo que eligiendo el primer componente conseguimos reducir la dimensionalidad y proyectar más o menos la misma información que en el dataset original.
+
+## Análisis visual
+
 
 
 ******
