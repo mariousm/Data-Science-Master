@@ -177,7 +177,10 @@ pre code {
 <li><a href="#modelo-de-regresión-lineal-regresores-cuantitativos"><span class="toc-section-number">1.1</span> Modelo de regresión lineal (regresores cuantitativos)</a>
 <ul>
 <li><a href="#estimar-por-mínimos-cuadrados-un-modelo-lineal"><span class="toc-section-number">1.1.1</span> Estimar por mínimos cuadrados un modelo lineal</a></li>
+<li><a href="#regresión-lineal-múltiple"><span class="toc-section-number">1.1.2</span> Regresión lineal múltiple</a></li>
+<li><a href="#división-de-muestras"><span class="toc-section-number">1.1.3</span> División de muestras</a></li>
 </ul></li>
+<li><a href="#modelo-de-regresión-lineal-múltiple-regresores-cuantitativos-y-cualitativos"><span class="toc-section-number">1.2</span> Modelo de regresión lineal múltiple (regresores cuantitativos y cualitativos)</a></li>
 </ul></li>
 </ul>
 </div>
@@ -189,7 +192,197 @@ pre code {
 <div id="estimar-por-mínimos-cuadrados-un-modelo-lineal" class="section level3" number="1.1.1">
 <h3 number="1.1.1"><span class="header-section-number">1.1.1</span> Estimar por mínimos cuadrados un modelo lineal</h3>
 <p>Estimar por mínimos cuadrados ordinarios un modelo lineal que explique la variable DEPARTURE_DELAY en función de la variable ARRIVAL_DELAY. Se evaluará la bondad del ajuste, a partir del coeficiente de determinación. Calcular el coeficiente de correlación y explicar su relación con el coeficiente de determinación.</p>
+<p>Lo primero que debemos de hacer antes de comenzar con el ejercicio es la lectura del fichero y comprobar que todo se ha leído de forma correcta:</p>
+<pre class="r"><code>df = read.csv(file = &quot;./data/SFO.csv&quot;, sep = &quot;,&quot;, header = TRUE, na.strings = &quot;NA&quot;,  stringsAsFactors = TRUE, encoding=&quot;UTF-8&quot;)
+
+# Creamos una copia del df
+df_copy = df
+
+head(df_copy)</code></pre>
+<pre><code>##   YEAR MONTH DAY DAY_OF_WEEK AIRLINE FLIGHT_NUMBER ORIGIN_AIRPORT
+## 1 2015    12  31           4      F9           668            SFO
+## 2 2015     1   8           4      OO          6287            SFO
+## 3 2015    11  27           5      AA          2207            SFO
+## 4 2015     5  30           6      OO          5647            SFO
+## 5 2015     5  23           6      OO          6508            SFO
+## 6 2015     3  29           7      OO          6289            SFO
+##   DESTINATION_AIRPORT SCHEDULED_DEPARTURE DEPARTURE_TIME DEPARTURE_DELAY
+## 1                 DEN                2000           1926             -34
+## 2                 SBA                1350           1318             -32
+## 3                 DFW                1200           1129             -31
+## 4                 SBA                1840           1814             -26
+## 5                 PSP                2230           2205             -25
+## 6                 MMH                 831            809             -22
+##   TAXI_OUT WHEELS_OFF SCHEDULED_TIME ELAPSED_TIME AIR_TIME DISTANCE WHEELS_ON
+## 1       14       1940            150          139      109      967      2229
+## 2       52       1410             71           99       44      262      1454
+## 3       43       1212            208          247      177     1464      1709
+## 4       36       1850             75           87       47      262      1937
+## 5       39       2244             92          110       64      421      2348
+## 6       25        834             63           71       41      193       915
+##   TAXI_IN SCHEDULED_ARRIVAL ARRIVAL_TIME ARRIVAL_DELAY DIVERTED CANCELLED
+## 1      16              2330         2245           -45        0         0
+## 2       3              1501         1457            -4        0         0
+## 3      27              1728         1736             8        0         0
+## 4       4              1955         1941           -14        0         0
+## 5       7                 2         2355            -7        0         0
+## 6       5               934          920           -14        0         0
+##   CANCELLATION_REASON AIR_SYSTEM_DELAY LATE_AIRCRAFT_DELAY WEATHER_DELAY
+## 1                                    0                  NA            NA
+## 2                                    0                   0            NA
+## 3                                    0                  NA            NA
+## 4                                    0                  NA            NA
+## 5                                    0                  NA            NA
+## 6                                    0                  NA            NA</code></pre>
+<p>En este primer paso nos pide crear un modelo de regresión lineal simple, cuya variable dependiente sea DEPARTURE_DELAY y como variable independiente ARRIVAL_DELAY.</p>
+<p>Por lo tanto vamos a crear un dataframe con la información que nos es útil para este modelo:</p>
+<pre class="r"><code>df_rls = df_copy[, c(&quot;DEPARTURE_DELAY&quot;, &quot;ARRIVAL_DELAY&quot;)]
+head(df_rls)</code></pre>
+<pre><code>##   DEPARTURE_DELAY ARRIVAL_DELAY
+## 1             -34           -45
+## 2             -32            -4
+## 3             -31             8
+## 4             -26           -14
+## 5             -25            -7
+## 6             -22           -14</code></pre>
+<p>Una vez que tenemos la información, comprobamos si tenemos observacines que no tienen valor:</p>
+<pre class="r"><code>colSums(is.na(df_rls))</code></pre>
+<pre><code>## DEPARTURE_DELAY   ARRIVAL_DELAY 
+##               0             461</code></pre>
+<p>Vemos que hay observaciones cuyo atributo ARRIVAL_DELAY no tiene valor, por lo que vamos a ignorar estas observaciones del dataframe usado para crear el modelo de la regresión lineal:</p>
+<pre class="r"><code>df_rls = df_rls[is.na(df_rls$ARRIVAL_DELAY) == FALSE,]
+colSums(is.na(df_rls))</code></pre>
+<pre><code>## DEPARTURE_DELAY   ARRIVAL_DELAY 
+##               0               0</code></pre>
+<p>Una vez limpiado el dataset creamos el modelo de regresión lineal, recordando que la variable dependiente es DEPARTURE_DELAY y la variable independiente ARRIVAL_DELAY:</p>
+<pre class="r"><code>modelo_rls = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY, df_rls)
+summary(modelo_rls)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY, data = df_rls)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -165.056   -6.299    0.144    6.576  109.598 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   5.8560098  0.0309626   189.1   &lt;2e-16 ***
+## ARRIVAL_DELAY 0.9215929  0.0007684  1199.4   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 11.69 on 145489 degrees of freedom
+## Multiple R-squared:  0.9082, Adjusted R-squared:  0.9082 
+## F-statistic: 1.439e+06 on 1 and 145489 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Ahora lo que tenemos que hacer es evaluar la calidad del modelo, a partir de su coeficiente de determinación y de correlación.</p>
+<p>El coeficiente de determinación o R2, nos indica el grado de ajuste de la recta de regresión a los valores de la muestra, es decir, el cómo es la proporción de variación en nuestro modelo. R2 es un coeficiente que puede ir entre 0 y 1, cuanto más próximo a uno mejor es el modelo, ya que significa que los errores/residuos que se cometen son muy pequeños y los valores se ajustan a la línea de regresión.</p>
+<p>De la anterior ejecución vemos que tenemos un coeficiente de determinación de 0.91, este valor está muy próximo a uno por lo que los puntos se ajustan a la recta de regresión.</p>
+<p>Otra forma de medir cómo de bueno es el modelo es a partir del coeficiente de correlación, éste nos indica cómo de relacionadas están dos variables, pudiendo ser una relación positiva (si cuando aumenta una variable la otra aumenta) o negativa (si cuando aumenta una variable la otra disminuye).</p>
+<p>Por lo que primero, vamos a calcular la correlación entre ambas variables:</p>
+<pre class="r"><code>cat(&quot;El valor del coeficiente de correlación (r) es:&quot;, cor(x = df_rls$ARRIVAL_DELAY, y = df_rls$DEPARTURE_DELAY))</code></pre>
+<pre><code>## El valor del coeficiente de correlación (r) es: 0.9529701</code></pre>
+<p>El coeficiente de correlación es un valor que va entre -1 y 1, siendo -1 cuando están altamente correlacionadas dos variables pero de forma negativa, y siendo 1 cuando están altamente correlacionadas de forma positiva.</p>
+<p>Respecto a la ejecución anterior, vemos que r tiene un valor de 0.95, éste un valor muy alto lo que nos indica que ambas variables están altamente correlacionadas y de forma positiva, es decir, cuando una aumenta la otra también.</p>
+<p>Cuando realizamos un modelo de regresión simple tenemos una relación entre el coeficiente de determinación y el coeficiente de correlación y es la siguiente, el coeficiente de determinación (R2) es igual al coeficiente de correlación elevado al cuadrado (r^2), es decir, en nuestro caso R2 = 0.9082 y r = 0.9530, por lo tanto R2 = r^2 = 0.9530^2 = 0.9082.</p>
 </div>
+<div id="regresión-lineal-múltiple" class="section level3" number="1.1.2">
+<h3 number="1.1.2"><span class="header-section-number">1.1.2</span> Regresión lineal múltiple</h3>
+<p>Se añadirá al modelo anterior la variable independiente DISTANCIA. ¿Existe una mejora del ajuste?. Razonar.</p>
+<p>Lo primero que debemos hacer es crear un dataframe con la infomración relevante:</p>
+<pre class="r"><code>df_rlm = df_rls
+df_rlm[&quot;DISTANCE&quot;] = df_copy$DISTANCE[is.na(df_copy$ARRIVAL_DELAY) == FALSE]
+
+head(df_rlm)</code></pre>
+<pre><code>##   DEPARTURE_DELAY ARRIVAL_DELAY DISTANCE
+## 1             -34           -45      967
+## 2             -32            -4      262
+## 3             -31             8     1464
+## 4             -26           -14      262
+## 5             -25            -7      421
+## 6             -22           -14      193</code></pre>
+<p>Una vez que tenemos los datos, lo introducimos al modelo, recordamos que ahora la variable dependiente sigue siendo la misma (DEPARTURE_DELAY) pero ahora tenemos dos variables independientes (ARRIVAL_DELAY, DISTANCE):</p>
+<pre class="r"><code>modelo_rlm = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm)
+summary(modelo_rlm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -166.337   -5.925    0.698    6.704  104.300 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   2.350e+00  5.032e-02   46.70   &lt;2e-16 ***
+## ARRIVAL_DELAY 9.246e-01  7.499e-04 1232.96   &lt;2e-16 ***
+## DISTANCE      2.904e-03  3.335e-05   87.08   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 11.4 on 145488 degrees of freedom
+## Multiple R-squared:  0.9127, Adjusted R-squared:  0.9127 
+## F-statistic: 7.605e+05 on 2 and 145488 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>En este caso el coeficiente de determinación R2 es igual a 0.9127 mientras que en el anterior modelo era de 0.9082. Por lo tanto, vamos que sí que hay una mejora significativa ya que a mayor R2 mejor ajustados están los datos a la recta de la regresión.</p>
+</div>
+<div id="división-de-muestras" class="section level3" number="1.1.3">
+<h3 number="1.1.3"><span class="header-section-number">1.1.3</span> División de muestras</h3>
+<p>Posteriormente, se procederá a dividir la muestra en dos, según los vuelos sean o no más largos. Se tomará por larga distancia aquellos con un recorrido superior a 600 millas. Razonar los resultados.</p>
+<p>En este caso, vamos a dividir el dataset en dos muestras y posteriormente evaluaremos qué modelo se comporta mejor, si aquellos en los que la distancia es pequeña o grande.</p>
+<p>Lo primero que vamos a hacer es crear los dos modelos:</p>
+<pre class="r"><code>modelo_rlm_distancia_menor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm[df_rlm$DISTANCE &lt;= 600,])
+
+modelo_rlm_distancia_mayor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm[df_rlm$DISTANCE &gt; 600,])</code></pre>
+<p>Una vez que hemos generados los modelos, comprobamos para cada modelo que R2 tiene:</p>
+<pre class="r"><code>summary(modelo_rlm_distancia_menor)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm[df_rlm$DISTANCE &lt;= 
+##     600, ])
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -97.876  -4.732   0.852   5.734  56.659 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   1.3786458  0.1252898   11.00   &lt;2e-16 ***
+## ARRIVAL_DELAY 0.9299034  0.0010159  915.32   &lt;2e-16 ***
+## DISTANCE      0.0057171  0.0003179   17.99   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 9.206 on 63195 degrees of freedom
+## Multiple R-squared:  0.9299, Adjusted R-squared:  0.9299 
+## F-statistic: 4.189e+05 on 2 and 63195 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>summary(modelo_rlm_distancia_mayor)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm[df_rlm$DISTANCE &gt; 
+##     600, ])
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -165.666   -7.060    0.515    7.764  108.767 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   1.858e+00  1.260e-01   14.74   &lt;2e-16 ***
+## ARRIVAL_DELAY 9.218e-01  1.051e-03  877.08   &lt;2e-16 ***
+## DISTANCE      3.127e-03  6.409e-05   48.80   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 12.82 on 82290 degrees of freedom
+## Multiple R-squared:  0.9034, Adjusted R-squared:  0.9034 
+## F-statistic: 3.848e+05 on 2 and 82290 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>De la anterior ejecución podemos observar que cuando la distancia de los vuelos es menor o igual a 600 millas, el modelo se comporta algo mejor que cuando la distancia es mayor a 600 millas.</p>
+<p>Respecto al R2 de los vuelos cuya distancia es inferior o igual a 600 millas, nos proporciona un coeficiente de determinación de 0.9299 mientras que el modelo cuyas distancias son superiores a 600 millas su coeficiente de determinación es de 0.9034. Por lo tanto, a mayor coeficiente mejor se comporta el modelo ya que ajusta mejor los datos, es por ello que el modelo en los que la distancia es pequeña es mejor.</p>
+</div>
+</div>
+<div id="modelo-de-regresión-lineal-múltiple-regresores-cuantitativos-y-cualitativos" class="section level2" number="1.2">
+<h2 number="1.2"><span class="header-section-number">1.2</span> Modelo de regresión lineal múltiple (regresores cuantitativos y cualitativos)</h2>
+<p>En este apartado se estudiará la relación de DEPARTURE_DELAY, con las variables explicativas ARRIVAL_DELAY y LATE_AIRCRAFT_DELAY. Para ello se procederá a la recodificación de la variable LATE_AIRCRAFT_DELAY, en en mayor y menor o igual a 15 minutos.</p>
 </div>
 </div>
 

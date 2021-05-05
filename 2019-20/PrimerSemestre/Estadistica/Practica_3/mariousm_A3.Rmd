@@ -22,6 +22,169 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Estimar por mínimos cuadrados un modelo lineal
 
-Estimar por mínimos cuadrados ordinarios un modelo lineal que explique la variable DEPARTURE_DELAY en función de la variable ARRIVAL_DELAY. Se evaluará la bondad del ajuste, a partir
-del coeficiente de determinación. Calcular el coeficiente de correlación y explicar su relación con el
-coeficiente de determinación.
+Estimar por mínimos cuadrados ordinarios un modelo lineal que explique la variable DEPARTURE_DELAY en función de la variable ARRIVAL_DELAY. Se evaluará la bondad del ajuste, a partir del coeficiente de determinación. Calcular el coeficiente de correlación y explicar su relación con el coeficiente de determinación.
+
+Lo primero que debemos de hacer antes de comenzar con el ejercicio es la lectura del fichero y comprobar que todo se ha leído de forma correcta:
+```{r}
+df = read.csv(file = "./data/SFO.csv", sep = ",", header = TRUE, na.strings = "NA",  stringsAsFactors = TRUE, encoding="UTF-8")
+
+# Creamos una copia del df
+df_copy = df
+
+head(df_copy)
+```
+
+En este primer paso nos pide crear un modelo de regresión lineal simple, cuya variable dependiente sea DEPARTURE_DELAY y como variable independiente ARRIVAL_DELAY. 
+
+Por lo tanto vamos a crear un dataframe con la información que nos es útil para este modelo:
+```{r}
+df_rls = df_copy[, c("DEPARTURE_DELAY", "ARRIVAL_DELAY")]
+head(df_rls)
+```
+
+Una vez que tenemos la información, comprobamos si tenemos observacines que no tienen valor:
+```{r}
+colSums(is.na(df_rls))
+```
+
+Vemos que hay observaciones cuyo atributo ARRIVAL_DELAY no tiene valor, por lo que vamos a ignorar estas observaciones del dataframe usado para crear el modelo de la regresión lineal:
+```{r}
+df_rls = df_rls[is.na(df_rls$ARRIVAL_DELAY) == FALSE,]
+colSums(is.na(df_rls))
+```
+
+Una vez limpiado el dataset creamos el modelo de regresión lineal, recordando que la variable dependiente es DEPARTURE_DELAY y la variable independiente ARRIVAL_DELAY:
+```{r}
+modelo_rls = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY, df_rls)
+summary(modelo_rls)
+```
+
+Ahora lo que tenemos que hacer es evaluar la calidad del modelo, a partir de su coeficiente de determinación y de correlación.
+
+El coeficiente de determinación o R2, nos indica el grado de ajuste de la recta de regresión a los valores de la muestra, es decir, el cómo es la proporción de variación en nuestro modelo. R2 es un coeficiente que puede ir entre 0 y 1, cuanto más próximo a uno mejor es el modelo, ya que significa que los errores/residuos que se cometen son muy pequeños y los valores se ajustan a la línea de regresión.
+
+De la anterior ejecución vemos que tenemos un coeficiente de determinación de 0.91, este valor está muy próximo a uno por lo que los puntos se ajustan a la recta de regresión.
+
+Otra forma de medir cómo de bueno es el modelo es a partir del coeficiente de correlación, éste nos indica cómo de relacionadas están dos variables, pudiendo ser una relación positiva (si cuando aumenta una variable la otra aumenta) o negativa (si cuando aumenta una variable la otra disminuye).
+
+Por lo que primero, vamos a calcular la correlación entre ambas variables:
+```{r}
+cat("El valor del coeficiente de correlación (r) es:", cor(x = df_rls$ARRIVAL_DELAY, y = df_rls$DEPARTURE_DELAY))
+```
+
+El coeficiente de correlación es un valor que va entre -1 y 1, siendo -1 cuando están altamente correlacionadas dos variables pero de forma negativa, y siendo 1 cuando están altamente correlacionadas de forma positiva.
+
+Respecto a la ejecución anterior, vemos que r tiene un valor de 0.95, éste un valor muy alto lo que nos indica que ambas variables están altamente correlacionadas y de forma positiva, es decir, cuando una aumenta la otra también.
+
+Cuando realizamos un modelo de regresión simple tenemos una relación entre el coeficiente de determinación y el coeficiente de correlación y es la siguiente, el coeficiente de determinación (R2) es igual al coeficiente de correlación elevado al cuadrado (r^2), es decir, en nuestro caso R2 = 0.9082 y r = 0.9530, por lo tanto R2 = r^2 = 0.9530^2 = 0.9082.
+
+### Regresión lineal múltiple
+
+Se añadirá al modelo anterior la variable independiente DISTANCIA. ¿Existe una mejora del ajuste?. Razonar.
+
+Lo primero que debemos hacer es crear un dataframe con la infomración relevante:
+```{r}
+df_rlm = df_rls
+df_rlm["DISTANCE"] = df_copy$DISTANCE[is.na(df_copy$ARRIVAL_DELAY) == FALSE]
+
+head(df_rlm)
+```
+Una vez que tenemos los datos, lo introducimos al modelo, recordamos que ahora la variable dependiente sigue siendo la misma (DEPARTURE_DELAY) pero ahora tenemos dos variables independientes (ARRIVAL_DELAY, DISTANCE):
+```{r}
+modelo_rlm = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm)
+summary(modelo_rlm)
+```
+
+En este caso el coeficiente de determinación R2 es igual a 0.9127 mientras que en el anterior modelo era de 0.9082. Por lo tanto, vamos que sí que hay una mejora significativa ya que a mayor R2 mejor ajustados están los datos a la recta de la regresión.
+
+### División de muestras
+
+Posteriormente, se procederá a dividir la muestra en dos, según los vuelos sean o no más largos. Se tomará por larga distancia aquellos con un recorrido superior a 600 millas. Razonar los resultados.
+
+En este caso, vamos a dividir el dataset en dos muestras y posteriormente evaluaremos qué modelo se comporta mejor, si aquellos en los que la distancia es pequeña o grande.
+
+Lo primero que vamos a hacer es crear los dos modelos:
+```{r}
+modelo_rlm_distancia_menor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm[df_rlm$DISTANCE <= 600,])
+
+modelo_rlm_distancia_mayor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm[df_rlm$DISTANCE > 600,])
+
+```
+
+Una vez que hemos generados los modelos, comprobamos para cada modelo que R2 tiene:
+```{r}
+summary(modelo_rlm_distancia_menor)
+summary(modelo_rlm_distancia_mayor)
+```
+
+De la anterior ejecución podemos observar que cuando la distancia de los vuelos es menor o igual a 600 millas, el modelo se comporta algo mejor que cuando la distancia es mayor a 600 millas.
+
+Respecto al R2 de los vuelos cuya distancia es inferior o igual a 600 millas, nos proporciona un coeficiente de determinación de 0.9299 mientras que el modelo cuyas distancias son superiores a 600 millas su coeficiente de determinación es de 0.9034. Por lo tanto, a mayor coeficiente mejor se comporta el modelo ya que ajusta mejor los datos, es por ello que el modelo en los que la distancia es pequeña es mejor.
+
+## Modelo de regresión lineal múltiple (regresores cuantitativos y cualitativos)
+
+En este apartado se estudiará la relación de DEPARTURE_DELAY, con las variables explicativas ARRIVAL_DELAY y LATE_AIRCRAFT_DELAY. Para ello se procederá a la recodificación de la variable LATE_AIRCRAFT_DELAY, en en mayor y menor o igual a 15 minutos.
+
+Lo primero que debemos de hacer es crear el dataframe con los datos que nos interesan, además no tenemos en cuenta las observaciones cuyo valor sea NA:
+```{r}
+df_rlm_cualitativo = df_copy[is.na(df_copy$ARRIVAL_DELAY) == FALSE & is.na(df_copy$LATE_AIRCRAFT_DELAY) == FALSE, c("DEPARTURE_DELAY", "ARRIVAL_DELAY", "LATE_AIRCRAFT_DELAY")]
+
+df_rlm_cualitativo["d-LATE_AIRCRAFT_DELAY"] = ordered(cut(df_rlm_cualitativo$LATE_AIRCRAFT_DELAY, breaks = c(-1,14,15,1102), labels = c("Menor", "Igual", "Mayor")))
+
+head(df_rlm_cualitativo)
+```
+
+Creamos el modelo de regresión lineal múltiple con las variables cuantitativas y cualitativo, la variable dependientes es DEPARTURE_DELAY y las variables independientes ARRIVAL_DELAY y d-LATE_AIRCRAFT_DELAY:
+```{r}
+modelo_rlm_cualitativo = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + `d-LATE_AIRCRAFT_DELAY`, data = df_rlm_cualitativo)
+
+summary(modelo_rlm_cualitativo)
+```
+
+Como podemos apreciar de la anterior ejecución, el coeficiente de determinación es el mayor que hemos obtenido en lo que vamos de práctica, en este caso R2 es igual a 0.9419. Tiene sentido que dicho valor sea algo mayor ya que al eliminar aquellas observaciones que tengan valores NA, no las hemos tenido en consideración a la hora de crear el modelo, por lo que tenemos menos datos y estos datos están completos, permitiendo que el modelo pueda a ajustar de una mejor forma.
+
+## Diagnosis del modelo
+
+Para la diagnosis se escoge el modelo construído en el apartado b) y se pintarán dos gráficos: uno con los valores ajustados frente a los residuos (que nos permitirá ver si la varianza es constante) y el gráfico cuantil-cuantil que compara los residuos del modelo con los valores de una variable que se distribuye normalmente(QQ plot). Interpretar los resultados.
+
+El primer gráfico que vamos a mostrar, son los valores ajustados respecto a los residuos:
+```{r}
+library(ggplot2)
+
+residuos = rstandard(modelo_rlm)
+ajustados = fitted(modelo_rlm)
+
+qplot(x = ajustados, y = residuos, main = "Residuales Estandarizados vs Valores Ajustados", geom = c("point"), ylab = "Residuales Estandarizados", xlab = "Valores Ajustados") + geom_hline(yintercept = 0 , color = 2)
+```
+
+```{r}
+qqplot(ajustados, residuos)
+```
+
+## Predicción del modelo
+
+Según el modelo del apartado b), calcular el retraso en la salida de un avión, que después de recorrer 2500 millas ha llegado a su destino con 30 minutos más tarde.
+
+```{r}
+summary(modelo_rlm)
+```
+
+```{r}
+df_predict = data.frame(30,2500)
+colnames(df_predict) = c("ARRIVAL_DELAY", "DISTANCE")
+
+predict(modelo_rlm, df_predict)
+
+x = 2.35 + 0.92 * 30 + 0.0029 * 2500
+x
+```
+
+
+
+
+
+
+
+
+
+
