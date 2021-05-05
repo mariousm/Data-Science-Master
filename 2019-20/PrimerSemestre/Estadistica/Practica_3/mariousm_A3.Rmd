@@ -1,0 +1,27 @@
+---
+title: "A3 - Modelos predictivos"
+author: "Mario Ubierna San Mamés"
+date: '`r format(Sys.Date(),"%e de %B, %Y")`'
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Modelo de regresión lineal
+
+## Modelo de regresión lineal (regresores cuantitativos)
+
+### Estimar por mínimos cuadrados un modelo lineal
+
+Estimar por mínimos cuadrados ordinarios un modelo lineal que explique la variable DEPARTURE_DELAY en función de la variable ARRIVAL_DELAY. Se evaluará la bondad del ajuste, a partir
+del coeficiente de determinación. Calcular el coeficiente de correlación y explicar su relación con el
+coeficiente de determinación.
