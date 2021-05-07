@@ -189,12 +189,118 @@ cat("El retraso que se produce es de:", predict(modelo_rlm, df_predict), "min")
 
 Respecto al retraso que se produce cuando recorremos 2500 millas y hemos llegado 30 minutos tarde al destino es de 37 minutos.
 
+# Regresión logística
 
+## Estudio de relaciones entre variables.
 
+Se quiere estudiar la probabilidad que tiene un avión de sufrir un retraso.
 
+Para ello, primero se creará una nueva variable dicotómica llamada delay_SFO. Esta nueva variable está relacionada con los valores de la variable Departure_Delay. Se codificará de la siguiente: Si el valor de dicha variable es menor a 15 minutos, se puede asumir que el vuelo no va con retraso y se codificará con el valor 0, en caso contrario, se codificará con el valor 1.
 
+- Visualizar la relación entre delay_SFO y las variables independientes:DAY_OF_WEEK y AIRLINE. Calcular las frecuencias relativas por fila y columna. Interpretar el significado. Visualizar con barplot.
 
+- Para comprobar si existe asociación entre las variable dependiente y cada una de las variables explicativas, se aplicará el test Chi-cuadrado de Pearson. Un resultado significativo nos dirá que existe asociación. Interpretar.
 
+### Visualizar la relación entre variables
 
+En este primer apartado vamos a visializar la relación que hay entre delay_SFO y la variables independientes, pero antes de comenzar debemos crear el dataframe correspondiente, junto con la variable delay_SFO:
+```{r}
+df_rlgs = df_copy[, c("DEPARTURE_DELAY", "DAY_OF_WEEK", "AIRLINE")]
 
+# Creamos la variable delay_SFO
+df_rlgs$delay_SFO[df_rlgs$DEPARTURE_DELAY <= 15] = 0
+df_rlgs$delay_SFO[df_rlgs$DEPARTURE_DELAY > 15] = 1
+
+head(df_rlgs)
+```
+
+Comprobamos que no hay valores NA, para así cuando tengamos que entrenar el modelo, lo hacemos ya con los datos completos:
+```{r}
+colSums(is.na(df_rlgs))
+```
+
+De la anterior ejecución, vemos que no hay columanas sin valores.
+
+Una vez hecho todo esto, pasamos a ver la relación de delay_SFO respecto a los días de la semana, y obtenemos la tabla de frecuencias relativas:
+```{r}
+# Calculamos la tabla con frecuencias absolutas
+table_DAY_OF_WEEK = table(df_rlgs$delay_SFO, df_rlgs$DAY_OF_WEEK)
+rownames(table_DAY_OF_WEEK) = c("0 - No retraso", "1 - Retraso")
+colnames(table_DAY_OF_WEEK) = c("1- Lunes", "2", "3", "4", "5", "6", "7")
+```
+
+La tabla de frecuencias relativas de delay_SFO respecto a DAY_OF_WEEK es la siguiente:
+
+```{r}
+# Tabla con frecuencias relativas
+round(prop.table(table_DAY_OF_WEEK, 1), 2)
+```
+
+La tabla de frecuencias relativas de DAY_OF_WEEK respecto a delay_SFO es la siguiente:
+
+```{r}
+# Tabla con frecuencias relativas
+round(prop.table(table_DAY_OF_WEEK, 2), 2)
+```
+
+De las dos anteriores ejecuciones vemos que los días que más retrasos se producen son los lunes, jueves y domingos. Dentro de estos días el día más probable de que el vuelo vaya con retraso es el lunes.
+
+Por otro lado, los días en los que menos retraso se producen son los martes, miércoles, jueves y viernes. Dentro de éstos, el mejor día para viajar sería el miércoles, ya que es el día con mayor éxito de vuelos con no retraso.
+
+En el siguiente  gráfico podemos visualizar el análisis que hemos hecho, el primer gráfico se corresponde con la primera tabla y el segundo gráfico con la segunda tabla:
+```{r}
+ggplot(df_rlgs, aes(delay_SFO, fill = factor(DAY_OF_WEEK))) + geom_bar(position = "fill") +
+  xlab("Retraso") + 
+  ylab("Frecuencia") +
+  ggtitle("Retraso y no retraso de los vuelos respecto al día de la semana")
+
+ggplot(df_rlgs, aes(DAY_OF_WEEK, fill = factor(delay_SFO))) + geom_bar(position = "fill") +
+  xlab("Día de la semana") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Día de la semana respecto al retraso o no retraso de vuelos")
+```
+
+Ahora pasamos a ver la relación de delay_SFO respecto a las aerolíneas y obtenemos la tabla de frecuencias relativas:
+```{r}
+# Calculamos la tabla con frecuencias absolutas
+table_AIRLINE = table(df_rlgs$delay_SFO, df_rlgs$AIRLINE)
+rownames(table_AIRLINE) = c("0 - No retraso", "1 - Retraso")
+```
+
+La tabla de frecuencias relativas de delay_SFO respecto a AIRLINE es la siguiente:
+
+```{r}
+# Tabla con frecuencias relativas
+round(prop.table(table_AIRLINE, 1), 2)
+```
+
+La tabla de frecuencias relativas de AIRLINE respecto a delay_SFO es la siguiente:
+
+```{r}
+# Tabla con frecuencias relativas
+round(prop.table(table_AIRLINE, 2), 2)
+```
+
+De las dos anteriores ejecuciones vemos que las aerolíneas que tinen más vuelos con restraso son UA, OO. Dentro de éstas dos, la que tiene un peor porcentaje respecto al retraso es UA.
+
+Por otro lado, las aerolíneas con más vuelos sin retraso son también UA y OO. Dentro de éstas dos, la que tiene un mejor porcentaje es OO.
+
+En el siguiente  gráfico podemos visualizar el análisis que hemos hecho, el primer gráfico se corresponde con la primera tabla y el segundo gráfico con la segunda tabla:
+```{r}
+ggplot(df_rlgs, aes(delay_SFO, fill = AIRLINE)) + geom_bar(position = "fill") +
+  xlab("Retraso") + 
+  ylab("Frecuencia") +
+  ggtitle("Retraso y no retraso de los vuelos respecto a la aerolínea")
+
+ggplot(df_rlgs, aes(AIRLINE, fill = factor(delay_SFO))) + geom_bar(position = "fill") +
+  xlab("Aerolínea") + 
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Clase", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Aerolínea respecto al retraso o no retraso de vuelos")
+```
+
+### Test Chi-Cuadrado de Pearson.
+
+Para comprobar si existe asociación entre las variable dependiente y cada una de las variables explicativas, se aplicará el test Chi-cuadrado de Pearson. Un resultado significativo nos dirá que existe asociación. Interpretar.
 

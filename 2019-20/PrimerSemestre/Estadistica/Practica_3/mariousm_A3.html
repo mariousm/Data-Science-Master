@@ -184,6 +184,10 @@ pre code {
 <li><a href="#diagnosis-del-modelo"><span class="toc-section-number">1.3</span> Diagnosis del modelo</a></li>
 <li><a href="#predicción-del-modelo"><span class="toc-section-number">1.4</span> Predicción del modelo</a></li>
 </ul></li>
+<li><a href="#regresión-logística"><span class="toc-section-number">2</span> Regresión logística</a>
+<ul>
+<li><a href="#estudio-de-relaciones-entre-variables."><span class="toc-section-number">2.1</span> Estudio de relaciones entre variables.</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -473,6 +477,22 @@ colnames(df_predict) = c(&quot;ARRIVAL_DELAY&quot;, &quot;DISTANCE&quot;)
 cat(&quot;El retraso que se produce es de:&quot;, predict(modelo_rlm, df_predict), &quot;min&quot;)</code></pre>
 <pre><code>## El retraso que se produce es de: 37.34989 min</code></pre>
 <p>Respecto al retraso que se produce cuando recorremos 2500 millas y hemos llegado 30 minutos tarde al destino es de 37 minutos.</p>
+</div>
+</div>
+<div id="regresión-logística" class="section level1" number="2">
+<h1 number="2"><span class="header-section-number">2</span> Regresión logística</h1>
+<div id="estudio-de-relaciones-entre-variables." class="section level2" number="2.1">
+<h2 number="2.1"><span class="header-section-number">2.1</span> Estudio de relaciones entre variables.</h2>
+<p>Se quiere estudiar la probabilidad que tiene un avión de sufrir un retraso.</p>
+<p>Para ello, primero se creará una nueva variable dicotómica llamada delay_SFO. Esta nueva variable está relacionada con los valores de la variable Departure_Delay. Se codificará de la siguiente: Si el valor de dicha variable es menor a 15 minutos, se puede asumir que el vuelo no va con retraso y se codificará con el valor 0, en caso contrario, se codificará con el valor 1.</p>
+<ul>
+<li><ol style="list-style-type: lower-alpha">
+<li>Visualizar la relación entre delay_SFO y las variables independientes:DAY_OF_WEEK y AIRLINE. Calcular las frecuencias relativas por fila y columna. Interpretar el significado. Visualizar con barplot.</li>
+</ol></li>
+<li><ol start="2" style="list-style-type: lower-alpha">
+<li>Para comprobar si existe asociación entre las variable dependiente y cada una de las variables explicativas, se aplicará el test Chi-cuadrado de Pearson. Un resultado significativo nos dirá que existe asociación. Interpretar.</li>
+</ol></li>
+</ul>
 </div>
 </div>
 
