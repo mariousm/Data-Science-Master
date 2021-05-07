@@ -89,7 +89,7 @@ df_rlm["DISTANCE"] = df_copy$DISTANCE[is.na(df_copy$ARRIVAL_DELAY) == FALSE]
 
 head(df_rlm)
 ```
-Una vez que tenemos los datos, lo introducimos al modelo, recordamos que ahora la variable dependiente sigue siendo la misma (DEPARTURE_DELAY) pero ahora tenemos dos variables independientes (ARRIVAL_DELAY, DISTANCE):
+Una vez que tenemos los datos, lo introducimos al modelo, recordamos que ahora la variable dependiente sigue siendo la misma (DEPARTURE_DELAY) pero ahora tenemos dos variables independientes (ARRIVAL_DELAY, DISTANCE), debemos de tener en cuenta que asumimos que existe una relación lineal entre las variables, y también que las variables son independientes entre sí:
 ```{r}
 modelo_rlm = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm)
 summary(modelo_rlm)
@@ -129,12 +129,13 @@ Lo primero que debemos de hacer es crear el dataframe con los datos que nos inte
 ```{r}
 df_rlm_cualitativo = df_copy[is.na(df_copy$ARRIVAL_DELAY) == FALSE & is.na(df_copy$LATE_AIRCRAFT_DELAY) == FALSE, c("DEPARTURE_DELAY", "ARRIVAL_DELAY", "LATE_AIRCRAFT_DELAY")]
 
-df_rlm_cualitativo["d-LATE_AIRCRAFT_DELAY"] = ordered(cut(df_rlm_cualitativo$LATE_AIRCRAFT_DELAY, breaks = c(-1,14,15,1102), labels = c("Menor", "Igual", "Mayor")))
+df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY <= 15] = 0 
+df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY > 15] = 1 
 
 head(df_rlm_cualitativo)
 ```
 
-Creamos el modelo de regresión lineal múltiple con las variables cuantitativas y cualitativo, la variable dependientes es DEPARTURE_DELAY y las variables independientes ARRIVAL_DELAY y d-LATE_AIRCRAFT_DELAY:
+Creamos el modelo de regresión lineal múltiple con las variables cuantitativas y cualitativas, la variable dependiente es DEPARTURE_DELAY y las variables independientes ARRIVAL_DELAY y d-LATE_AIRCRAFT_DELAY:
 ```{r}
 modelo_rlm_cualitativo = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + `d-LATE_AIRCRAFT_DELAY`, data = df_rlm_cualitativo)
 
@@ -157,9 +158,19 @@ ajustados = fitted(modelo_rlm)
 qplot(x = ajustados, y = residuos, main = "Residuales Estandarizados vs Valores Ajustados", geom = c("point"), ylab = "Residuales Estandarizados", xlab = "Valores Ajustados") + geom_hline(yintercept = 0 , color = 2)
 ```
 
+Recordando el R2 que teníamos en el modelo de regresión múltiple del apartado b, su valor era 0.9127, es decir, su R2 es elevado, lo que signfica que los valores se ajustan muy bien al modelo.
+
+Sin embargo, del anterior gráfico vemos que el modelo no se comporta del todo bien para ciertos valores, es decir, a  medida que el valor ajustado aumenta su error también aumenta. Por otro lado, aunque la gran mayoría de valores no siguen un patrón determinado, cuando el valor ajustado es pequeño tenemos un poco de error en el modelo de error.
+
+Por lo tanto, aunque es verdad que para ciertos valores sí que se aprecia un patrón (cuando lo valores ajustados son altos el residuo aumenta), para la gran mayoría de valores el modelo se comporta perfectamente, por lo que podemos decir que en la gran mayoría de casos el modelo va a funcionar bien.
+
 ```{r}
-qqplot(ajustados, residuos)
+ggplot(as.data.frame(residuos),aes(sample = residuos)) +  geom_qq() 
 ```
+
+Del anterior gráfico podemos observar el cómo los residuos siguen la distribución normal, de seguirla perfectamente tendríamos que todos los residuos estarían alineados en un recta diagonal, pero tal y como vemos en nuestro caso hace una "S" nuestros datos, es  decir, cuando los valores ajustados son muy pequeños el modelo no ajusta de forma perfecta, y cuando los valores ajustados son muy grandes se sigue cometiendo cierto error. Sin embargo, cuando los valores no son ni muy grandes ni muy pequeños el modelo ajusta bien.
+
+Resumiendo, vemos que no seguimos una distribución normal y que el modelo por norma general se comporta bien, aunque hay casos en los que hay un poco de error.
 
 ## Predicción del modelo
 
@@ -173,11 +184,10 @@ summary(modelo_rlm)
 df_predict = data.frame(30,2500)
 colnames(df_predict) = c("ARRIVAL_DELAY", "DISTANCE")
 
-predict(modelo_rlm, df_predict)
-
-x = 2.35 + 0.92 * 30 + 0.0029 * 2500
-x
+cat("El retraso que se produce es de:", predict(modelo_rlm, df_predict), "min")
 ```
+
+Respecto al retraso que se produce cuando recorremos 2500 millas y hemos llegado 30 minutos tarde al destino es de 37 minutos.
 
 
 
