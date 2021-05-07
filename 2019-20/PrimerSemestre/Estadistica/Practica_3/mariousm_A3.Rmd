@@ -131,6 +131,7 @@ df_rlm_cualitativo = df_copy[is.na(df_copy$ARRIVAL_DELAY) == FALSE & is.na(df_co
 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY <= 15] = 0 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY > 15] = 1 
+df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY` = factor(df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`)
 
 head(df_rlm_cualitativo)
 ```
@@ -210,6 +211,10 @@ df_rlgs = df_copy[, c("DEPARTURE_DELAY", "DAY_OF_WEEK", "AIRLINE")]
 # Creamos la variable delay_SFO
 df_rlgs$delay_SFO[df_rlgs$DEPARTURE_DELAY <= 15] = 0
 df_rlgs$delay_SFO[df_rlgs$DEPARTURE_DELAY > 15] = 1
+df_rlgs$delay_SFO = factor(df_rlgs$delay_SFO)
+
+# Convertimos a factor DAY_OF_WEEK
+df_rlgs$DAY_OF_WEEK = factor(df_rlgs$DAY_OF_WEEK)
 
 head(df_rlgs)
 ```
@@ -303,4 +308,166 @@ ggplot(df_rlgs, aes(AIRLINE, fill = factor(delay_SFO))) + geom_bar(position = "f
 ### Test Chi-Cuadrado de Pearson.
 
 Para comprobar si existe asociación entre las variable dependiente y cada una de las variables explicativas, se aplicará el test Chi-cuadrado de Pearson. Un resultado significativo nos dirá que existe asociación. Interpretar.
+
+El test de Chi-cuadrado nos permite saber el cómo de asociadas están dos variables, es decir, si la proporción de una variable depende de la otra.
+
+Partimos de que la hipótesis nula es las variables son idependientes, por lo tanto una variable no depende de la otra. La hipótesis alternativa es que las variables son dependientes.
+
+Primero realizamos el test Chi-cuadrado de Pearson para la variable DAY_OF_WEEK:
+```{r}
+chisq.test(table_DAY_OF_WEEK)
+```
+
+Como podemos apreciar el p-value es inferior a alfa (0.05), por lo que podemos rechazar la hipótesis nula a favor de la alternativa, es decir, que las variables son dependientes, sí que hay una asociación.
+
+Si analizamos las desviaciones de los residuos obtenemos la siguiente información:
+```{r}
+chisq.test(table_DAY_OF_WEEK)$stdres
+```
+Vemos que las mayores desviaciones se producen con el lunes, sábado y miércoles, es decir, sí que hay diferencias significativas entre estos niveles.
+
+
+En segundo lugar hacer el mismo test pero para la variable AIRLINE:
+```{r}
+chisq.test(table_AIRLINE)
+```
+
+En este caso el p-value vuelve a es inferior al nivel de significancia alfa (0.05), por lo que concluimos que las variables son dependientes, sí que existe una asociación entre ellas.
+
+Analizamos las desviaciones de los residuos:
+```{r}
+chisq.test(table_AIRLINE)$stdres
+```
+
+Respecto a las aerolíneas en las que verdaderamente hay una diferencia significativa son: UA, US, AA, VX y DL.
+
+## Modelo de regresión logística
+
+### Modelo regresión logística según DAY_OF_WEEK
+
+Estimar el modelo de regresión logística tomando como variable dependiente delay_SFO y variable explicativa DAY_OF_WEEK. Se tomará como día de referencia el lunes. Se puede considerar que el día de la semana es un factor de riesgo? Justifica tu respuesta.
+
+Lo primero que debemos de hacer es convertir los días de la semana a variables dummy:
+```{r}
+relevel_DAY_OF_WEEK = relevel(df_rlgs$DAY_OF_WEEK, ref = "1")
+```
+
+Creamos el modelo de regresión logística:
+```{r}
+modelo_rlgs_DAY_OF_WEEK = glm(formula = delay_SFO ~ factor(relevel_DAY_OF_WEEK), family = binomial(link=logit), data = df_rlgs)
+
+summary(modelo_rlgs_DAY_OF_WEEK)
+```
+
+De la anterior ejecución vemos que todos los días de la semana son significativos, ya que tienen un Pr(>|z|) < 0.05.
+
+Por otro lado, vamos a ver si todos los días de la semana son un factor de riesgo o no. Para ello tenemos que calcular el OR (odds-ratio):
+```{r}
+exp(coefficients(modelo_rlgs_DAY_OF_WEEK))
+```
+
+Como podemos apreciar todos los ratios que nos calcula son inferiores a 1, esto significa que son factores de protección y no de riesgo, es decir, que la probabiliad de que haya un retraso en cualquiera de los días respecto al lunes es inferior que en el propio lunes.
+
+Por lo tanto, no podemos considerar el día de la semana como un factor de riesgo.
+
+### Modelo regresión logística según AIRLINE
+
+Idem al anterior tomando como variable explicativa AIRLINE. Se tomará como aerolínea de referencia AA. ¿Se puede considerar que la aerolínea es un factor de riesgo? Justifica tu respuesta.
+
+Lo primero que debemos de hacer es convertir las aerolíneas a variables dummy:
+```{r}
+relevel_AIRLINE = relevel(df_rlgs$AIRLINE, ref = "AA")
+```
+
+Creamos el modelo de regresión logística:
+```{r}
+modelo_rlgs_AIRLINE = glm(formula = delay_SFO ~ factor(relevel_AIRLINE), family = binomial(link=logit), data = df_rlgs)
+
+summary(modelo_rlgs_AIRLINE)
+```
+
+En este caso vemos que no todas las aerolíneas tienen un nivel de signifancia, ya que la aerolínea DL su Pr(>|z|) > 0.05. Respecto al resto de aerolíneas, vemos que todas ellas son significantes, aunque algunas más que otras ya que las aerolíneas AS y VX tienen un nivel de significancia bajo respecto al resto de aerolíneas.
+
+Por otro lado, vamos a ver si todas las aerolíneas son un factor de riesgo o no. Para ello tenemos que calcular el OR (odds-ratio):
+```{r}
+exp(coefficients(modelo_rlgs_AIRLINE))
+```
+
+A diferencia de los días de la semana, no todas las aerolíneas tienen un mejor ratio que la de referencia "AA", solamente las aerolíneas HA y US proporcionan un mejor ratio, es decir, que cuando tomamos un vuelo de estas compañías el retraso que se produce es menor que el retraso que tenemos con la aerolínea AA.
+
+Por lo tanto, las aerolíneas HA y US son un factor de protección mientras que todas las demás son un factor de riesgo.
+
+## Modelo de regresión logística según DAY_OF_WEEK y DISTANCE
+
+Se creará un modelo con la variable dependiente y las variable explicativas DAY_OF_WEEK (la obtenida en el apartado a) y DISTANCE. ¿Se observa una mejora con referencia a los anteriores? Explicar.
+
+Volvemos a crear el modelo y analizamos los resultados obtenidos:
+```{r}
+df_rlgs_DAY_OF_WEEK_DISTANCE = df_rlgs[, c("delay_SFO", "DAY_OF_WEEK")]
+df_rlgs_DAY_OF_WEEK_DISTANCE$DISTANCE = df_copy[, c("DISTANCE")]
+
+
+modelo_rlgs_DAY_OF_WEEK_DISTANCE = glm(formula = delay_SFO ~ factor(relevel_DAY_OF_WEEK) + DISTANCE, family = binomial(link=logit), data = df_rlgs_DAY_OF_WEEK_DISTANCE)
+
+summary(modelo_rlgs_DAY_OF_WEEK_DISTANCE)
+```
+
+Respecto a si todas las variables son significantes vemos que no, ya que la variable distancia tiene un Pr(>|z|) > 0.05, por lo tanto, solo los días de la semana son significantes
+
+Para poder medir cómo de bueno es el modelo, nos tenemos que fijar en la devianza de cada modelo. Si la devianza residual es menor que la devianza nula, entonces hemos conseguido mejorar el modelo.
+
+Respecto al primer modelo:
+```{r}
+summary(modelo_rlgs_DAY_OF_WEEK)
+```
+
+Observamos que la devianza residual es menor que la devianza nula, por lo que sí que conseguimos mejorar el modelo.
+
+Respecto al segundo modelo:
+```{r}
+summary(modelo_rlgs_AIRLINE)
+```
+
+La devianza residual en este caso es menor que la devianza nula y además, esta devianza residual es menor que en el anterior modelo, por lo que este modelo es mejor.
+
+Respecto al modelo calculado en este apartado:
+```{r}
+summary(modelo_rlgs_DAY_OF_WEEK_DISTANCE)
+```
+
+En este caso la devianza residual sigue siendo inferior, y aunque es mejor que el modelo del apartado a, ya que la devianza residual es menor, no consigue ser mejor que el modelo del apartado b, ya que el modelo calculado en este apartado tiene una devianza residual mayor.
+
+Por lo tanto, el modelo de este apartado es mejor que el modelo del apartado a pero no que el del apartado b.
+
+### Modelo de regresión logística con las variables significativas
+
+Se creará un nuevo modelo con la variable dependiente y tomando como variables explicativas, aquéllas que han sido significativas en los apartados anteriores, y además se añadirá la variable ARRIVAL_DELAY.¿Se observa una mejora con referencia a los anteriores? Explicar. Realizad el cálculo de las OR.
+
+Respecto al primer modelo recordamos que todos los días de la semana eran significativos, en el segundo modelo todas las aerolíneas eran significativas menos la aerolínea DL, y respecto al tercer modelo los días de la semana sí que son significativos pero la distancia no.
+
+Por lo tanto, vamos a crear un modelo cuyas variables independientes van a ser: DAY_OF_WEEK, AIRLINE (todas menos DL) y ARRIVAL_DELAY:
+```{r}
+
+```
+
+## Predicción
+
+Según el modelo del apartado c), calcula la probabilidad de retraso en el vuelo, si nuestro destino está a 1500 millas y viajamos en jueves.
+
+Realizamos la predicción del retraso a partir del modelo c):
+```{r}
+df_predict = data.frame(4, 1500)
+colnames(df_predict) = c("relevel_DAY_OF_WEEK", "DISTANCE")
+
+cat("La probabilidad de que se produzca un restraso es de:", predict(modelo_rlgs_DAY_OF_WEEK_DISTANCE, df_predict, type = "response") * 100, "%")
+```
+
+Lo que nos indica la anterior ejecución es que la probabilidad de que se produzca un restraso cuando nuestro destino está a 1500 millas y viajamos un jueves es de un 22%, es decir, es más probable que no se produzca un restraso a que se produzca.
+
+
+
+
+
+
+
 
