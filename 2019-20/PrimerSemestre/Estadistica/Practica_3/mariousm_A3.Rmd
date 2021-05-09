@@ -47,10 +47,10 @@ Una vez que tenemos la información, comprobamos si tenemos observaciones que no
 colSums(is.na(df_rls))
 ```
 
-Vemos que hay observaciones cuyo atributo ARRIVAL_DELAY no tiene valor, por lo que vamos a ignorar estas observaciones del dataframe usado para crear el modelo de la regresión lineal:
+Vemos que hay observaciones cuyo atributo ARRIVAL_DELAY no tiene valor, podríamos ignorar estas observaciones pero en nuestro caso no lo vamos a hacer ya que para otros modelos perderíamos información:
 ```{r}
-df_rls = df_rls[is.na(df_rls$ARRIVAL_DELAY) == FALSE,]
-colSums(is.na(df_rls))
+# df_rls = df_rls[is.na(df_rls$ARRIVAL_DELAY) == FALSE,]
+# colSums(is.na(df_rls))
 ```
 
 Una vez limpiado el dataset creamos el modelo de regresión lineal, recordando que la variable dependiente es DEPARTURE_DELAY y la variable independiente ARRIVAL_DELAY:
@@ -69,7 +69,7 @@ Otra forma de medir cómo de bueno es el modelo es a partir del coeficiente de c
 
 Por lo que primero, vamos a calcular la correlación entre ambas variables:
 ```{r}
-cat("El valor del coeficiente de correlación (r) es:", cor(x = df_rls$ARRIVAL_DELAY, y = df_rls$DEPARTURE_DELAY))
+cat("El valor del coeficiente de correlación (r) es:", cor(x = df_rls$ARRIVAL_DELAY, y = df_rls$DEPARTURE_DELAY, use = "complete.obs"))
 ```
 
 El coeficiente de correlación es un valor que va entre -1 y 1, siendo -1 cuando están altamente correlacionadas dos variables pero de forma negativa, y siendo 1 cuando están altamente correlacionadas de forma positiva.
@@ -85,10 +85,11 @@ Se añadirá al modelo anterior la variable independiente DISTANCIA. ¿Existe un
 Lo primero que debemos hacer es crear un dataframe con la información relevante:
 ```{r}
 df_rlm = df_rls
-df_rlm["DISTANCE"] = df_copy$DISTANCE[is.na(df_copy$ARRIVAL_DELAY) == FALSE]
+df_rlm["DISTANCE"] = df_copy[, c("DISTANCE")]
 
 head(df_rlm)
 ```
+
 Una vez que tenemos los datos, los introducimos al modelo, recordamos que ahora la variable dependiente sigue siendo la misma (DEPARTURE_DELAY) pero ahora tenemos dos variables independientes (ARRIVAL_DELAY, DISTANCE), debemos de tener en cuenta que asumimos que existe una relación lineal entre las variables, y también que las variables son independientes entre sí:
 ```{r}
 modelo_rlm = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm)
@@ -125,9 +126,9 @@ Respecto al R2 de los vuelos cuya distancia es inferior o igual a 600 millas, no
 
 En este apartado se estudiará la relación de DEPARTURE_DELAY, con las variables explicativas ARRIVAL_DELAY y LATE_AIRCRAFT_DELAY. Para ello se procederá a la recodificación de la variable LATE_AIRCRAFT_DELAY, en en mayor y menor o igual a 15 minutos.
 
-Lo primero que debemos de hacer es crear el dataframe con los datos que nos interesan, además no tenemos en cuenta las observaciones cuyo valor sea NA:
+Lo primero que debemos de hacer es crear el dataframe con los datos que nos interesan:
 ```{r}
-df_rlm_cualitativo = df_copy[is.na(df_copy$ARRIVAL_DELAY) == FALSE & is.na(df_copy$LATE_AIRCRAFT_DELAY) == FALSE, c("DEPARTURE_DELAY", "ARRIVAL_DELAY", "LATE_AIRCRAFT_DELAY")]
+df_rlm_cualitativo = df_copy[, c("DEPARTURE_DELAY", "ARRIVAL_DELAY", "LATE_AIRCRAFT_DELAY")]
 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY <= 15] = 0 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY > 15] = 1 
@@ -135,6 +136,8 @@ df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY` = factor(df_rlm_cualitativo$`d-LATE_A
 
 head(df_rlm_cualitativo)
 ```
+
+Como podemos observar, la variable LATE_AIRCRAFT_DELAY tiene valores perdidos, pero si eliminamos las observaciones que tienen valores perdidos perderíamos mucha información sobre la variable ARRIVAL_DELAY, es por ello que hemos considerado que lo mejor es mantener dichas observaciones. Los NA no los hemos considerado como 0 o 1 ya que podríamos sesgar al modelo con nuestro criterio, hemos probado tanto este modelo con valores NA y sin NA y nos proporciona el mismo resultado, aún así vamos a mantener los valores NA.
 
 Creamos el modelo de regresión lineal múltiple con las variables cuantitativas y cualitativas, la variable dependiente es DEPARTURE_DELAY y las variables independientes ARRIVAL_DELAY y d-LATE_AIRCRAFT_DELAY:
 ```{r}
@@ -176,10 +179,6 @@ Resumiendo, vemos que no seguimos una distribución normal y que el modelo por n
 ## Predicción del modelo
 
 Según el modelo del apartado b), calcular el retraso en la salida de un avión, que después de recorrer 2500 millas ha llegado a su destino con 30 minutos más tarde.
-
-```{r}
-summary(modelo_rlm)
-```
 
 ```{r}
 df_predict = data.frame(30,2500)
@@ -386,7 +385,7 @@ modelo_rlgs_AIRLINE = glm(formula = delay_SFO ~ AIRLINE, family = binomial(link=
 summary(modelo_rlgs_AIRLINE)
 ```
 
-En este caso vemos que no todas las aerolíneas tienen un nivel de signifancia, ya que la aerolínea DL su Pr(>|z|) > 0.05. Respecto al resto de aerolíneas, vemos que todas ellas son significantes, aunque algunas más que otras ya que las aerolíneas AS y VX tienen un nivel de significancia bajo respecto al resto de aerolíneas.
+En este caso vemos que no todas las aerolíneas son significativas, ya que la aerolínea DL su Pr(>|z|) > 0.05. Respecto al resto de aerolíneas, vemos que todas ellas sí que son significativas, aunque algunas más que otras ya que las aerolíneas AS y VX tienen un nivel de significancia bajo respecto al resto de aerolíneas.
 
 Por otro lado, vamos a ver si todas las aerolíneas son un factor de riesgo o no. Para ello tenemos que calcular el OR (odds-ratio):
 ```{r}
@@ -412,7 +411,7 @@ modelo_rlgs_DAY_OF_WEEK_DISTANCE = glm(formula = delay_SFO ~ DAY_OF_WEEK + DISTA
 summary(modelo_rlgs_DAY_OF_WEEK_DISTANCE)
 ```
 
-Respecto a si todas las variables son significantes vemos que no, ya que la variable distancia tiene un Pr(>|z|) > 0.05, por lo tanto, solo los días de la semana son significantes
+Respecto a si todas las variables son significantes vemos que no, ya que la variable distancia tiene un Pr(>|z|) > 0.05, por lo tanto, solo los días de la semana son significantes.
 
 Para poder medir cómo de bueno es el modelo, nos tenemos que fijar en la devianza de cada modelo. Si la devianza residual es menor que la devianza nula, entonces hemos conseguido mejorar el modelo.
 
@@ -443,12 +442,30 @@ Por lo tanto, el modelo de este apartado es mejor que el modelo del apartado a p
 
 Se creará un nuevo modelo con la variable dependiente y tomando como variables explicativas, aquéllas que han sido significativas en los apartados anteriores, y además se añadirá la variable ARRIVAL_DELAY.¿Se observa una mejora con referencia a los anteriores? Explicar. Realizad el cálculo de las OR.
 
-Respecto al primer modelo recordamos que todos los días de la semana eran significativos, en el segundo modelo todas las aerolíneas eran significativas menos la aerolínea DL, y respecto al tercer modelo los días de la semana sí que son significativos pero la distancia no.
+Respecto al primer modelo recordamos que todos los días de la semana eran significantes, en el segundo modelo todas las aerolíneas eran significativas menos la aerolínea DL (aún así consideramos que esta variable es significativa, ya que no tiene sentido eliminar los registros cuya aerolínea sea DL, estaríamos perdiendo información), y respecto al tercer modelo los días de la semana sí que son significativos pero la distancia no.
 
-Por lo tanto, vamos a crear un modelo cuyas variables independientes van a ser: DAY_OF_WEEK, AIRLINE (todas menos DL) y ARRIVAL_DELAY:
+Por lo tanto, vamos a crear un modelo cuyas variables independientes van a ser: DAY_OF_WEEK, AIRLINE y ARRIVAL_DELAY:
 ```{r}
+df_rlgs_DAY_AIRLINE_ARRIVAL = df_rlgs[, c("delay_SFO", "DAY_OF_WEEK", "AIRLINE")]
+df_rlgs_DAY_AIRLINE_ARRIVAL$ARRIVAL_DELAY = df_copy[, c("ARRIVAL_DELAY")]
 
+modelo_rlgs_DAY_AIRLINE_ARRIVAL = glm(formula = delay_SFO ~ DAY_OF_WEEK + AIRLINE + ARRIVAL_DELAY, family = binomial(link=logit), data = df_rlgs_DAY_AIRLINE_ARRIVAL)
+
+summary(modelo_rlgs_DAY_AIRLINE_ARRIVAL)
 ```
+
+Respecto a este modelo vamos que ya no todos los días de la semana son significativoos, ni tampoco todas las aerolíneas, sin embargo, el restraso de llegada sí que es importante, es decir, sí que determina significativamente que se produzca un retraso en la salida.
+
+Para considerar si este modelo es bueno nos fijamos en la devianza residual, y ésta tiene que ser menor que la devianza nula, por lo tanto vemos que esto sí que se cumple. Además, esta devianza residual es la menor obtenida con todos los modelos que hemos creado en este ejercicio, lo cual nos indica que este modelo es mejor y ajusta mejor los datos que cualquiera de los modelos anteriores.
+
+Finalmente, vamos a realizar el cálculo de las OR:
+```{r}
+exp(coefficients(modelo_rlgs_DAY_AIRLINE_ARRIVAL))
+```
+
+Analizado los OR podemos ver el cómo de probable es que ocurra un suceso respecto a que no ocurra, si el coeficiente nos da un valor menor que 1, interpretamos que esa variable reduce la probabilidad del suceso, en nuestro caso el suceso es el retraso en la salida de un vuelo, y por contra si el valor es mayor que 1 se aumenta la probabilidad de que el suceso ocurra.
+
+Por lo tanto, vemos que todos los días de la semana excepto el miércoles, reducen la probabilidad de que haya un restraso en el vuelo. Por otro lado, las aerolíneas AS, F9, HA, US, VX reducen la probabilidad de que haya un restraso, y finalmente, el ARRIVEL_DELAY aumenta la probabilidad de que se produzca un restraso, lo cual es lógico.
 
 ## Predicción
 
@@ -503,6 +520,18 @@ auc(roc1)
 Vemos que nos proporciona una área bajo la curva muy pequeña, es decir, el modelo no descrimina del todo bien los datos. Por lo tanto, este modelo comparando su bondad de ajuste con la curva ROC, vemos que no es el modelo ideal para este problema.
 
 Realizamos lo mismo pero para el modelo del apartado d:
+```{r}
+prob=predict(modelo_rlgs_DAY_AIRLINE_ARRIVAL, df_rlgs_DAY_AIRLINE_ARRIVAL, type="response")
+roc1=roc(df_rlgs_DAY_AIRLINE_ARRIVAL$delay_SFO, prob, data=df_rlgs_DAY_AIRLINE_ARRIVAL)
+plot (roc1)
+```
+
+Calculamos el área bajo la curva:
+```{r}
+auc(roc1)
+```
+
+Tal y como vimos en la creación del modelo, el modelo del apartado d era el mejor, y observando tanto la gráfica como el área bajo la curva vemos que era verdad, que este modelo ajusta muy bien los datos no como el modelo anterior, es decir, el modelo del apartado d es mejor que el modelo del apartado c.
 
 # Conclusiones del análisis
 
@@ -518,11 +547,11 @@ Posteriormente, hemos creado un modelo de regresión lineal múltiple, pero en e
 
 Una vez realizados todos los modelos hemos analizado el modelo del apartado b, y hemos visto que para ciertos valores el modelo no se comporta de forma correcta (aunque para la mayoría sí) ya que los residuos no siguen una distribución normal.
 
-Respecto al segundo ejercicio, hemos realizado diferentes modelos de regresión logística,
+Respecto al segundo ejercicio, hemos realizado diferentes modelos de regresión logística, y hemos ido probando si al introducir determinadas variables el modelo mejoraba o no. Se ha conseguido el mejor modelo en el apartdo d, ya que las tres variables independientes (DAY_OF_WEEK, AIRLINE, ARRIVAL_DELAY) están fuertemente relacionadas con el retraso que se produce en un vuelo.
 
 También en este ejercicio hemos analizado la bondad de ajuste respecto al modelo del apartado c, y podemos concluir que dicho modelo no es el idóneo, ya que según el test de Hosman-Lemeshow sí que hay una diferencia significativa entre los valores que se predicen y los observados, es decir, el modelo no ajusta bien.
 
-Finalmente hemos realizado el análisis de las curvas ROC tanto para el modelo del apartado c y del apartado d. Respecto a la curva que proporciona el modelo del apartado c, no es la idónea ya que el área que nos da es muy pequeño, es decir, el modelo no ajusta bien los datos. Respecto a la curva que proporciona el modelo del apartado d ..........
+Finalmente hemos realizado el análisis de las curvas ROC tanto para el modelo del apartado c y del apartado d. Respecto a la curva que proporciona el modelo del apartado c, no es la idónea ya que el área que nos da es muy pequeño, es decir, el modelo no ajusta bien los datos. Respecto a la curva que proporciona el modelo del apartado d es muy buena, es decir, el modelo ajusta muy bien los datos.
 
 
 

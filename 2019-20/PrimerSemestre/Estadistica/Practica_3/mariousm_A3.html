@@ -166,7 +166,7 @@ pre code {
 
 <h1 class="title toc-ignore">A3 - Modelos predictivos</h1>
 <h4 class="author">Mario Ubierna San Mamés</h4>
-<h4 class="date">8 de mayo, 2021</h4>
+<h4 class="date">9 de mayo, 2021</h4>
 
 </div>
 
@@ -270,11 +270,9 @@ head(df_rls)</code></pre>
 <pre class="r"><code>colSums(is.na(df_rls))</code></pre>
 <pre><code>## DEPARTURE_DELAY   ARRIVAL_DELAY 
 ##               0             461</code></pre>
-<p>Vemos que hay observaciones cuyo atributo ARRIVAL_DELAY no tiene valor, por lo que vamos a ignorar estas observaciones del dataframe usado para crear el modelo de la regresión lineal:</p>
-<pre class="r"><code>df_rls = df_rls[is.na(df_rls$ARRIVAL_DELAY) == FALSE,]
-colSums(is.na(df_rls))</code></pre>
-<pre><code>## DEPARTURE_DELAY   ARRIVAL_DELAY 
-##               0               0</code></pre>
+<p>Vemos que hay observaciones cuyo atributo ARRIVAL_DELAY no tiene valor, podríamos ignorar estas observaciones pero en nuestro caso no lo vamos a hacer ya que para otros modelos perderíamos información:</p>
+<pre class="r"><code># df_rls = df_rls[is.na(df_rls$ARRIVAL_DELAY) == FALSE,]
+# colSums(is.na(df_rls))</code></pre>
 <p>Una vez limpiado el dataset creamos el modelo de regresión lineal, recordando que la variable dependiente es DEPARTURE_DELAY y la variable independiente ARRIVAL_DELAY:</p>
 <pre class="r"><code>modelo_rls = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY, df_rls)
 summary(modelo_rls)</code></pre>
@@ -294,6 +292,7 @@ summary(modelo_rls)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 11.69 on 145489 degrees of freedom
+##   (461 observations deleted due to missingness)
 ## Multiple R-squared:  0.9082, Adjusted R-squared:  0.9082 
 ## F-statistic: 1.439e+06 on 1 and 145489 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Ahora lo que tenemos que hacer es evaluar la calidad del modelo, a partir de su coeficiente de determinación y de correlación.</p>
@@ -301,7 +300,7 @@ summary(modelo_rls)</code></pre>
 <p>De la anterior ejecución vemos que tenemos un coeficiente de determinación de 0.91, este valor está muy próximo a uno por lo que los puntos se ajustan a la recta de regresión.</p>
 <p>Otra forma de medir cómo de bueno es el modelo es a partir del coeficiente de correlación, éste nos indica cómo de relacionadas están dos variables, pudiendo ser una relación positiva (si cuando aumenta una variable la otra aumenta) o negativa (si cuando aumenta una variable la otra disminuye).</p>
 <p>Por lo que primero, vamos a calcular la correlación entre ambas variables:</p>
-<pre class="r"><code>cat(&quot;El valor del coeficiente de correlación (r) es:&quot;, cor(x = df_rls$ARRIVAL_DELAY, y = df_rls$DEPARTURE_DELAY))</code></pre>
+<pre class="r"><code>cat(&quot;El valor del coeficiente de correlación (r) es:&quot;, cor(x = df_rls$ARRIVAL_DELAY, y = df_rls$DEPARTURE_DELAY, use = &quot;complete.obs&quot;))</code></pre>
 <pre><code>## El valor del coeficiente de correlación (r) es: 0.9529701</code></pre>
 <p>El coeficiente de correlación es un valor que va entre -1 y 1, siendo -1 cuando están altamente correlacionadas dos variables pero de forma negativa, y siendo 1 cuando están altamente correlacionadas de forma positiva.</p>
 <p>Respecto a la ejecución anterior, vemos que r tiene un valor de 0.95, éste un valor muy alto lo que nos indica que ambas variables están altamente correlacionadas y de forma positiva, es decir, cuando una aumenta la otra también.</p>
@@ -312,7 +311,7 @@ summary(modelo_rls)</code></pre>
 <p>Se añadirá al modelo anterior la variable independiente DISTANCIA. ¿Existe una mejora del ajuste?. Razonar.</p>
 <p>Lo primero que debemos hacer es crear un dataframe con la información relevante:</p>
 <pre class="r"><code>df_rlm = df_rls
-df_rlm[&quot;DISTANCE&quot;] = df_copy$DISTANCE[is.na(df_copy$ARRIVAL_DELAY) == FALSE]
+df_rlm[&quot;DISTANCE&quot;] = df_copy[, c(&quot;DISTANCE&quot;)]
 
 head(df_rlm)</code></pre>
 <pre><code>##   DEPARTURE_DELAY ARRIVAL_DELAY DISTANCE
@@ -342,6 +341,7 @@ summary(modelo_rlm)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 11.4 on 145488 degrees of freedom
+##   (461 observations deleted due to missingness)
 ## Multiple R-squared:  0.9127, Adjusted R-squared:  0.9127 
 ## F-statistic: 7.605e+05 on 2 and 145488 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>En este caso el coeficiente de determinación R2 es igual a 0.9127 mientras que en el anterior modelo era de 0.9082. Por lo tanto, vamos que sí que hay una mejora significativa ya que a mayor R2 mejor ajustados están los datos a la recta de la regresión.</p>
@@ -374,6 +374,7 @@ modelo_rlm_distancia_mayor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DIST
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 9.206 on 63195 degrees of freedom
+##   (173 observations deleted due to missingness)
 ## Multiple R-squared:  0.9299, Adjusted R-squared:  0.9299 
 ## F-statistic: 4.189e+05 on 2 and 63195 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>summary(modelo_rlm_distancia_mayor)</code></pre>
@@ -395,6 +396,7 @@ modelo_rlm_distancia_mayor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DIST
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 12.82 on 82290 degrees of freedom
+##   (288 observations deleted due to missingness)
 ## Multiple R-squared:  0.9034, Adjusted R-squared:  0.9034 
 ## F-statistic: 3.848e+05 on 2 and 82290 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>De la anterior ejecución podemos observar que cuando la distancia de los vuelos es menor o igual a 600 millas, el modelo se comporta algo mejor que cuando la distancia es mayor a 600 millas.</p>
@@ -404,21 +406,22 @@ modelo_rlm_distancia_mayor = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DIST
 <div id="modelo-de-regresión-lineal-múltiple-regresores-cuantitativos-y-cualitativos" class="section level2" number="1.2">
 <h2 number="1.2"><span class="header-section-number">1.2</span> Modelo de regresión lineal múltiple (regresores cuantitativos y cualitativos)</h2>
 <p>En este apartado se estudiará la relación de DEPARTURE_DELAY, con las variables explicativas ARRIVAL_DELAY y LATE_AIRCRAFT_DELAY. Para ello se procederá a la recodificación de la variable LATE_AIRCRAFT_DELAY, en en mayor y menor o igual a 15 minutos.</p>
-<p>Lo primero que debemos de hacer es crear el dataframe con los datos que nos interesan, además no tenemos en cuenta las observaciones cuyo valor sea NA:</p>
-<pre class="r"><code>df_rlm_cualitativo = df_copy[is.na(df_copy$ARRIVAL_DELAY) == FALSE &amp; is.na(df_copy$LATE_AIRCRAFT_DELAY) == FALSE, c(&quot;DEPARTURE_DELAY&quot;, &quot;ARRIVAL_DELAY&quot;, &quot;LATE_AIRCRAFT_DELAY&quot;)]
+<p>Lo primero que debemos de hacer es crear el dataframe con los datos que nos interesan:</p>
+<pre class="r"><code>df_rlm_cualitativo = df_copy[, c(&quot;DEPARTURE_DELAY&quot;, &quot;ARRIVAL_DELAY&quot;, &quot;LATE_AIRCRAFT_DELAY&quot;)]
 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY &lt;= 15] = 0 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`[df_rlm_cualitativo$LATE_AIRCRAFT_DELAY &gt; 15] = 1 
 df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY` = factor(df_rlm_cualitativo$`d-LATE_AIRCRAFT_DELAY`)
 
 head(df_rlm_cualitativo)</code></pre>
-<pre><code>##    DEPARTURE_DELAY ARRIVAL_DELAY LATE_AIRCRAFT_DELAY d-LATE_AIRCRAFT_DELAY
-## 2              -32            -4                   0                     0
-## 20             -20           -19                   0                     0
-## 21             -20           -22                   0                     0
-## 31             -19            21                   0                     0
-## 32             -19            -7                   0                     0
-## 33             -19           -33                   0                     0</code></pre>
+<pre><code>##   DEPARTURE_DELAY ARRIVAL_DELAY LATE_AIRCRAFT_DELAY d-LATE_AIRCRAFT_DELAY
+## 1             -34           -45                  NA                  &lt;NA&gt;
+## 2             -32            -4                   0                     0
+## 3             -31             8                  NA                  &lt;NA&gt;
+## 4             -26           -14                  NA                  &lt;NA&gt;
+## 5             -25            -7                  NA                  &lt;NA&gt;
+## 6             -22           -14                  NA                  &lt;NA&gt;</code></pre>
+<p>Como podemos observar, la variable LATE_AIRCRAFT_DELAY tiene valores perdidos, pero si eliminamos las observaciones que tienen valores perdidos perderíamos mucha información sobre la variable ARRIVAL_DELAY, es por ello que hemos considerado que lo mejor es mantener dichas observaciones. Los NA no los hemos considerado como 0 o 1 ya que podríamos sesgar al modelo con nuestro criterio, hemos probado tanto este modelo con valores NA y sin NA y nos proporciona el mismo resultado, aún así vamos a mantener los valores NA.</p>
 <p>Creamos el modelo de regresión lineal múltiple con las variables cuantitativas y cualitativas, la variable dependiente es DEPARTURE_DELAY y las variables independientes ARRIVAL_DELAY y d-LATE_AIRCRAFT_DELAY:</p>
 <pre class="r"><code>modelo_rlm_cualitativo = lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + `d-LATE_AIRCRAFT_DELAY`, data = df_rlm_cualitativo)
 
@@ -441,6 +444,7 @@ summary(modelo_rlm_cualitativo)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 13.96 on 52137 degrees of freedom
+##   (93812 observations deleted due to missingness)
 ## Multiple R-squared:  0.9419, Adjusted R-squared:  0.9419 
 ## F-statistic: 4.227e+05 on 2 and 52137 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Como podemos apreciar de la anterior ejecución, el coeficiente de determinación es el mayor que hemos obtenido en lo que vamos de práctica, en este caso R2 es igual a 0.9419. Tiene sentido que dicho valor sea algo mayor ya que al eliminar aquellas observaciones que tengan valores NA, no las hemos tenido en consideración a la hora de crear el modelo, por lo que tenemos menos datos y estos datos están completos, permitiendo que el modelo pueda a ajustar de una mejor forma.</p>
@@ -467,26 +471,6 @@ qplot(x = ajustados, y = residuos, main = &quot;Residuales Estandarizados vs Val
 <div id="predicción-del-modelo" class="section level2" number="1.4">
 <h2 number="1.4"><span class="header-section-number">1.4</span> Predicción del modelo</h2>
 <p>Según el modelo del apartado b), calcular el retraso en la salida de un avión, que después de recorrer 2500 millas ha llegado a su destino con 30 minutos más tarde.</p>
-<pre class="r"><code>summary(modelo_rlm)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = DEPARTURE_DELAY ~ ARRIVAL_DELAY + DISTANCE, data = df_rlm)
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -166.337   -5.925    0.698    6.704  104.300 
-## 
-## Coefficients:
-##                Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   2.350e+00  5.032e-02   46.70   &lt;2e-16 ***
-## ARRIVAL_DELAY 9.246e-01  7.499e-04 1232.96   &lt;2e-16 ***
-## DISTANCE      2.904e-03  3.335e-05   87.08   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 11.4 on 145488 degrees of freedom
-## Multiple R-squared:  0.9127, Adjusted R-squared:  0.9127 
-## F-statistic: 7.605e+05 on 2 and 145488 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code>df_predict = data.frame(30,2500)
 colnames(df_predict) = c(&quot;ARRIVAL_DELAY&quot;, &quot;DISTANCE&quot;)
 
@@ -736,7 +720,7 @@ summary(modelo_rlgs_AIRLINE)</code></pre>
 ## AIC: 145856
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<p>En este caso vemos que no todas las aerolíneas tienen un nivel de signifancia, ya que la aerolínea DL su Pr(&gt;|z|) &gt; 0.05. Respecto al resto de aerolíneas, vemos que todas ellas son significantes, aunque algunas más que otras ya que las aerolíneas AS y VX tienen un nivel de significancia bajo respecto al resto de aerolíneas.</p>
+<p>En este caso vemos que no todas las aerolíneas son significativas, ya que la aerolínea DL su Pr(&gt;|z|) &gt; 0.05. Respecto al resto de aerolíneas, vemos que todas ellas sí que son significativas, aunque algunas más que otras ya que las aerolíneas AS y VX tienen un nivel de significancia bajo respecto al resto de aerolíneas.</p>
 <p>Por otro lado, vamos a ver si todas las aerolíneas son un factor de riesgo o no. Para ello tenemos que calcular el OR (odds-ratio):</p>
 <pre class="r"><code>exp(coefficients(modelo_rlgs_AIRLINE))</code></pre>
 <pre><code>## (Intercept)   AIRLINEAS   AIRLINEB6   AIRLINEDL   AIRLINEF9   AIRLINEHA 
@@ -786,7 +770,7 @@ summary(modelo_rlgs_DAY_OF_WEEK_DISTANCE)</code></pre>
 ## AIC: 145983
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
-<p>Respecto a si todas las variables son significantes vemos que no, ya que la variable distancia tiene un Pr(&gt;|z|) &gt; 0.05, por lo tanto, solo los días de la semana son significantes</p>
+<p>Respecto a si todas las variables son significantes vemos que no, ya que la variable distancia tiene un Pr(&gt;|z|) &gt; 0.05, por lo tanto, solo los días de la semana son significantes.</p>
 <p>Para poder medir cómo de bueno es el modelo, nos tenemos que fijar en la devianza de cada modelo. Si la devianza residual es menor que la devianza nula, entonces hemos conseguido mejorar el modelo.</p>
 <p>Respecto al primer modelo:</p>
 <pre class="r"><code>summary(modelo_rlgs_DAY_OF_WEEK)</code></pre>
@@ -891,8 +875,68 @@ summary(modelo_rlgs_DAY_OF_WEEK_DISTANCE)</code></pre>
 <div id="modelo-de-regresión-logística-con-las-variables-significativas" class="section level3" number="2.2.4">
 <h3 number="2.2.4"><span class="header-section-number">2.2.4</span> Modelo de regresión logística con las variables significativas</h3>
 <p>Se creará un nuevo modelo con la variable dependiente y tomando como variables explicativas, aquéllas que han sido significativas en los apartados anteriores, y además se añadirá la variable ARRIVAL_DELAY.¿Se observa una mejora con referencia a los anteriores? Explicar. Realizad el cálculo de las OR.</p>
-<p>Respecto al primer modelo recordamos que todos los días de la semana eran significativos, en el segundo modelo todas las aerolíneas eran significativas menos la aerolínea DL, y respecto al tercer modelo los días de la semana sí que son significativos pero la distancia no.</p>
-<p>Por lo tanto, vamos a crear un modelo cuyas variables independientes van a ser: DAY_OF_WEEK, AIRLINE (todas menos DL) y ARRIVAL_DELAY:</p>
+<p>Respecto al primer modelo recordamos que todos los días de la semana eran significantes, en el segundo modelo todas las aerolíneas eran significativas menos la aerolínea DL (aún así consideramos que esta variable es significativa, ya que no tiene sentido eliminar los registros cuya aerolínea sea DL, estaríamos perdiendo información), y respecto al tercer modelo los días de la semana sí que son significativos pero la distancia no.</p>
+<p>Por lo tanto, vamos a crear un modelo cuyas variables independientes van a ser: DAY_OF_WEEK, AIRLINE y ARRIVAL_DELAY:</p>
+<pre class="r"><code>df_rlgs_DAY_AIRLINE_ARRIVAL = df_rlgs[, c(&quot;delay_SFO&quot;, &quot;DAY_OF_WEEK&quot;, &quot;AIRLINE&quot;)]
+df_rlgs_DAY_AIRLINE_ARRIVAL$ARRIVAL_DELAY = df_copy[, c(&quot;ARRIVAL_DELAY&quot;)]
+
+modelo_rlgs_DAY_AIRLINE_ARRIVAL = glm(formula = delay_SFO ~ DAY_OF_WEEK + AIRLINE + ARRIVAL_DELAY, family = binomial(link=logit), data = df_rlgs_DAY_AIRLINE_ARRIVAL)</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>summary(modelo_rlgs_DAY_AIRLINE_ARRIVAL)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = delay_SFO ~ DAY_OF_WEEK + AIRLINE + ARRIVAL_DELAY, 
+##     family = binomial(link = logit), data = df_rlgs_DAY_AIRLINE_ARRIVAL)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -6.4633  -0.3042  -0.1668  -0.0674   3.9695  
+## 
+## Coefficients:
+##                 Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)   -2.9900107  0.0512128 -58.384  &lt; 2e-16 ***
+## DAY_OF_WEEK2  -0.0456292  0.0407592  -1.119   0.2629    
+## DAY_OF_WEEK3   0.0133480  0.0403931   0.330   0.7411    
+## DAY_OF_WEEK4  -0.0834796  0.0398771  -2.093   0.0363 *  
+## DAY_OF_WEEK5  -0.0669573  0.0403257  -1.660   0.0968 .  
+## DAY_OF_WEEK6  -0.0869223  0.0455163  -1.910   0.0562 .  
+## DAY_OF_WEEK7  -0.0090428  0.0408408  -0.221   0.8248    
+## AIRLINEAS     -0.1870129  0.0795518  -2.351   0.0187 *  
+## AIRLINEB6      0.4717510  0.0732440   6.441 1.19e-10 ***
+## AIRLINEDL      0.1022805  0.0635807   1.609   0.1077    
+## AIRLINEF9     -0.5902741  0.1084094  -5.445 5.18e-08 ***
+## AIRLINEHA     -2.5276301  0.2235000 -11.309  &lt; 2e-16 ***
+## AIRLINEOO      0.0453131  0.0487614   0.929   0.3527    
+## AIRLINEUA      0.8004779  0.0467436  17.125  &lt; 2e-16 ***
+## AIRLINEUS     -0.5955250  0.1094699  -5.440 5.33e-08 ***
+## AIRLINEVX     -0.1427981  0.0556514  -2.566   0.0103 *  
+## AIRLINEWN      0.5195810  0.0554254   9.374  &lt; 2e-16 ***
+## ARRIVAL_DELAY  0.1361611  0.0008731 155.950  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 146226  on 145490  degrees of freedom
+## Residual deviance:  55666  on 145473  degrees of freedom
+##   (461 observations deleted due to missingness)
+## AIC: 55702
+## 
+## Number of Fisher Scoring iterations: 7</code></pre>
+<p>Respecto a este modelo vamos que ya no todos los días de la semana son significativoos, ni tampoco todas las aerolíneas, sin embargo, el restraso de llegada sí que es importante, es decir, sí que determina significativamente que se produzca un retraso en la salida.</p>
+<p>Para considerar si este modelo es bueno nos fijamos en la devianza residual, y ésta tiene que ser menor que la devianza nula, por lo tanto vemos que esto sí que se cumple. Además, esta devianza residual es la menor obtenida con todos los modelos que hemos creado en este ejercicio, lo cual nos indica que este modelo es mejor y ajusta mejor los datos que cualquiera de los modelos anteriores.</p>
+<p>Finalmente, vamos a realizar el cálculo de las OR:</p>
+<pre class="r"><code>exp(coefficients(modelo_rlgs_DAY_AIRLINE_ARRIVAL))</code></pre>
+<pre><code>##   (Intercept)  DAY_OF_WEEK2  DAY_OF_WEEK3  DAY_OF_WEEK4  DAY_OF_WEEK5 
+##    0.05028690    0.95539613    1.01343753    0.91990982    0.93523513 
+##  DAY_OF_WEEK6  DAY_OF_WEEK7     AIRLINEAS     AIRLINEB6     AIRLINEDL 
+##    0.91674835    0.99099795    0.82943306    1.60279829    1.10769416 
+##     AIRLINEF9     AIRLINEHA     AIRLINEOO     AIRLINEUA     AIRLINEUS 
+##    0.55417535    0.07984802    1.04635545    2.22660485    0.55127308 
+##     AIRLINEVX     AIRLINEWN ARRIVAL_DELAY 
+##    0.86692907    1.68132302    1.14586642</code></pre>
+<p>Analizado los OR podemos ver el cómo de probable es que ocurra un suceso respecto a que no ocurra, si el coeficiente nos da un valor menor que 1, interpretamos que esa variable reduce la probabilidad del suceso, en nuestro caso el suceso es el retraso en la salida de un vuelo, y por contra si el valor es mayor que 1 se aumenta la probabilidad de que el suceso ocurra.</p>
+<p>Por lo tanto, vemos que todos los días de la semana excepto el miércoles, reducen la probabilidad de que haya un restraso en el vuelo. Por otro lado, las aerolíneas AS, F9, HA, US, VX reducen la probabilidad de que haya un restraso, y finalmente, el ARRIVEL_DELAY aumenta la probabilidad de que se produzca un restraso, lo cual es lógico.</p>
 </div>
 </div>
 <div id="predicción" class="section level2" number="2.3">
@@ -947,6 +991,16 @@ roc1=roc(df_rlgs_DAY_OF_WEEK_DISTANCE$delay_SFO,prob, data=df_rlgs_DAY_OF_WEEK_D
 <pre><code>## Area under the curve: 0.5512</code></pre>
 <p>Vemos que nos proporciona una área bajo la curva muy pequeña, es decir, el modelo no descrimina del todo bien los datos. Por lo tanto, este modelo comparando su bondad de ajuste con la curva ROC, vemos que no es el modelo ideal para este problema.</p>
 <p>Realizamos lo mismo pero para el modelo del apartado d:</p>
+<pre class="r"><code>prob=predict(modelo_rlgs_DAY_AIRLINE_ARRIVAL, df_rlgs_DAY_AIRLINE_ARRIVAL, type=&quot;response&quot;)
+roc1=roc(df_rlgs_DAY_AIRLINE_ARRIVAL$delay_SFO, prob, data=df_rlgs_DAY_AIRLINE_ARRIVAL)</code></pre>
+<pre><code>## Setting levels: control = 0, case = 1</code></pre>
+<pre><code>## Setting direction: controls &lt; cases</code></pre>
+<pre class="r"><code>plot (roc1)</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+<p>Calculamos el área bajo la curva:</p>
+<pre class="r"><code>auc(roc1)</code></pre>
+<pre><code>## Area under the curve: 0.9622</code></pre>
+<p>Tal y como vimos en la creación del modelo, el modelo del apartado d era el mejor, y observando tanto la gráfica como el área bajo la curva vemos que era verdad, que este modelo ajusta muy bien los datos no como el modelo anterior, es decir, el modelo del apartado d es mejor que el modelo del apartado c.</p>
 </div>
 </div>
 <div id="conclusiones-del-análisis" class="section level1" number="3">
@@ -957,9 +1011,9 @@ roc1=roc(df_rlgs_DAY_OF_WEEK_DISTANCE$delay_SFO,prob, data=df_rlgs_DAY_OF_WEEK_D
 <p>Siguiendo con ese primer ejercicio, cuando hemos creado dos modelos dependiendo de si la distancia era mayor o menor a 600 millas, hemos comprobado que no se comportaban igual, es decir, el modelo en el que la distancia era menor o igual a 600 millas se comportaba mejor (ajustaba mejor los datos) que el modelo cuya distancia era superior a 600 millas.</p>
 <p>Posteriormente, hemos creado un modelo de regresión lineal múltiple, pero en este caso con variables cuantitativas y cualitativas, hemos conseguido el R2 mayor en este apartado, por lo que este modelo es el que mejor se comportaba respecto a todos los que se han hecho en este ejercicio.</p>
 <p>Una vez realizados todos los modelos hemos analizado el modelo del apartado b, y hemos visto que para ciertos valores el modelo no se comporta de forma correcta (aunque para la mayoría sí) ya que los residuos no siguen una distribución normal.</p>
-<p>Respecto al segundo ejercicio, hemos realizado diferentes modelos de regresión logística,</p>
+<p>Respecto al segundo ejercicio, hemos realizado diferentes modelos de regresión logística, y hemos ido probando si al introducir determinadas variables el modelo mejoraba o no. Se ha conseguido el mejor modelo en el apartdo d, ya que las tres variables independientes (DAY_OF_WEEK, AIRLINE, ARRIVAL_DELAY) están fuertemente relacionadas con el retraso que se produce en un vuelo.</p>
 <p>También en este ejercicio hemos analizado la bondad de ajuste respecto al modelo del apartado c, y podemos concluir que dicho modelo no es el idóneo, ya que según el test de Hosman-Lemeshow sí que hay una diferencia significativa entre los valores que se predicen y los observados, es decir, el modelo no ajusta bien.</p>
-<p>Finalmente hemos realizado el análisis de las curvas ROC tanto para el modelo del apartado c y del apartado d. Respecto a la curva que proporciona el modelo del apartado c, no es la idónea ya que el área que nos da es muy pequeño, es decir, el modelo no ajusta bien los datos. Respecto a la curva que proporciona el modelo del apartado d ……….</p>
+<p>Finalmente hemos realizado el análisis de las curvas ROC tanto para el modelo del apartado c y del apartado d. Respecto a la curva que proporciona el modelo del apartado c, no es la idónea ya que el área que nos da es muy pequeño, es decir, el modelo no ajusta bien los datos. Respecto a la curva que proporciona el modelo del apartado d es muy buena, es decir, el modelo ajusta muy bien los datos.</p>
 </div>
 
 
