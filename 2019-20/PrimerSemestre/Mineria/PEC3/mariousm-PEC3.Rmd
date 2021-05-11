@@ -1110,8 +1110,45 @@ Resumiendo, el último punto es el único que nos determina que hay un riesgo en
 
 ## Análisis de la bondad de ajuste sobre el conjunto de test y matriz de confusión
 
+Para medir cómo de bueno es el modelo tenemos que calcular la precisión de nuestro modelo, para ello lo que debemos de realizar es predecir con el conjuntos de datos que divido antes, y ver si los valores que obtenemos son iguales a los que son originalmente:
+```{r}
+predicciones = predict(modelo_c50_basico, testX, type = "class")
+```
+
+Una vez que tenemos las predicciones, comparamos los valores obtenidos con los originales para saber la preción, es decir, cómo de bueno es el modelo para discriminar los datos:
+```{r}
+cat("La precisión del modelo es:", round(100 * sum(predicciones == testy) / length(predicciones), 2), "%")
+```
+
+Tal y como podemos observar la precisión no es del todo mala, es decir, con esas cuatro variables si introducimos nuevos datos podemos clasificar de forma correcta un 71.56% de los datos. En el siguiente apartado crearemos dos modelos para intentar mejorar esa precisión.
+
+Por otro lado, podemos calcular la matriz de confusión de forma manual:
+```{r}
+matriz_confusion = table(testy, predicciones)
+matriz_confusion
+```
+
+Vemos que tenemos dos tipos de errores:
+
+- Aquellos en los que se predijo como Clase 1 y realmente se tenía que haber predicho como Clase 2, de estos tenemos 69 registros.
+
+- Aquellos en los que se predijo como clase 2 y realmente se tenía que haber predicho como Clase 1, de estos tenemos 26 registros.
+
+Por lo tanto, el porcentaje de error que esta cometiendo nuestro modelo es el siguiente:
+```{r}
+cat("El error cometido por nuestro modelo es el siguiente:", round(100 * (sum(matriz_confusion) - sum(diag(matriz_confusion))) / sum(matriz_confusion), 2), "%")
+```
+
+Finalmente, aunque este modelo no es del todo malo, es decir, el 71.56% de los datos los va a clasificar bien, en el siguiente apartado vamos a usar otros modelos para ver si mejoramos esta precisión.
 
 ## Modelos complementarios
+
+Con el fin de mejorar el modelo que se ha realizado en el apartado anterior, vamos a crear dos modelos nuevos, uno con el c50 pero con todas las variables del dataset y otro con el rpart y con todas las variables independientes disponibles.
+
+El primer modelo que vamos a construir es el c50 con todas las variables independientes, menos las discretizadas:
+```{r}
+
+```
 
 
 ## Conclusiones obtenidas
