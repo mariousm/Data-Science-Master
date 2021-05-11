@@ -1018,25 +1018,94 @@ De la anterior ejecución podemos observar que amount y months_loan_duration est
 Todas estas correlaciones no son del todo significativas, ya que solo podemos considerarlas como tal si la correlación en valor absoluto es superior a 0.7, pero tal y como podemos observar no es así, por lo que es interesante saber que estas variables están un poco correlacionadas pero no del todo (no sabemos cómo va a afectar a nuestro modelo si incluimos dichas variables o no).
 
 ## Primer árbol de decisión
+
+Una vez que ya hemos realizado todo el análisis del conjunto de datos, vamos a modelar el problema a partir de un árbol de decisión.
+
+Cabe destacar que en este apartado vamos a crear un modelo sencillo de tres variables, ya que se nos pide la representación gráfica y ésta tiene que ser legible. En el apartado seis, se crearán dos modelos diferentes es aquí donde jugaremos con más variables para saber qué modelo se comporta mejor.
+
+Por lo tanto, lo primero de todo es dividir el conjunto de datos inicial, en dos conjuntos: uno para entrenar el modelo y otro para realizar predicciones, pero antes debemos dividir los datos según la variable dependiente (default) y el resto de variables independientes:
 ```{r}
+set.seed(0)
 
-#c("months_loan_duration", "employment_length", "checking_balance", "credit_history")
-#c("months_loan_duration", "purpose", "savings_balance", "checking_balance", "credit_history")
-#c("savings_balance", "checking_balance", "credit_history")
-
-col = c("savings_balance", "checking_balance", "credit_history", "months_loan_duration")
-
-modelo_c50 <- C50::C5.0(x = df_copy[, col], y = as.factor(df_copy$default), rules = TRUE)
-
-summary(modelo_c50)
-
-modelo_c50 <- C50::C5.0(x = df_copy[, c("savings_balance", "checking_balance", "credit_history", "months_loan_duration")], y = as.factor(df_copy$default))
-
-plot(modelo_c50)
+df_vObjetivo = df_copy$default
+df_vIndependientes = df_copy[, -c(14)]
 ```
 
+Ahora sí, creamos el conjunto de train y el de test, para el de train se usa 2/3 de los datos y para el de test 1/3:
+```{r}
+separacion = 3
+
+indexes = sample(1:nrow(df_copy), size=floor(((separacion-1)/separacion)*nrow(df_copy)))
+trainX = df_vIndependientes[indexes,]
+trainy = df_vObjetivo[indexes]
+testX = df_vIndependientes[-indexes,]
+testy = df_vObjetivo[-indexes]
+```
+
+Comprobamos que no vamos a tener datos sesgados:
+```{r}
+summary(trainX)
+summary(trainy)
+summary(testX)
+summary(testy)
+```
+
+De la ejecución anterior vemos que tanto el conjunto de entrenamiento como el conjunto de test no presentan una gran diferencia entre sus valores, por lo que la informacón no nos va a quedar sesgada.
+
+Una vez que ya tenemos los conjuntos de dastos podemos crear y entrenar el modelo. Aunque el conjunto de datos de las variables independientes tienen 16 atributos, si introducimos todos ellos al modelo no nos va a proporcionar un árbol visualmente legible, es por ello que hemos decidido seleccionar tres variables.
+
+Las tres variables seleccionadas son: savings_balance, checking_balance y months_loan_duration. Se han elegido estas variables y no otras por el análisis que hemos hecho de los datos anteriormente. Además, a modo de prueba se creó un modelo con todas las variables y vimos que las que mejor discriminaban los datos eran estas.
+
+Una vez seleccionadas las variables creamos el modelo, el cual nos va a dar un punto de salida:
+```{r}
+set.seed(0)
+
+modelo_c50_basico = C50::C5.0(x = trainX[, c("savings_balance", "checking_balance", "months_loan_duration")], y = as.factor(trainy))
+
+plot(modelo_c50_basico)
+```
+
+Tal y como podemos apreciar en la anterior ilustración, el nodo raíz es el balance de gastos, si éste es mayor a 200 DM o unknown entonces el préstamo tiene un probabilidad aproximada del 86% de que pertenezca a la clase 1, es decir, que no haya riesgo en el préstamo.
+
+Si el balance de gasto es inferior a < 0 DM o está entre 1 y 200 DM y la duración del préstamo es inferior o igual a 22 meses, entonces el préstamo es de la clase 1, es decir, no hay riesngo en el préstamo con una probabilidad de 78%.
+
+Si el balance de gasto es inferior a < 0 DM o está entre 1 y 200 DM y la duración del préstamo es superior a 22 meses, entonces dependiendo de si el balance de ahorros es superior a > 1000 DM o unknown, el préstamo pertenece a la clase 1, no hay riesgo en el préstamo.
+
+Finalmmente, si el balance de gasto es inferior a < 0 DM o está entre 1 y 200 DM y la duración del préstamo es superior a 22 meses, entonces dependiendo de si el balance de ahorros es inferior a < 100 DM o está entre 101 y 500 DM o está entre 501 y 1000 DM, el préstamo pertenece a la clase 2, sí que hay riesgo en el préstamo.
+
+Por otro lado, podemos hacer un summary del modelo para ver cómo está definido:
+```{r}
+summary(modelo_c50_basico)
+```
+
+Vemos que el modelo no es perfecto, sino que contiene errores, para ser más exactos el 23.6% de los datos de entramiento el modelo no ha sido bueno clasificándolos, es decir, 157 registros se han predicho como erróneos.
+
+Esto lo podemos ver en el apartado errors y justo debajo de él nos indica que para nuestro modelo ha clasificado 109 registros como clase 1 y realmente eran clase 2, pero también ha clasificado 48 registros como clase 2 cuando realmente eran clase 1.
+
+En el siguiente apartado vamos a analizar el mismo modelo pero a partir de las reglas que se han generado, y en el siguiente vamos a predecir los valores para el conjunto de datos del test, permitiéndonos así hacer una estimación del error del modelo junto a sus tipos de errores.
 
 ## Explicación de las reglas obtenidas
+
+Una vez que hemos analizado el modelo de forma visual, vamos a modelar de nuevo pero indicando que nos muestre las reglas obtenidas:
+```{r}
+set.seed(0)
+
+modelo_c50_basico = C50::C5.0(x = trainX[, c("savings_balance", "checking_balance", "months_loan_duration")], y = as.factor(trainy), rules = TRUE)
+
+summary(modelo_c50_basico)
+```
+
+De la anterior ejecución podemos observar las reglas obtenidas:
+
+- Cuando checking_balance es igual a > 200 DM o unknown => Clase 1 con un 86% (no hay riesgo en el préstamo).
+
+- Cuando checking_balance es igual a < 0 DM o 1-200 DM y su months_loan_duration es menor o igual a 22 => Clase 1 con un 78%.
+
+- Cuando checking_balance es igual a < 0 DM o 1-200 DM, su months_loan_duration es mayor que 22 y su savings_balance es > 1000 DM o unknown => Clase 1 con un 86%.
+
+- Cuando checking_balance es igual a < 0 DM o 1-200 DM, su months_loan_duration es mayor que 22 y su savings_balance es < 100 DM o está entre 101-500 DM o está entre 501-1000 DM => Clase 2 con un 60% (hay riesgo en el préstamo).
+
+Resumiendo, el último punto es el único que nos determina que hay un riesgo en el préstamo, por lo que se recomendaría a la entidad bancaría no conceder el mismo.
 
 
 ## Análisis de la bondad de ajuste sobre el conjunto de test y matriz de confusión
