@@ -566,8 +566,474 @@ Tal y como podemos ver no tenenemos valores perdidos, lo que significa que todos
 
 ## Análisis descriptivo y de correlaciones
 
+Una vez que hemos hecho un pequeño análisis sobre los datos que tenemos con el fin de saber qué campos hay, cuales son sus valores, si hay valores perdidos... Lo siguiente es hacer un análisis en profundiad de los mismos.
+
+En este apartado lo vamos a dividir en tres puntos: el análisis de las distribuciones de cada variable, el cómo afecta cada variable respecto al riesgo de conceder un préstamo, y por último las correlaciones entre las variables numéricas.
+
+### Distribuciones
+
+Lo primero que debemos de hacer es analizar las distribuciones de cada variable, para saber si sigue una distribución normal, si hay valores atípicos...
+
+La primera variable a analizar es checking_balance o el balance de gastos:
+```{r}
+library (ggplot2)
+
+ggplot(data=df_copy,aes(x=checking_balance)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Checking_balance") +
+  ggtitle("Frecuencia según el checking_balance")
+```
+
+Observamos que la gran mayoría de balances de gastos con la excepción de los desconocidos, o el balance es < 0 DM o está entre 1 y 200 DM. Cabe destacar que los valores desconocidos podríamos sustituirlos por los más frecuentes o usar otra medida, pero si hacemos eso vamos a sesgar la información real que tenemos del dastaset, es por ello que hemos decidido mantener dicho nivel.
+
+La siguiente variable a analizar es months_loan_duration:
+```{r}
+ggplot(data=df_copy,aes(x=months_loan_duration)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Months_loan_duration") +
+  ggtitle("Frecuencia según el months_loan_duration")
+```
+
+Respecto a esta variable vemos que no sigue una distribución normal, y que lo valores más comunes se encuentran entre 15 y 23 meses, es decir, por norma general la duración de los préstamos es pequeña año y medio / dos años.
+
+La siguiente variable a analizar es credit_history:
+```{r}
+ggplot(data=df_copy,aes(x=credit_history)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Credit_history") +
+  ggtitle("Frecuencia según el credit_history")
+```
+
+Esta variable es curiosa ya que vemos que la gran mayoría de casos son préstamos repagados, es decir, que no se han terminado de pagar pero se sigue cumpliendo con los pagos, por otro lado, vemos que no hay muchos préstamos retrasados pero sí críticos, por lo que es interesante analizar que en esta entidad bancaria algo menos de un tercio de los datos son préstamos críticos.
+
+Continuamos analizando la distribución de la variable purpose:
+```{r}
+ggplot(data=df_copy,aes(x=purpose)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Purpose") +
+  ggtitle("Frecuencia según el purpose")
+```
+
+Vemos que en esta entidad bancaria, la gran mayoría de los préstamos son cubiertos para radio/tv y para comprarse un coche nuevo. Aunque también es llamativo los préstamos para comprar un coche de segunda mano y para invertir en un negocio. Los demás propósitos del préstamo son prácticamente insignificantes.
+
+La siguiente variable a analizar es amount o la cantidad del préstamo:
+```{r}
+ggplot(data=df_copy,aes(x=amount)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Amount") +
+  ggtitle("Frecuencia según el amount")
+```
+
+Aunque la anterior gráfica no la hemos discretizado, es decir, podríamos crear diferentes categorías para ver mejor el gráfico, mantenemos esta gráfica ya que queda muy claro a nivel visual que prácticamente la mayoría de las cantidades para un préstamo se mueven en el intervalo 250 dólares a 5000 dólares, es decir, la cantidad que se suele conceder en este banco es baja, ya sea por el uso que se va a dar al préstamo, porque esta entidad tiene criterios más exigentes... Aún así vemos uqe no sigue una distribución normal, además no podemos considerar que las cantidades grandes sean anómalas, ya que éstas pueden ser totalmente lícitas.
+
+La siguiente variable a analizar es savings_balance o el balance de los ahorros:
+```{r}
+ggplot(data=df_copy,aes(x=savings_balance)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Savings_balance") +
+  ggtitle("Frecuencia según el savings_balance")
+```
+
+Del anterior gráfico observamos que la gran mayoría de los clientes tienen un balance de ahorros bajo, además aunque el porcentaje de desconocidos no sea muy elevado sigue siendo significante respecto a los otros balances.
+
+También podemos analizar los años trabajados por cada cliente:
+```{r}
+ggplot(data=df_copy,aes(x=employment_length)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Employment_length") +
+  ggtitle("Frecuencia según el employment_length")
+```
+
+Vemos que los datos de esta variable están más repartidos, por norma general tener una experiencia baja o muy grande es lo normal, aunque el resto de niveles son también significativos.
+
+La siguiente variable a analizar es personal_status:
+```{r}
+ggplot(data=df_copy,aes(x=personal_status)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Personal_status") +
+  ggtitle("Frecuencia según el personal_status")
+```
+
+Es curioso ver que la gran mayoría de veces que se pide un préstamo es por un hombrem y éste suele estar soltero. Respecto a las mujeres, el dataset no determina si el nivel female hace referencia a todas las mujeres (divorciadas, casadas o solteras) pero vamos a considerar que es así, que dicho nivel representa todos los casos al igual que en los hombres.
+
+En cuanto a la variable age:
+```{r}
+ggplot(data=df_copy,aes(x=age)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Age") +
+  ggtitle("Frecuencia según el age")
+```
+
+Vemos que no sigue una distribución normal, sin embargo, la gran mayoría de gente que pide un préstamo se encuentra entre los 25 a los 35, esto tiene toda la lógica del mundo ya que es aquí donde uno se independiza, se compra su coche, su casa...
+
+Podemos analizar también la variable housing:
+```{r}
+ggplot(data=df_copy,aes(x=housing)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Housing") +
+  ggtitle("Frecuencia según el housing")
+```
+
+Este gráfico es significate, ya que vemos que en la gran mayoría de los casos los cliente tienen su propia casa, es decir, no viven ni de alquier ni en viviendas del estado.
+
+Podemos analizar también los créditos que tiene cada cliente:
+```{r}
+ggplot(data=df_copy,aes(x=existing_credits)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Existing_credits") +
+  ggtitle("Frecuencia según el existing_credits")
+```
+
+Vemos que por norma general los clientes tienen uno o como mucho dos créditos, ya que hay muy poca gente con 3 y 4 créditos al mismo tiempo.
+
+Podemos analizar si el tipo de cliente que solicita el préstamo es extranjero o no:
+```{r}
+ggplot(data=df_copy,aes(x=foreign_worker)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Foreign_worker") +
+  ggtitle("Frecuencia según el foreign_worker")
+```
+
+Y vemos que sí, que esta entidad bancaria tiene un público mayor sobre trabajadores extranjeros, realmente casi todos son inmigrantes.
+
+También podemos analizar qué tipo de trabajo tienen los clientes:
+```{r}
+ggplot(data=df_copy,aes(x=job)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Job") +
+  ggtitle("Frecuencia según el job")
+```
+
+Vemos que la gran mayoría está especializada en su trabajo y que hay muy pocos autónomos. Además, apenas existe el cliente que no sea residente en el país y esté desempleado.
+
+Finalmente, vamos a analizar la variable objetivo default, ésta nos indica el riesgo al conceder un préstamo o no, siendo 1 que no hay riesgo y 2 todo lo contrario:
+```{r}
+ggplot(data=df_copy,aes(x=default)) +
+  geom_bar(fill = "#FF6666") + 
+  ylab("Frecuencia") +
+  xlab("Default") +
+  ggtitle("Frecuencia según el default")
+```
+
+Tal y como podemos ver la gran mayoría de casos son préstamos que no hay riesgo, es decir, dos tercios de los datos son datos en lo que no tenemos riesgo al conceder el préstamo, sin embargo, hay un tercio en el que sí, por lo tanto vamos a analizar cuán de probable es que un préstamo sea de riesgo dependiendo de cada una de las variables independientes.
+
+### Análisis del riesgo del préstamo respecto a las variables independientes
+
+En este apartado vamos a realizar el estudio del riesgo de conceder un préstamo según cada una de las variables independiente que tenemos, para ello también analizaremos las diferentes tablas de contigencias para que nos proporcionen información más precisa.
+
+Antes de realizar el análisis vamos a dicretizar tres variables: months_loan_duration, amount y age, ya que éstas las vamos a usar ahora de otra forma y queda mejor visualmente ver estas variables dicretizas que no.
+```{r}
+# Discretizamos la duración del préstamos
+df_copy["d-months_loan_duration"] = ordered(cut(df_copy[[ "months_loan_duration"]], breaks = c(0,12,36,72), labels = c("Corto", "Medio", "Largo")))
+
+# Discretizamos la cantidad del préstamo
+df_copy["d-amount"] = ordered(cut(df_copy[[ "amount"]], breaks = c(0,2000,6000,19000), labels = c("Pequeña", "Mediana", "Grande")))
+
+# Discretiazamos la edad
+df_copy["d-age"] = ordered(cut(df_copy[[ "age"]], breaks = c(15,25,45,65,100), labels = c("Joven", "Mediana-edad", "Mayor", "Viejo")))
+
+# Visualizamos los cambios
+head(df_copy[, c("months_loan_duration", "d-months_loan_duration", "amount", "d-amount", "age", "d-age")])
+```
+
+
+Empezamos realizando el análisis sobre checking_balance:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=checking_balance,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Checking_balance") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a checking_balance")
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$checking_balance, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1)
+```
+
+De las dos anteriores ejecuciones vemos que respecto al balance, es prácticamente igual de probable que si tienes un balance de gastos negativo el riesgo de concer del préstamo sea igual, ya que no riesgo es un 51% y riesgo un 49%. Por otro lado, si tenemos un balance > 200 DM o entre 1-200 DM es más probable que no haya riesgo a que haya, con unos porcentajes de no riesgo 0.78 y 0.61 y de riesgo de 0.22 y 0.39 respectivamente.
+
+Continuamos el análisis respecto a los meses que dura el préstamo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=`d-months_loan_duration`,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("d-months_loan_duration") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a d-months_loan_duration")
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$`d-months_loan_duration`, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1)
+```
+
+Observamos que a medida que el periodo aumenta el riesgo también, por lo que intuimos que estas dos variables están muy correlacionadas positivamente. Cabe destacar que cuando el periodo del préstamo es largo el riesgo de conceder el préstamo es mayor, para ser más exactos cuando el préstamos dura más tenemos un riesgo del 52%.
+
+Realizamos el análisis según el credit_history:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=credit_history,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Credit_history") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a credit_history")
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$credit_history, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1)
+```
+
+Es curioso ver que cuando más riesgo tenemos de que no nos concedan un préstamos es cuando está completamente pagado, ya que el porcentaje de riesgo tanto en fully repaid como fully repaid this bank es de 63% y 57% respectivamente. En internet no encontramos nada sobre qué significa dichos niveles, ya que a apriori pensaba que si algo está completamente pagado es mejor, pero parace ser que no, que esto implica un mayor riesgo.
+
+Analizamos el propósito del préstamo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=purpose,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Purpose") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a purpose") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$purpose, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que por norma general no suele haber mucho riesgo dependiendo del propósito del préstamo, pero es verdad que si buscamos un préstamo para estudiar hay un riesgo un poco elevado de un 44%, es decir, tenemos 22 registros de este tipo de propósito que se consideran como riesgo.
+
+Analizamos la cantidad del préstamo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=`d-amount`,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("d-amount") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a d-amount") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$`d-amount`, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+En este caso vemos que a medida que aumenta la cantidad no implica que el riesgo sea mayor, ya que por ejemplo hay más riesgo cuando la cantidad es pequeña un 28% que cuando es mediana un 26%. Sin embago, si el préstamo solicitado es de cantidades elevadas el riesgo es mucho mayor, tanto que es casi un 46%.
+
+Analizamos la variable savings_balance o balance de ahorros:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=savings_balance,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Savings_balance") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a savings_balance") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$savings_balance, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Otro de los condicionantes a que no nos concedan el préstamos es si tenemos pocos ahorros < 100 DM o si nuestros ahorros están entre 101 y 500 DM, en ambos casos tenemos un riesgo de 36% y 33% respectivamente.
+
+Analizamos el tiempo que llevan trabajando los clientes y si esto supone un riesgo o no:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=employment_length,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Employment_length") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a employment_length") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$employment_length, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que a medida que aumentamos el tiempo que llevan trabajando los clientes, menos riesgo tenemos, esto lo que significa es que en mayor o menor medida estas dos variables estén correlacionadas negativamente, es decir, cuando aumenta el riesgo diminuye el tiempo y viceversa. Cabe destacar que entonces cuando tenemos de 0 a 1 años de experiencia obtenemos el mayor riesgo con un 41%.
+
+Comprobamos si el estado civil influye en el riesgo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=personal_status,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Personal_status") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a personal_status") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$personal_status, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que no hay una clara relación entre el estado civil y el riesgo ya que más o menos todos los estados civiles tienen un riesgo más o menos parecido, salvando la distancia con los hombre divorciados, ya que éstos son los que tienen mayor riesgo de que no se les conceda un préstamo con un 40%.
+
+Analizamos la edad y si influye en el riesgo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=`d-age`,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("d-age") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a d-age")
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$`d-age`, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que como es lógico, cuanto más joven eres más riesgo tiene de que no te concedan un préstamo, a esas edad apenas tienen una situación estable económica. Cabe destascar que a medida que aumenta la edad el riesgo no diminuye, ya que aunque los mayores tienen menos riesgo sobre los de mediana-edad, son los viejos los que tienen un mayor riesgo con un 27%.
+
+Analizamos si el tipo de vivienda afecta al riesgo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=housing,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Housing") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a housing")
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$housing, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Tal y como podemos apreciar aquellos clientes con casa propia tienen un menor riesgo, con un valor del 47% de que no le concedan el préstamo, esto es lógico, cuando pedimos un préstamo dependiendo de la cantidad se solicita un aval, y la propia casa suele ser el aval, si vives alquilado o en una vivienda del estado no dispones de tu propio aval.
+
+Vamos a analizar el riesgo según el número de créditos que tiene un cliente:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=existing_credits,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Existing_credits") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a existing_credits") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$existing_credits, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que no influye mucho el número de créditos respecto al riesgo de que no te concedan un préstamos, de hecho los riesgos son relativamente bajos, ya que solamente cuando tenemos 4 créditos nuestro riesgo es de un 33%, siendo éste el más alto.
+
+Analizamos si el ser extranjero influye en la concesión de un préstamo:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=foreign_worker,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Foreign_worker") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a foreign_worker") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$foreign_worker, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que es verdad que si eres extranjero tienes mayor riesgo de que no te concedan el préstamos, pero esto es relativo, ya que hay muy pocos registros de clientes que no sean extranjeros, para ser más exactos solo 37 registros de 1000 se corresponden con registros de clientes no extranjeros.
+
+Finalmente, analizamos si el trabajo influye o no:
+```{r}
+# Gráfico
+ggplot(data = df_copy, aes(x=job,fill=as.factor(default))) + geom_bar(position = "fill") +
+  xlab("Job") +
+  ylab("Frecuencia") +
+  scale_fill_manual(name = "Default", values=c("#00bfc4","#f8766d")) +
+  ggtitle("Riesgo respecto a job") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.6))
+
+# Tabla de contingencias
+tabla_frec_abs <- table(df_copy$job, df_copy$default)
+colnames(tabla_frec_abs) = c("No riesgo", "Sí riesgo")
+tabla_frec_abs
+prop.table(tabla_frec_abs, margin = 1) 
+```
+
+Vemos que la especialización del trabajo no influye a si se concede un préstamo o no, ya que todos los niveles presentan un riesgo relativamente bajo, siendo el más alto el de mangement self-employed con un 34%.
+
+### Correlaciones
+
+Para terminar con el apartado del análisis y así poder realizar el modelo, vamos a ver cómo de correlacionadas están las variables numéricas de nuestro dataset, esto nos va a permitir hacenos una idea de si las variables independientes de nuestro modelo van a afectar a la variable objetivo, que en nuestro caso es predecir si dados unos datos el cliente supone un riesgo o no concederle el préstamos.
+
+Para ello lo primero que debemos de hacer es quedarnos con las variables numéricas:
+```{r}
+df_copy_numeric = df_copy[, unlist(lapply(df_copy, is.numeric))]
+
+head(df_copy_numeric)
+```
+
+Vemos que salvando la variable objetivo que es default, solo tenemos cuatro variable numéricas según el proyecto que estamos realizando, por lo que vamos a ver cómo de correlacionadas están:
+```{r}
+cor(df_copy_numeric)
+
+corrplot(cor(df_copy_numeric), type = "upper", 
+         order = "original", 
+         tl.col = "black", 
+         tl.srt = 45)
+```
+
+De la anterior ejecución podemos observar que amount y months_loan_duration están altamente correlacionadas positivamente, es decir, cuando aumenta una variable la otra aumenta. Y respecto al análisis de default vemos que months_loan_duration y amount están un poco correlacionadas positivamente con default, y la edad respecto a default está muy poco correlacioanda negativamente con default.
+
+Todas estas correlaciones no son del todo significativas, ya que solo podemos considerarlas como tal si la correlación en valor absoluto es superior a 0.7, pero tal y como podemos observar no es así, por lo que es interesante saber que estas variables están un poco correlacionadas pero no del todo (no sabemos cómo va a afectar a nuestro modelo si incluimos dichas variables o no).
 
 ## Primer árbol de decisión
+```{r}
+
+#c("months_loan_duration", "employment_length", "checking_balance", "credit_history")
+#c("months_loan_duration", "purpose", "savings_balance", "checking_balance", "credit_history")
+#c("savings_balance", "checking_balance", "credit_history")
+
+col = c("savings_balance", "checking_balance", "credit_history", "months_loan_duration")
+
+modelo_c50 <- C50::C5.0(x = df_copy[, col], y = as.factor(df_copy$default), rules = TRUE)
+
+summary(modelo_c50)
+
+modelo_c50 <- C50::C5.0(x = df_copy[, c("savings_balance", "checking_balance", "credit_history", "months_loan_duration")], y = as.factor(df_copy$default))
+
+plot(modelo_c50)
+```
 
 
 ## Explicación de las reglas obtenidas
