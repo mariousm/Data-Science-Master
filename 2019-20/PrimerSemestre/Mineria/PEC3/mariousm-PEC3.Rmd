@@ -1112,7 +1112,7 @@ Resumiendo, el último punto es el único que nos determina que hay un riesgo en
 
 Para medir cómo de bueno es el modelo tenemos que calcular la precisión de nuestro modelo, para ello lo que debemos de realizar es predecir con el conjuntos de datos que divido antes, y ver si los valores que obtenemos son iguales a los que son originalmente:
 ```{r}
-predicciones = predict(modelo_c50_basico, testX, type = "class")
+predicciones = predict(modelo_c50_basico, testX[, c("savings_balance", "checking_balance", "months_loan_duration")], type = "class")
 ```
 
 Una vez que tenemos las predicciones, comparamos los valores obtenidos con los originales para saber la preción, es decir, cómo de bueno es el modelo para discriminar los datos:
@@ -1147,11 +1147,111 @@ Con el fin de mejorar el modelo que se ha realizado en el apartado anterior, vam
 
 El primer modelo que vamos a construir es el c50 con todas las variables independientes, menos las discretizadas:
 ```{r}
+set.seed(0)
 
+modelo_c50_completo = C50::C5.0(x = trainX[, 1:13], y = as.factor(trainy))
+
+summary(modelo_c50_completo)
 ```
 
+Vemos que para los datos de entrenamiento está cometiendo un error de un 21.6%, este error es menor que en el anterior modelo, cuyo valor era de 23.6%. Por lo que a priori este modelo va a ser mejor que el modelo anterior.
+
+Para confirmar que el modelo de c50 con todas las variables independientes es mejor que el modelo c50 con las tres variables independintes, vamos a calcular tanto la bondad del ajuste como la matriz de confusión.
+
+La bondad del ajuste de este modelo es la siguiente:
+```{r}
+predicciones = predict(modelo_c50_completo, testX[, 1:13], type = "class")
+
+cat("La precisión del modelo es:", round(100 * sum(predicciones == testy) / length(predicciones), 2), "%")
+```
+
+En este caso la precisión es de un 73.65% lo que significa que el modelo c50 completo mejora la precisión respecto al modelo c50 básico, ya que este último tenía una precisión del 71.56%.
+
+Por otro lado, podemos calcular la matriz de confusión de forma manual:
+```{r}
+matriz_confusion = table(testy, predicciones)
+matriz_confusion
+```
+
+Vemos que tenemos dos tipos de errores:
+
+- Aquellos en los que se predijo como Clase 1 y realmente se tenía que haber predicho como Clase 2, de estos tenemos 63 registros y en el modelo anterior 69.
+
+- Aquellos en los que se predijo como clase 2 y realmente se tenía que haber predicho como Clase 1, de estos tenemos 25 registros y en el modelo anterior 26.
+
+Por lo tanto, el porcentaje de error que esta cometiendo nuestro modelo es el siguiente:
+```{r}
+cat("El error cometido por nuestro modelo es el siguiente:", round(100 * (sum(matriz_confusion) - sum(diag(matriz_confusion))) / sum(matriz_confusion), 2), "%")
+```
+
+Como es lógico si mejora la precisión se reduce el error cometido en el modelo.
+
+En resumen, este modelo c50 con todas las variables independientes que presenta el dataset original, nos proporciona un mejor ajuste que el modelo c50 con las tres variables independientes más significativas.
+
+Una vez realizado el modelo c50, vamos a realizar otro modelo, en este caso vamos a usar otro algoritmo diferente llamado rpart.
+
+Por lo tanto, lo primero que debemos de hacer es crear el modelo:
+```{r}
+library(rpart)
+
+trainXy = trainX[, -c(14:16)] # Eliminamos la variables que habíamos discretizado
+trainXy$default = as.factor(trainy)
+
+modelo_rpart = rpart(formula = default ~ ., data = trainXy)
+
+summary(modelo_rpart)
+```
+
+Vamos a calcular la bondad del ajuste:
+```{r}
+predicciones = predict(modelo_rpart, newdata = testX[, 1:13], type = c("class"))
+
+cat("La precisión del modelo es:", round(100 * sum(predicciones == testy) / length(predicciones), 2), "%")
+```
+
+En este caso la precisión es de un 73.65% lo que significa que el modelo rpart proporciona la misma precisión que el modelo c50 con todas las variables independientes.
+
+Por otro lado, podemos calcular la matriz de confusión de forma manual:
+```{r}
+matriz_confusion = table(testy, predicciones)
+matriz_confusion
+```
+
+Vemos que tenemos dos tipos de errores:
+
+- Aquellos en los que se predijo como Clase 1 y realmente se tenía que haber predicho como Clase 2, de estos tenemos 69 registros y en el modelo anterior 63.
+
+- Aquellos en los que se predijo como clase 2 y realmente se tenía que haber predicho como Clase 1, de estos tenemos 19 registros y en el modelo anterior 25.
+
+Viendo los tipos de errores, vemos que mejoramos respecto al segundo tipo pero empeoramos con el primer tipo.
+
+Por lo tanto, el porcentaje de error que esta cometiendo nuestro modelo es el siguiente:
+```{r}
+cat("El error cometido por nuestro modelo es el siguiente:", round(100 * (sum(matriz_confusion) - sum(diag(matriz_confusion))) / sum(matriz_confusion), 2), "%")
+```
+
+Como es lógico si tenemos la misma precisión, el error cometido va a ser el mismo.
+
+En resumen, tanto el modelo c50 con todas las variables como el modelo rpart con todas las variables mejoran el modelo que hemos creado en el apartado anterior, y está mejora es por igual, es decir, nos proporciona el mismo ajusto y error ambos modelos, por lo que usar un modelo u otro sería indiferente.
 
 ## Conclusiones obtenidas
+
+Para la realización de esta práctica hemos inicialmente un estudio de los datos de entrada, y posteriormente hemos analizado cada una de las variables que componían el dataset.
+
+Una vez hecho eso hemos creado un modelo de clasificación, para ser más concreto, un árbol de decisión en el que teníamos solo tres variables, esta fue así básicamente para que el gráfico a nivel visual se pudiera entender. Para la creación y evaluación de todo los modelos hemos usasdo dos particiones de los datos: una para el training y otra para el testing.
+
+La selección de variables que hemos usado en el primer modelo ha venido determinada por la significancia de las mismas, gracias al análisis de cada una de las varaibles hemos sabido identificar las que eran más importantes. Para la creación de este modelo hemos usado el algoritmo c50.
+
+Una vez modelado el problema anterior, hemos creado dos modelos diferentes: uno usando el algoritmo c50 con todas las variables independientes, y otro usando el algoritmo rpart a su vez con las mismas variables independientes.
+
+En ambos modelo hemos obtenido una mejora en la preción a la hora de predecir, por lo tanto estos dos modelos mejoraban el primer modelo básico que habíamos modelado.
+
+La principal diferencia entre el modelo c50 con rpart es que donde uno comete menos error, el otro comete más y viceversa.
+
+Cabe destacar que se hizo uso del trials para perfeccionar el modelo, pero se obtuvo una precisión algo menor que sin el trails, es por ello que mantivimos esos dos modelos sin introducir el atributo trials.
+
+En resumen, en esta práctica hemos aprendido a hacer uso de los árboles de decisión y hemos visto que tanto el modelo c50 como el modelo rpart nos permite discriminar los datos en un 73.65% respecto al 71.56% que nos proporcionaba el modelo c50 básico.
+
 
 ******
 # Rúbrica
