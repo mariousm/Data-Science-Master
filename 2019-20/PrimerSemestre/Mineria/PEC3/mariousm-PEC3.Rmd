@@ -2,7 +2,7 @@
 
 ---
 title: 'Minería de datos: PEC3 - Clasificación con árboles de decisión'
-author: "Autor: Jordi Escayola Mansilla"
+author: "Autor: Mario Ubierna San Mamés"
 date: "Mayo 2021"
 output:
   html_document:
@@ -105,7 +105,7 @@ Revisión de los datos, extracción visual de información y preparación de los
 Carga de los datos:
 
 ```{r message= FALSE, warning=FALSE}
-data<-read.csv("./titanic.csv",header=T,sep=",")
+data<-read.csv("./data/titanic.csv",header=T,sep=",")
 attach(data)
 ```
 
@@ -434,6 +434,135 @@ Los alumnos deben completar aquí los siguientes puntos que hacen referencia a l
 
 ## Estudio de los datos de entrada
 
+Antes de comenzar con la práctica en sí, tenemos que hacer la lectura del fichero sobre el que vamos a hacer el estudio:
+```{r}
+df = read.csv(file = "./data/credit_kaggle.csv", header = TRUE, sep = ",", stringsAsFactors = TRUE)
+
+# Creamos el dataframe de copia sobre el que vamos a trabajar
+df_copy = df
+
+head(df_copy)
+```
+
+A continuación observamos el número de registros y atributos que tiene nuestro dataset:
+```{r}
+str(df_copy)
+```
+
+Observamos que tenemos 1000 observaciones y 21 variables, dentro de estas variables pueden ser de dos tipos o categóricas o numéricas.
+
+Puesto que no viene por internet nada de información sobre este dataset de lo que significa cada variable y los valores que pueden tomar y qué significan estos, hemos decidido seleccionar aquellas que realmente sabemos su significado y que a priori son interestantes para ver si el conceder un préstamo a una persona genera un riesgo a la entidad bancaria  o no.
+
+Aunque más adelante analizaremos las correlaciones del dataset, vamos a ver tres posibles variables numéricas que podemos eliminar si no están correlacionadas con default:
+
+```{r}
+library(corrplot)
+corrplot(cor(df_copy[, c("installment_rate", "residence_history", "dependents", "default")]), type = "upper", 
+         order = "original", 
+         tl.col = "black", 
+         tl.srt = 45)
+```
+
+De la anterior ejecución observamos, que dichas variables no están correlacionadas entre sí ni con default, por lo que procedemos a eliminar estas variables del dataset ya que no nos aportan mucha información.
+
+Por otro lado, la variable installment numérica y su variable categórica a parte de que no sabemos realmente lo que significan hemos visto que no aportan mucha información por lo que las vamos a eliminar también. Además, la variable proporty tampoco nos proporciona mucha información respecto al análisis que vamos a realizar, es decir, el saber si la propiedad es desconocida, o del estado no nos aporta mucha información, ya que housing nos está indicando si el cliente tiene propiedad o no y de qué tipo.
+
+Por lo tanto, una vez hecho este pequeño análisis seleccionamos las variables más interesantes, las cuales son las siguientes:
+```{r}
+columns = c("checking_balance", "months_loan_duration", "credit_history", "purpose", "amount", "savings_balance", "employment_length", "personal_status", "age", "housing", "existing_credits", "foreign_worker", "job", "default")
+
+df_copy = df_copy[, columns]
+
+str(df_copy)
+```
+
+Ahora vemos que hemos reducido la dimensionalidad del dataset de 21 variables a 14, pero seguimos manteniendo el mismo número de registros.
+
+El significado de las variables que hemos seleccionado es el siguiente:
+
+**checking_balance**
+    Factor - Balance de gastos, desconocemos el significado de DM.
+    
+**months_loan_duration**
+    Integer - Duración del préstamos en meses.
+   
+**credit_history**
+    Factor - Estado del préstamo, si es crítico, está completamente pagado, una parte pagada... 
+    
+**purpose**
+    Factor - Propósito del préstamo.
+    
+**amount**
+    Integer - Cantidad del préstamo.
+    
+**savings_balance**
+    Factor - Balance de ahorros, desconocemos el significado de DM.
+    
+**employment_length**
+    Factor - Años que lleva en el empleo el cliente.
+    
+**personal_status**
+    Factor - Estado civil.
+    
+**age**
+    Integer - Edad del cliente.
+    
+**housing**
+    Factor - Tipo de vivienda.
+    
+**existing_credits**
+    Integer - Número de créditos del cliente.
+    
+**foreign_worker**
+    Factor - Trabajor extranjero.
+    
+**job**
+    Factor - Tipo de trabajo del cliente.
+    
+**default**
+    Integer - Variable objetivo, nos indica si el préstamo no es de riesgo 1, o si es de riesgo 2.
+    
+Una vez que tenemos clara la información que compone al dataset, vamos a realizar un pequeño análisis de sus datos:
+```{r}
+summary(df_copy)
+```
+
+De la anterior ejecución podemos obtener la siguiente información:
+
+- Respecto a checking_balance, los clientes suelen tener un balance de gastos repartidos, es decir, hay bastantes regisros en los que el balance es negativo, o si es positivo es inferior a 200 DM.
+
+- Respecto a la duración del préstamo, por norma general los préstamos tienen una duración entre 18 y 21 meses, siendo el mayor préstamos de 72 meses y el menor de 4 meses.
+
+- Respecto a credit_history, la gran mayaría de préstamos están en una situación normal, es decir, todavía nse sigue pagando  el préstamo pero no se producen retrasos. Sin embargo, hay una gran cantidad de préstamos en estado crítico.
+
+- Respecto al propósito del préstamo, podríamos decir que por norma general se usan con fines de radio/televisión, y para comprar un coche nuevo.
+
+- La cantidad que se suele solicitar tiene un valor de media de 3271, siendo el máixmo 18424 y su mediana 2320 podemos ver, que este banco suele conceder préstamos de pequeñas cantidades.
+
+- El balance de ahorros se mueve principalmente en un valor inferior a 100 DM.
+
+- Respecto al tiempo trabajando podemos observar que la gran mayoría o llevan relativamente poco (4 - 7 años) o relativamente mucho (> 7 años).
+
+- En cuanto al estado civil, vemos que la gran mayoría de los préstamos lo solicitan hombres, para ser más exactos por cada préstamo de mujer hay dos de hombres, siendo el hombre soltero el que más préstamos realiza.
+
+- Respecto a la edad, los clientes suelen ser mayoritariamente de mediana edad entre unos 33 y 35 años.
+
+- El tipo de vivienda es llamativo, ya que los clientes que suelen pedir el préstamo tienden a tener una casa en propiedad, es decir, no viven tanto de alquiler como de viviendas de protección oficial.
+
+- Respecto a los préstamos que suelen tener los clientes, la gran mayoría solo tiene un préstamos, aunque hay alguno que tiene más de uno, incluso hasta 4 préstamos.
+
+- También observamos que la gran mayoría que solicita los préstamos en este banco son gente extranjera, es decir, gente que no es del país en el que se recogió los datos.
+
+- En cuanto al tipo de trabajo, los clientes suelen estar especializados en su campo y no son autónomos.
+
+- Finalmente default nos dictamina que la gran mayoría de préstamos son de no riesgo, ya que el valor de la media está próximo a uno y el de la mediana es 1. 1 significa que el préstamo no es de riesgo y 2 que sí que lo es.
+
+Para finalizar con este apartado antes de realizar el siguiente, vamos a ver si tenemos datos perdidos, es decir, registros que no contegan datos:
+```{r}
+colSums(is.na(df_copy))
+```
+
+Tal y como podemos ver no tenenemos valores perdidos, lo que significa que todos los datos están completos y podemos pasar a realizar  el análisis descriptivo y de correlaciones.
 
 ## Análisis descriptivo y de correlaciones
 
