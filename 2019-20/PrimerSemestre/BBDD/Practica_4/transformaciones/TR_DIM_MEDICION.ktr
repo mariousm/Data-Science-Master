@@ -567,7 +567,9 @@
     <single_statement>N</single_statement>
     <replace_variables>N</replace_variables>
     <quoteString>N</quoteString>
-    <sql>DELETE from DIM_Medicion</sql>
+    <sql>DELETE from FACT_Mediciones
+
+DELETE from DIM_Medicion</sql>
     <set_params>N</set_params>
     <insert_field/>
     <update_field/>
