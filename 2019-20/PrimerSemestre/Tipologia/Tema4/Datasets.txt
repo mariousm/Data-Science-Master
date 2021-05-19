@@ -1,0 +1,28 @@
+Titanic 
+- ¿Qué personas eran más probable que sobrevivieran?
+- ¿Qué afectaba a la supervivencia?
+
+Censo de EEUU
+- ¿Si la sociedad era racista?
+- ¿Si era machista?
+- ¿Si eran clasistas?
+
+Clientes
+- Qué caracteriza a los clientes.
+- Si los que ingresan más gastan más...
+- Si depende de la edad tanto en los ingresos como en los gastos...
+
+Cáncer de mama **
+- Qué caracteriza el cáncer.
+- Predecir si alguien tiene cáncer de mama o no.
+
+Heart Disease UCI - https://www.kaggle.com/ronitf/heart-disease-uci?select=heart.csv
+- Predecir el riesgo de una enfermedad en el corazón.
+
+Possible Asteroid Impacts with Earth https://www.kaggle.com/nasa/asteroid-impacts
+- Ver qué caracteriza a los asteroides.
+- Predecir que tipo de asteroide impactará en la tierra
+
+
+
+
