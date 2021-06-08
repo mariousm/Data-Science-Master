@@ -15,6 +15,280 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Importación de librerías:
+```{r}
+library(ggplot2)
+library(nortest)
+```
+
+# Lectura del fichero y preparación de los datos
+
+Leed el fichero trainCLEAN.csv y guardad los datos en un objeto con identificador denominado claim. A contiunación, verificad que los datos se han cargado correctamente.
+```{r}
+claim = read.csv(file = "./data/trainCLEAN.csv", sep = ",", stringsAsFactors = TRUE, na.strings = NA)
+
+head(claim)
+```
+
+Comprobamos los tipos de las variables y que se han cargado todas:
+```{r}
+str(claim)
+```
+
+Vemos que seguimos manteniendo las 15 variables iniciales, por lo que la lectura se ha realizado de forma correcta.
+
+## Preparación de los datos
+
+Cambiamos el nombre de las variables a castellano. En concreto, se pide que se denominen de la siguiente forma: Id, Ocurrencia, Apertura, Edad, Sexo, Estado, Dependientes, OtrosDepend, Salario, Jornada, CosteInicio, CosteFinal, HorasSemana, DiasSemana y Descripcion:
+```{r}
+colnames(claim) = c("Id", "Ocurrencia", "Apertura", "Edad", "Sexo", "Estado", "Dependientes", "OtrosDepend", "Salario", "Jornada", "HorasSemana", "DiasSemana", "Descripcion", "CosteInicio", "CosteFinal")
+
+str(claim)
+```
+
+### Las variables ‘Ocurrencia‘ y ‘Apertura‘ están clasificadas como factor. Para poder trabajar con ellas hay que convertirlas en fechas:
+```{r}
+claim$Ocurrencia = as.Date(claim$Ocurrencia)
+claim$Apertura = as.Date(claim$Apertura)
+
+head(claim[, c("Ocurrencia", "Apertura")])
+```
+
+### Crear una variable denominada ‘tiempo‘ que contabilice en días el tiempo que tarda en abrirse un siniestro por la compañía desde su ocurrencia:
+```{r}
+claim$tiempo = as.integer(claim$Apertura - claim$Ocurrencia)
+
+head(claim[, c("tiempo", "Ocurrencia", "Apertura")])
+```
+
+## Clasificación de tiempo
+
+La variable tiempo indica la duración de apertura del siniestro de la siguiente forma: “Muy rápido” si se apertura en 15 días o menos, “Rápido” si se apertura entre 16 y 30 días, “Lento” si se apertura entre 31 y 89 días, y “Muy lento” si tarda 90 días o más en aperturarse el siniestro. Cread una variable categórica denominada Clasificacion, que clasifique el siniestro según estas categorías:
+```{r}
+claim$Clasificacion = as.factor(cut(claim$tiempo, breaks = c(-1, 15, 30, 89, 1095), labels = c("Muy rápido", "Rápido", "Lento", "Muy lento")))
+
+head(claim[, c("tiempo", "Clasificacion")])
+```
+
+## Valores ausentes
+
+### Analizad el número de categorías distintas en las variables ‘Descripcion‘, ‘Sexo‘ y ‘Estado‘. ¿Cuántas descripciones distintas hay de los siniestros?
+```{r}
+summary(claim)
+```
+
+Respecto a la variable Descripción vemos que tenemos muchos tipos de categorías, para ser más exactos hay 52417 categorías diferentes.
+
+En cuanto a la variable Sexo, hay tres categorías: F, M y U. Éste último tipo nos indica que se desconoce si es de género femenino o masculino.
+
+Finalmente, la variable Estado hay cuatro tipos: Sin valor (NA), M, S y U. Al igual que antes este último tipo nos indica que es deconocido el estado para dicha observación.
+
+### Representad los observaciones con la categoría "U" (U=unknown) en las variables ‘Sexo‘y ‘Estado‘ como missings.
+
+```{r}
+claim[claim$Sexo == "U", "Sexo"] = NA 
+claim[claim$Estado == "U", "Estado"] = NA
+```
+
+
+Comprobamos que se han realizado los cambios:
+```{r}
+summary(claim$Sexo)
+summary(claim$Estado)
+```
+
+Ahora vemos que ya tenemos todos los valores perdidos como NA.
+
+### Comprobad la proporción de observaciones que tienen valores ausentes y sacad conclusiones sobre cómo de serio es el problema de valores ausentes en estos datos.
+
+En el anterior apartado hemos visto que hay 2 observaciones con valor NA para la variable Sexo, realmente son observaciones insignificantes ya que hay un total de 54000 registros y solo dos son NA. Por lo que, podríamos eliminar dichas observaciones sin problemas.
+
+Respecto a la variable Estado vemos que tenemos más registros como NA, para ser más exactos hay 5294 observaciones de un total de 54000 registros, esto representa un 9.8% de los datos, es decir, en este caso sí que es significativo. Podríamos crear un modelo de regresión lineal para predecir dicho valor, imputar el valor más frecuente, pero en el siguiente apartado se nos pide que se eliminen dichas observaciones.
+
+### Eliminad los valores ausentes del conjunto de datos. Denominamos al conjunto de datos claimNet.
+
+Ejecutamos el summary para ver qué variables tienen valores ausentes, los cuales son distintos de los missings, los primeros son aquellos en los que no viene un valor, mientras que lo segundo sí que viene un valor pero es del tipo unknown:
+```{r}
+summary(claim)
+```
+
+De la anterior ejecución vemos que la variable Estado tiene 29 como vacíos (valores ausentes), por lo que procedemos la eliminación de dichos registros, también elimanos las observaciones cuyo valores sea NA:
+```{r}
+claimNet = claim[claim$Estado != "", ]
+claimNet = claimNet[!is.na(claimNet$Estado),]
+claimNet = claimNet[!is.na(claimNet$Sexo),]
+
+summary(claimNet)
+```
+
+Vemos que ahora el dataset ha pasado de 54000 registros a 48675.
+
+## Saluda mental
+
+La compañía está preocupada por las bajas por salud mental. Por este motivo, quiere monitorizar las bajas que incluyan las palabras Stress, Anxiety, Harassment o Depression. Se pide:
+
+### Crear la variable dicotómica denominada ‘RiesgoSM‘ si la variable ‘Descripcion‘ incluye alguna de estas palabras.
+
+Lo primero de todo es definir la función que nos devuelve un vector con la variable dicotimizada, un 1 si encuentra la palabra en la descripción o 0 en caso contrario:
+```{r}
+getRiesgoSM = function(descripciones) {
+  riesgoSM = c()
+
+  for (desc in descripciones) {
+    if (grepl("STRESS", toupper(desc)) == TRUE ||
+        grepl("ANXIETY", toupper(desc)) == TRUE || 
+        grepl("HARASSMENT", toupper(desc)) == TRUE || 
+        grepl("DEPRESSION", toupper(desc)) == TRUE) {
+     riesgoSM[length(riesgoSM) + 1] = 1
+   } else {
+     riesgoSM[length(riesgoSM) + 1] = 0
+   } 
+  }
+  
+  return(riesgoSM)
+}
+```
+
+Una vez definida la función la llamamos y creamos la variables en el dataframe:
+```{r}
+claimNet$RiesgoSM = getRiesgoSM(claimNet$Descripcion)
+
+#La convertimos a factor
+claimNet$RiesgoSM = as.factor(claimNet$RiesgoSM)
+
+# Comprobamos que se ha creado correctamente
+str(claimNet)
+```
+
+## Análisis visual
+
+Mostrad con diversos diagramas de caja la distribución de la variable ‘CosteFinal‘ en escala logarítmica según la variable ‘Sexo‘, según ‘Estado‘, según ‘Clasificacion‘ y según ‘RiesgoSM‘. E interpretad los gráficos brevemente.
+
+Lo primero de todo es crear una nueva variable para convertir a escala logarítmica el CosteFinal:
+```{r}
+claimNet$LogCosteFinal = log(claimNet$CosteFinal)
+
+summary(claimNet)
+```
+
+Una vez que ya tenemos la variable CosteFinal en escala logarítmica, hacemos el análisis de la misma respecto al sexo:
+```{r}
+boxplot(claimNet[claimNet$Sexo == "F", "LogCosteFinal"],
+        claimNet[claimNet$Sexo == "M", "LogCosteFinal"],
+        main = "CosteFinal respecto al Sexo",
+        xlab = "Femenino - Masculino",
+        ylab = "Valor de CosteFinal"
+        )
+```
+
+Del anterior gráfico podemos observar que el género femenino tiene un valor mínimo algo mayor que el masculino, es por ello que su mediana es un pelín más elevada, esto lo que significa es que de media las mujeres tienen un CosteFinal algo mayor, en otras palabras la indemnización suele ser algo mayor si eres mujer.
+
+Por otro lado, observamos que hay bastantes valores atípicos en los dos sexos, pero especialemnte más en el masculino, es decir, suele haber más casos "especiales" si eres hombre que si eres mujer.
+
+Continuiamos analizando el CosteFinal, pero ahora respecto a el estado civil:
+```{r}
+boxplot(claimNet[claimNet$Estado == "M", "LogCosteFinal"],
+        claimNet[claimNet$Estado == "S", "LogCosteFinal"],
+        main = "CosteFinal respecto al Estado",
+        xlab = "Casado - Soltero",
+        ylab = "Valor de CosteFinal"
+        )
+```
+
+En este caso, vemos que sucede algo parecido, si eres casado tu valor en el límite inferior es algo mayor que si estás soltero haciendo que la mediana sea algo mayor, es decir, si estás casado sueles obtener una mejor indemnización que si estás soltero.
+
+Por otro lado, vemos que también hay muchos valores atípicos, pero en este caso está bastante bien equilibrado entre ambos grupos.
+
+Analizamos el CosteFinal según la variable Clasificación:
+```{r}
+boxplot(claimNet[claimNet$Clasificacion == "Muy rápido", "LogCosteFinal"],
+        claimNet[claimNet$Clasificacion == "Rápido", "LogCosteFinal"],
+        claimNet[claimNet$Clasificacion == "Lento", "LogCosteFinal"],
+        claimNet[claimNet$Clasificacion == "Muy lento", "LogCosteFinal"],
+        main = "CosteFinal respecto a la Clasificación",
+        xlab = "Muy rápido - Rápido - Lento - Muy lento",
+        ylab = "Valor de CosteFinal"
+        )
+```
+
+El anterior gráfico es muy interesante, ya que nos indica que si la duración de apertura del siniestro es muy lenta, podemos entender que se realiza un estudio muy detallado, por lo que apenas tenemos valores atípicos y éstos están muy bien contralados. Sin embargo, con el resto de variables sucede todo lo contrario.
+
+También es curioso ver que si la clasificación es rápida tiende a tener una mayor indemnización, es decir, el coste que le supone a la asegurado es mayor, esto lo apreciamos gracias a la mediana correspondiente.
+
+Por último, vamos a analizar el CosteFinal según el RiesgoSM:
+```{r}
+boxplot(claimNet[claimNet$RiesgoSM == "1", "LogCosteFinal"],
+        claimNet[claimNet$RiesgoSM == "0", "LogCosteFinal"],
+        main = "CosteFinal respecto al RiesgoSM",
+        xlab = "Hay riesgo (1) - No hay riesgo (0)",
+        ylab = "Valor de CosteFinal"
+        )
+```
+
+Este gráfico es el más llamativo de todos ya que en los anteriores estaban más o menos nivelados, pero en este caso vemos que el riesgo de padecer un enfermedad de salud mental influye bastante en el coste final, siendo el límite inferior más elevado y su mediana también.
+
+Por otro lado, si no hay riesgo tenemos más valores atípicos, es decir, hay más situacioens "especiales" que por los motivos que sean se dan una indemnización mayor o menor.
+
+## Comprobación de normalidad
+
+¿Podemos asumir que la variable CosteFinal tiene una distribución normal? Debéis justificar la respuesta a partir de métodos visuales y contrastes.
+
+### Realizad la insepección visual de normalidad de CosteFinal
+
+Lo primero de todo es analizar la variables CosteFinal de forma gráfica:
+```{r}
+ggplot(mapping = aes(x=claimNet$CosteFinal)) + geom_density()
+```
+
+Como podemos apreciar de la anterior ilustración, CosteFinal no sigue una distribución normal, pero vamos a anilizarlo en el siguiente punto a partir de un test.
+
+### Realizad contraste de normalidad de Lilliefors de CosteFinal
+
+Aplicamos el test de Lilliefors, en dicho test la hipótesis nula es que la variable sigue una distribución norma, y la alternativa en caso contrario:
+```{r}
+lillie.test(claimNet$CosteFinal)
+```
+
+Como nos da un pvalue más pequeño que alfa (0.05), es decir, pvalue < alfa, podemos rechazar la hipótesis nula a favor de la alternativa, es decir, que nuestra variable no sigue una distribución normal.
+
+### Realizad la insepección visual de normalidad de CosteFinal en escala logarítmica
+
+Realizamos el mismo gráfico que antes pero para la variable LogCosteFinal:
+```{r}
+ggplot(mapping = aes(x=claimNet$LogCosteFinal)) + geom_density()
+```
+
+Como podemos apreciar, a priori cuando escalamos la variable logarítmica sí que sigue una distribución normal, pero para confirmarlo ejecutamos el mismo test que en el caso anterior.
+
+### Realizad contraste de normalidad de Lilliefors de CosteFinal en escala logarítmica
+
+Volvemos a aplicar el test de Lilliefors:
+```{r}
+lillie.test(claimNet$LogCosteFinal)
+```
+
+En este caso nos da un pvalue mayor que alfa, es decir, pvalue > 0.05, por lo tanto podemos asegurar que la variable CosteFinal en escala logarítmica sigue una distribución normal.
+
+# Estadística inferencial
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
