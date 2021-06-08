@@ -200,7 +200,17 @@ pre code {
 <li><a href="#realizad-contraste-de-normalidad-de-lilliefors-de-costefinal-en-escala-logarítmica"><span class="toc-section-number">1.6.4</span> Realizad contraste de normalidad de Lilliefors de CosteFinal en escala logarítmica</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#estadística-inferencial"><span class="toc-section-number">2</span> Estadística inferencial</a></li>
+<li><a href="#estadística-inferencial"><span class="toc-section-number">2</span> Estadística inferencial</a>
+<ul>
+<li><a href="#intervalo-de-confianza-de-la-media-poblacional-de-la-variable-costefinal"><span class="toc-section-number">2.1</span> Intervalo de confianza de la media poblacional de la variable CosteFinal</a></li>
+<li><a href="#contraste-de-hipótesis-para-la-diferencia-de-medias"><span class="toc-section-number">2.2</span> Contraste de hipótesis para la diferencia de medias</a>
+<ul>
+<li><a href="#escribid-la-hipótesis-nula-y-la-alternativa"><span class="toc-section-number">2.2.1</span> Escribid la hipótesis nula y la alternativa</a></li>
+<li><a href="#justificación-del-test-a-aplicar"><span class="toc-section-number">2.2.2</span> Justificación del test a aplicar</a></li>
+<li><a href="#cálculos"><span class="toc-section-number">2.2.3</span> Cálculos</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#interpretación-del-test"><span class="toc-section-number">3</span> Interpretación del test</a></li>
 </ul>
 </div>
 
@@ -683,6 +693,125 @@ summary(claimNet)</code></pre>
 </div>
 <div id="estadística-inferencial" class="section level1" number="2">
 <h1 number="2"><span class="header-section-number">2</span> Estadística inferencial</h1>
+<p>Utilizando el conjunto de datos claimNet.</p>
+<div id="intervalo-de-confianza-de-la-media-poblacional-de-la-variable-costefinal" class="section level2" number="2.1">
+<h2 number="2.1"><span class="header-section-number">2.1</span> Intervalo de confianza de la media poblacional de la variable CosteFinal</h2>
+<p>Calculad manualmente el intervalo de confianza al 95% de la media poblacional de la variable ‘CosteFinal‘ en escala normal (No se pueden utilizar funciones como t.test o z.test para el cálculo). A partir del resultado obtenido, explicad cómo se interpreta el intervalor de confianza.</p>
+<p>En este ejercicio no tenemos una muestra sino que el dataset es el conjunto de toda la población, por lo que, aunque no conozcamos a priori la desviación de la población y su media, lo podríamos calcular fácilmente porque tenemos a la población en sí, no una muestra de ella.</p>
+<p>Además, debemos asumir que seguimos una distribución normal, antes hemos comprobado que para esta variable no es así, pero aplicando el Teorema del Límite Central, si tenemos una muestra lo suficientemente grande (mayor que 30 observaciones) la media de la misma sigue una distribución normal. Como podemos calcular la media, solo tenemos que comprobar el tamaño de nuestra muestra que es más bien el tamaño de la población:</p>
+<pre class="r"><code>cat(&quot;El tamaño de la muestra (población) es igual a&quot;, length(claimNet$CosteFinal))</code></pre>
+<pre><code>## El tamaño de la muestra (población) es igual a 48675</code></pre>
+<p>De la anterior ejecución vemos que tenemos una muestra muy grande, ya que ésta es la población en sí.</p>
+<p>Por lo tanto, lo primero que vamos a hacer es calcular la media y la desviación de la población:</p>
+<pre class="r"><code>media_poblacion = mean(claimNet$CosteFinal)
+sd_poblacion = sd(claimNet$CosteFinal)</code></pre>
+<p>Lo segundo es definir nuestra alfa (nivel de significancia) y el tamaño de la población:</p>
+<pre class="r"><code>alfa = 1 - 0.95
+tam_poblacion = length(claimNet$CosteFinal)</code></pre>
+<p>Calculamos el estadístico correspondiente:</p>
+<pre class="r"><code>estadistico = sd_poblacion / sqrt(tam_poblacion)
+z = qnorm(alfa/2, lower.tail = FALSE)</code></pre>
+<p>Finalmente, calculamos los límites:</p>
+<pre class="r"><code>lim_inferior = round(media_poblacion - (z * estadistico), 2)
+lim_superior = round(media_poblacion + (z * estadistico), 2)
+
+cat(&quot;El límite inferior del intervalo de confianza (L) es igual a: &quot;, lim_inferior)</code></pre>
+<pre><code>## El límite inferior del intervalo de confianza (L) es igual a:  9450.35</code></pre>
+<pre class="r"><code>cat(&quot;El límite superior del intervalo de confianza (U) es igual a: &quot;, lim_superior)</code></pre>
+<pre><code>## El límite superior del intervalo de confianza (U) es igual a:  9958.81</code></pre>
+<p>De la anterior ejecución observamos que el intervalo de confianza es [9450.35, 9958.81]. Cuando calculamos el intervalo de confianza no podemos afirmar que cualquier valor de la población esté dentro del intervalo, lo que conseguimos definir al calcular el intervalo de confianza es asegurarnos, en nuestro caso a un 95%, del procedimiento, es decir, que el nivel de confianza en el procedimiento de cualquier muestra esté garantizado dando lugar a un intervalo que contenga el valor.</p>
+<p>Resumiendo, de lo que nos garantizamos es que el 95% de los intervalos de confianza calculados a partir de cada muestra contengan el valor del CosteFinal.</p>
+</div>
+<div id="contraste-de-hipótesis-para-la-diferencia-de-medias" class="section level2" number="2.2">
+<h2 number="2.2"><span class="header-section-number">2.2</span> Contraste de hipótesis para la diferencia de medias</h2>
+<p>¿Podemos aceptar que la indemnización a las mujeres supera en más de 1000 EUR la de los hombres? Responded a la pregunta utilizando un nivel de confianza del 95%.</p>
+<p>Nota: se deben realizar los cálculos manualmente. No se pueden usar funciones de R que calculen directamente el contraste como t.test o similar. Sí se pueden usar funciones como mean, sd, qnorm, pnorm, qt y pt.</p>
+<div id="escribid-la-hipótesis-nula-y-la-alternativa" class="section level3" number="2.2.1">
+<h3 number="2.2.1"><span class="header-section-number">2.2.1</span> Escribid la hipótesis nula y la alternativa</h3>
+<p>En este caso, presentamos las siguientes hipótesis:</p>
+<ul>
+<li><p>H0 (hipótesis nula): media_CosteFinal_Mujeres = (media_CosteFinal_Hombres + 1000)</p></li>
+<li><p>H1 (hipótesis alternativa): media_CosteFinal_Mujeres &gt; (media_CosteFinal_Hombres + 1000)</p></li>
+</ul>
+</div>
+<div id="justificación-del-test-a-aplicar" class="section level3" number="2.2.2">
+<h3 number="2.2.2"><span class="header-section-number">2.2.2</span> Justificación del test a aplicar</h3>
+<p>En este problema tenemos questión a responder y presenta las siguientes características:</p>
+<ul>
+<li><p>El contraste es de dos muestras, por un lado está la muestra de las mujeres y por otro el de hombres. Estas muestras son independientes no hay una relación entre sí.</p></li>
+<li><p>Sí que podemos asumir normalidad, es decir, podemos aplicar el Teorema del Límite Central, éste nos dice que si la media de una muestra es lo suficientemente grande (mayor que 30 observaciones) sigue una distribución normal. Al poder calcular la media de ambas muestras solo nos falta comprobar el tamaño de las mismas:</p></li>
+</ul>
+<pre class="r"><code>claimNet_femenino = claimNet[claimNet$Sexo == &quot;F&quot;,]
+claimNet_masculino = claimNet[claimNet$Sexo == &quot;M&quot;,]
+
+cat(&quot;El número de observaciones del sexo femenino es: &quot;, nrow(claimNet_femenino))</code></pre>
+<pre><code>## El número de observaciones del sexo femenino es:  11257</code></pre>
+<pre class="r"><code>cat(&quot;El número de observaciones del sexo masculino es: &quot;, nrow(claimNet_masculino))</code></pre>
+<pre><code>## El número de observaciones del sexo masculino es:  37418</code></pre>
+<ul>
+<li><p>El test es paramétrico, éstos se basan en que los datos siguen una determinada distribución, por norma general que siguen una distribución normal, por lo que tal y como hemos visto en el punto anterior podemos asumir la normalidad de los datos.</p></li>
+<li><p>El problema es unilateral por la derecha, ésto nos lo determina la hipótesis alternativa, ya que al tener el símbolo “&gt;” mayor que, solo aceptamos la hipótesis alternativa si el valor observado es mayor que el valor crítico.</p></li>
+<li><p>Respecto a si es homocedasticidad o heterocedasticidad hacemos uso de la función var.test y comprobamos si el p-valor es menor que alfa (nivel de signifancia), en nuestro caso si p-valor &lt; alfa (0.05) rechazamos la hipótesis nula siendo ésta que las varianzas son iguales, tal y como podemos ver a continuación el p-valor es menor que alfa, por lo que rechazamos la hipótesis nula, lo cual significa que estamos en un caso de heterocedasticidad:</p></li>
+</ul>
+<pre class="r"><code>var.test(claimNet_femenino$CosteFinal, claimNet_masculino$CosteFinal, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##  F test to compare two variances
+## 
+## data:  claimNet_femenino$CosteFinal and claimNet_masculino$CosteFinal
+## F = 1.5751, num df = 11256, denom df = 37417, p-value &lt; 2.2e-16
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  1.529015 1.622911
+## sample estimates:
+## ratio of variances 
+##           1.575073</code></pre>
+</div>
+<div id="cálculos" class="section level3" number="2.2.3">
+<h3 number="2.2.3"><span class="header-section-number">2.2.3</span> Cálculos</h3>
+<p>Realizad los cálculos del estadístico de contraste, valor crítico y valor p con un nivel de confianza del 95%.</p>
+<p>Lo primero de todo es definir la función que nos calcula el estadístico, el valor crítico y el pvalor:</p>
+<pre class="r"><code>muestrasIndependientes_varianzasDesconocidas = function(valores_fem, valores_masc, alfa) {
+  
+  # Calculamos el estadístico de contraste
+  sd_fem = sd(valores_fem)
+  sd_masc = sd(valores_masc)
+  n_fem = length(valores_fem) 
+  n_masc = length(valores_masc)
+  
+  # -1000 porque se indica en la hipótesis media_CosteFinal_Mujeres &gt; (media_CosteFinal_Hombres + 1000)
+  numerador = mean(valores_fem) - mean(valores_masc) - 1000
+  denominador = sqrt(((sd_fem)^2/n_fem) + ((sd_masc)^2/n_masc))
+  
+  z_obs = numerador / denominador
+  
+  # Calculamos los grados de libertad
+  numerador = (((sd_fem)^2/n_fem) + ((sd_masc)^2/n_masc))^2
+  denominador = (((sd_fem)^2/n_fem)^2 / (n_fem - 1)) + (((sd_masc)^2/n_masc)^2 / (n_masc - 1))
+  grados_libertad = as.integer(numerador / denominador)
+  
+  # Calculamos el punto crítico
+  z_cri = qt(alfa, df = grados_libertad, lower.tail = FALSE)
+  
+  # Calculamos el p-valor
+  p_value = pt(z_obs, df = grados_libertad, lower.tail = FALSE)
+  
+  # Devolvemos los valores
+  return(data.frame(L = &quot;-INF&quot;, U = z_cri, Estadistico_Contraste = z_obs, P_Valor = p_value, Grados_Libertad = grados_libertad))
+}</code></pre>
+<p>Una vez definida la función la llamamos para obtener los resultados:</p>
+<pre class="r"><code>muestrasIndependientes_varianzasDesconocidas(claimNet_femenino$CosteFinal, claimNet_masculino$CosteFinal, 0.05)</code></pre>
+<pre><code>##      L       U Estadistico_Contraste      P_Valor Grados_Libertad
+## 1 -INF 1.64495              3.591609 0.0001648202           15793</code></pre>
+</div>
+</div>
+</div>
+<div id="interpretación-del-test" class="section level1" number="3">
+<h1 number="3"><span class="header-section-number">3</span> Interpretación del test</h1>
+<p>Podemos interpretar el test de dos formas distintas:</p>
+<ul>
+<li><p>La primera, comprobamos si el valor observado está fuera de la región de aceptación, si está fuera podemos rechazar la hipótesis nula en favor de la alternativa. En nuestro caso, la región de aceptación es el intervalo [-INF, 1.64495] y el valor observado 3.591609, como el valor observado está fuera de la región de aceptación rechazamos la hipótesis nula a favor de la alternativa, es decir, que es verdad que la indemnización de las mujeres supera en más de 1000 euros a la de hombres con un nivel de confianza del 95%.</p></li>
+<li><p>La segunda opción es comprobar el pvalor, si éste es menor que alfa rechazamos la hipótesis nula, en nuestro caso pvalor = 0.00016 &lt; alfa = 0.05, al ser menor que alfa rechazamos la hipótesis nula en favor de la alternativa, es decir, confirmamos que la indemnización de las mujeres supera en 1000 euros a la de hombres con un nivel de confianza del 95%.</p></li>
+</ul>
 </div>
 
 
