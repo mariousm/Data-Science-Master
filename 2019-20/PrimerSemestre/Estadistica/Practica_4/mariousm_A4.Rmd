@@ -19,6 +19,7 @@ Importación de librerías:
 ```{r}
 library(ggplot2)
 library(nortest)
+library(ggplot2)
 ```
 
 # Lectura del fichero y preparación de los datos
@@ -405,16 +406,123 @@ Podemos interpretar el test de dos formas distintas:
 
 - La segunda opción es comprobar el pvalor, si éste es menor que alfa rechazamos la hipótesis nula, en nuestro caso pvalor = 0.00016 < alfa = 0.05, al ser menor que alfa rechazamos la hipótesis nula en favor de la alternativa, es decir, confirmamos que la indemnización de las mujeres supera en 1000 euros a la de hombres con un nivel de confianza del 95%. 
 
+# Modelo de regresión lineal
 
+Estimad un modelo de regresión lineal múltiple que tenga como variables explicativas: Edad, Sexo, Estado, Dependientes, OtrosDepend, Salario, Jornada, HorasSemana, DiasSemana, Clasificacion, RiesgoSM, CosteInicio y como variable dependiente el CosteFinal en escala logarítmica (Nota: se recomienda transformar también a escala logarítmica la variable explicativa CosteInicio)
 
+## Interpretación del modelo
 
+Interpretad el modelo lineal ajustado:
 
+– ¿Cuál es la calidad del ajuste?
 
+– Explicad la contribución de las variables explicativas en el modelo.
 
+Lo primero de todo es transformar a escala logarítmica la variable CosteInicio, para ello creamos una nueva variable en el dataframe:
+```{r}
+claimNet$LogCosteInicio = log(claimNet$CosteInicio)
 
+str(claimNet)
+```
 
+Ahora sí, vamos a crear el modelo de regresión lineal:
+```{r}
+modelo_rlm = lm(formula = LogCosteFinal ~ Edad + Sexo + Estado + Dependientes + OtrosDepend + Salario + Jornada + HorasSemana + DiasSemana + Clasificacion + RiesgoSM + LogCosteInicio, data = claimNet)
+```
 
+Una vez creado el modelo, vamos a analizar la calidad del mismo junto con la contribución de cada variable:
+```{r}
+summary(modelo_rlm)
+```
 
+La calidad del modelo viene determindada por el coeficiente de determinación o R2. El coeficiente de determinación o R2, nos indica el grado de ajuste de la recta de regresión a los valores de la muestra, es decir, el cómo es la proporción de variación en nuestro modelo. R2 es un coeficiente que puede ir entre 0 y 1, cuanto más próximo a uno mejor es el modelo, ya que significa que los errores/residuos que se cometen son muy pequeños y los valores se ajustan a la línea de regresión.
+
+En nuestro caso vemos que tenemoun un R2 de 0.733, es decir, estamos cerca del 1 pero no mucho por lo que aunque el modelo es bueno, no es el mejor de todos (se podría hacer un análisis de correlaciones y ver qué variables están correlacionadas para eliminarlas del modelo y ver si mejora éste...).
+
+Respecto a la contribución de las variables al modelo, podemos observar que las que más contribuyen son las siguientes:
+
+- Edad: es altamente significativa, es decir, influye en si el CosteFinal (indemnización) es mayor o menor, como su coeficitente es positivo cuando aumenta la edad aumenta la probabilidad de lo que queremos predecir.
+
+- Sexo: aunque esta variable es dicotómica y solo aparece el sexo cuando es masculino, vemos que dicha variable Sexo también es altamente significativa, es decir, como su coeficiente es negativo si eres de sexo masculino el CosteFinal se va a reducir.
+
+- Estado: lo mismo que sucede con el sexo pasa con el estado, es decir, si eres soltero es menos probable de que aumente el CosteFinal.
+
+- Dependientes: es significativa y al aumentar el valor de dicha variable aumenta el CosteFinal.
+
+- Salario: sigue siendo altamente significativa, y cuando aumenta el salario mayor CosteFinal vamos a obtener a la hora de predecir.
+
+- Jornada: vemos que el tipo de jornada laboral también afecta, cuando la jornada es a tiempo partido mayor CosteFinal tenemos.
+
+- DiasSemana: también influye en el CosteFinal, a mayor días semana trabajados menos CosteFinal tenemos y viceversa.
+
+- Clasificación: esta variable es significativa, no tanto como las anteriores, pero si Clasificación es Rápido aumenta el CosteFinal.
+
+- RiesgoSM: es altamente significativa en el modelo, si se padece de una enfermedad mental mayor CosteFinal.
+
+- LogCosteInicio: vemos que también es altamente significativa, a medida que aumenta el valor de dicha variable aumenta el CosteFinal y viceversa.
+
+## Análisis de residuos
+
+Por último, para profundizar en la calidad del ajuste se deben analizar los residuos que nos indicarán realmente como se ajusta nuestro modelo a los datos muestrales.
+
+- La salida de ‘summary()‘ presenta los principales estadísticos de la distribución de los residuos. Analizad los valores estimados de los estadísticos.
+
+- Realizad un análisis visual de los residuos.
+
+Lo primero de todo decir que el residuo es el error, es decir, el error que genera el modelo entre el valor que predice el propio modelo y el real.
+
+```{r}
+summary(modelo_rlm)
+```
+
+Analizando con summary vemos que tenemos un error estándar residual de 0.7901, cuanto más próximo esté ese valor a 0 significa que mejor ajusta el modelo, si el error fuera 0 significa que a priori el modelo es perfecto porque no comete ningún error, pero esto no sería del todo cierto porque el modelo estaría sobreajustando.
+
+Para analizar los residuos vamos a crear dos gráficos. El primero nos permite ver si la varianza es constante, para ello representamos los residuos vs los valores ajustados:
+```{r}
+residuos = rstandard(modelo_rlm)
+ajustados = fitted(modelo_rlm)
+
+qplot(x = ajustados, y = residuos, main = "Residuales Estandarizados vs Valores Ajustados", geom = c("point"), ylab = "Residuales Estandarizados", xlab = "Valores Ajustados") + geom_hline(yintercept = 0 , color = 2)
+```
+
+Del anterior gráfico observamos que el modelo se comporta por norma general bien, ya que no hay un patrón definido en los datos. Sin embargo, vemos que cuando el valor ajustado diminuye el error suele aumentar, y cuando el valor ajustado aumenta el error también aumenta.
+
+En resumen, el modelo ajusta bien pero hay un cierto error para determinados valores, a veces el valor ajustado respecto del real es mayor y viceversa, pero estos son casos muy puntuales.
+
+El segundo gráfico que vamos a analizar es el cuantil-cuatil, éste nos permite analizar los residuos del modelo con los valores de una variables que se distribuye normalmente:
+```{r}
+ggplot(as.data.frame(residuos),aes(sample = residuos)) +  geom_qq() 
+```
+
+Si los residuos siguieran una distribución normal, tendríamos todos los puntos alineados formando una recta, pero tal y como podemos ver los residuos hacen una pequeña "S", esto nos da la idea de que cuando los valores ajustados son pequeños el modelo no ajusta del todo bien, y cuando los valores ajustados son muy grandes tampoco hace un buen ajuste.
+
+Resumiendo, el modelo se comporta medianamente bien, lo único que hay casos especiales en los que los valores ajustados son o demasiado pequeños, o demasiado grandes.
+
+## Prediccion
+
+Predecid el coste esperado para las siguientes características: Edad=24, Sexo= “F”, Estado=“S”, Dependientes=1, OtrosDepend=0, Salario=500, Jornada=“F”,HorasSemana=40,DiasSemana=5, Clasificacion=“Lento”, RiesgoSM=“TRUE” y “CosteInicio”=10000.
+
+(Nota: Debes tener en cuenta que el valor esperado de una variable aleatoria que su logaritmo se distribuye según una normal, i.e. distribución lognormal, es exp(mu+var/2) donde mu y var son la media y la varianza de la transformación logarítmica).
+
+A continuación vamos a predecir el valor del CosteFinal, pero antes creamos el dataframe con la prediccion, cabe destacar que en el modelo tenemos LogCosteInicio no CosteInicio, por lo tanto convertimos a escala logarítmica dicho valor:
+```{r}
+df_predict = data.frame(24, "F", "S", 1, 0, 500, "F", 40, 5, "Lento", "1", log(10000))
+colnames(df_predict) = c("Edad", "Sexo", "Estado", "Dependientes", "OtrosDepend", "Salario", "Jornada", "HorasSemana", "DiasSemana", "Clasificacion", "RiesgoSM", "LogCosteInicio")
+```
+
+Una vez creado el dataframe, realizamos la predicción:
+```{r}
+prediccion_valor = predict(modelo_rlm, df_predict)
+cat("El CosteFinal que se produce a partir de los datos es:", prediccion_valor, "€")
+```
+
+Cabe destacar que el valor que obtenemos está en escala logarítmica, por lo que reconvertimos dicho valor a exponecial:
+```{r}
+prediccion_valor = exp(prediccion_valor)
+cat("El CosteFinal que se produce a partir de los datos es:", prediccion_valor, "€")
+```
+
+En este caso vemos que tendríamos un CosteFinal de 13601.47€.
 
 
 
