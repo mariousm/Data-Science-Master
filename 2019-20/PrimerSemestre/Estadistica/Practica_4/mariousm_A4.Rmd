@@ -19,7 +19,8 @@ Importación de librerías:
 ```{r}
 library(ggplot2)
 library(nortest)
-library(ggplot2)
+library(lsr)
+library(agricolae)
 ```
 
 # Lectura del fichero y preparación de los datos
@@ -671,10 +672,138 @@ if (prediccion_valor < 0.5) cat("El Deficit que obtenemos a partir de los datos 
 
 De la ejecución anterior, observamos que para ese tipo de cliente no hay riesgo de déficit.
 
+# Análisis de la varianza (ANOVA) de un factor
 
+Vamos a realizar un ANOVA para contrastar si existen diferencias en la variable CosteFinal en escala logarítmica en función de la clasificación del siniestro en relación al tiempo transcurrido hasta la apertura. Seguid los pasos que se indican.
 
+## Hipótesis nula y alternativa
 
+Escribid la hipótesis nula y la alternativa.
 
+En un análisis de ANOVA partimos de la hipótesis nula que no hay diferencia de la variabilidad entre los diferentes grupos, y la hipóstesis alternativa es que al menos hay una diferencia. Esto lo podemos representar de la siguiente forma:
+
+- H0 (hipótesis nula): variabilidad_MuyRapido = variabilidad_Rapido = variabilidad_Lento = variabilidad_MuyLento
+
+- H1 (hipótesis alternativa): variablidad_Grupo_I != variabilidad_Grupo_J (donde i y j son los diferentes grupos, muy rápido, rápido, lento, muy lento. Al menos tiene que haber una diferencia entre grupos)
+
+Otra forma de representarlo de forma general es:
+
+- H0 (hipótesis nula): alfa_i = alfa_j
+
+- H1 (hipótesis alternativa): alfa_i != alfa_j para algún i != j
+
+## Modelo
+
+Calculad el análisis de varianza, usando la función aov o lm. Interpretad el resultado del análisis, teniendo en cuenta los valores: Sum Sq, Mean SQ, F y Pr (> F).
+
+Lo primero de todo es crear el modelo, nos indican que tenemos que analizar el CosteFinal en escala logarítmica en función de la clasificación del siniestro:
+```{r}
+modelo_anova = aov(formula = LogCosteFinal ~ Clasificacion, data = claimNet)
+
+summary(modelo_anova)
+```
+
+De la anterior ejecución, vemos que Pr(>F) es mucho menor que el nivel de significancia, es decir, Pr(>F) < 0.05, por lo tanto podemos rechazar la hipótesis nula en favor de la alternativa, esto significa, que al menos hay una diferencia entre la variabilidad de los grupos según la Clasificación de los siniestros.
+
+Al rechazar la hipótesis nula, estamos diciendo que la clasificación de los siniestros en relación al tiempo afecta al coste final de la indemnización.
+
+Otra cosa a destacar, es que ANOVA nos hace una estimación de la varianza del error, en nuestro caso dicha estimación es de 2.34.
+
+## Efectos de los niveles del factor
+
+Calculad la variabilidad explicada por la variable Clasificacion sobre la variable CosteFinal mediante la métrica eta squared. Interpretad los resultados.
+
+```{r}
+etaSquared(modelo_anova)
+```
+
+El eta squared para la variable clasificación sobre la variable CosteFinal es de 0.0017, como podemos apreciar sale una variabilidad baja, por lo que el CosteFinal no depende de clasificación.
+
+Esta medida lo que nos indica es la variabilidad explicada por el atributo Clasificación, es decir, en nuestro caso el 0.17% de la variabilidad de CosteFinal es explicado por este atributo, como vemos es muy poco, prácticamente insignificante. 
+
+Cabe destacar que este resultado es el mismo si hacemos el Sum Sq de Clasificacion / (Sum Sq de Clasificacion + Sum Sq de Residuals).
+
+## Contraste dos-a-dos
+Como los factores han resultado significativos hay que hacer los contrastes de las comparaciones múltiples. Se puede utilizar la prueba de Tukey-Kramer que compara dos-a-dos las diferentes categorías de la variable.
+
+(Nota: por ejemplo, con la función HSD.test() del paquete agricolae).
+
+Hacemos uso del test de Tukey-Kramer para comparar dos a dos los diferentes grupos:
+```{r}
+HSD.test(modelo_anova, "Clasificacion", console = TRUE)
+```
+
+De la anterior ejecución observamos que aunque hay cuatro niveles de clasificación, el test los ha agrupado en 3 grupos:
+
+- Un grupo cuando la clasificación es "Rápido".
+
+- Otro grupo cuando la clasificación es "Lento" y "Muy lento".
+
+- El último grupo cuando la clasificación es "Muy rápido".
+
+Al generarnos 3 grupos, vemos que realmente sí que había diferencias significativas entre varios niveles:
+
+- El nivel "Rápido" presenta una diferencia de medias respecto a los niveles ("Lento", "Muy lento") y "Muy rápido". Además, este grupo es que provoca un mayor Logcostefinal.
+
+- Los niveles "Lento" y "Muy lento" presentan una diferencia de medias similar y por eso están agrupados, sin embargo, ésta es diferente del nivel "Rápido" y del nivel "Muy rápido". El LogCosteFinal que obtenemos respecto a este grupo es algo menor que en el anterior caso.
+
+- El nivel "Muy rápido" tiene una diferencia de medias diferente al nivel "Rápido" y a los niveles ("Lento", "Muy lento"). Y el LogCosteFinal obtenido con este grupo es el menor de todos, por lo que si la clasificación es "Muy rápido" el LogCosteFinal y en consecuencia CosteFinal va a ser menor.
+
+## Adecuación del modelo
+
+Mostrad la adecuación del modelo ANOVA. Se pide lo siguiente:
+
+- Análisis visual de normalidad de los residuos. Podéis usar la función plot sobre el modelo ANOVA calculado.
+
+- Análisis visual de homocedasticidad de los residuos. Podéis usar plot sobre el modelo ANOVA calculado.
+
+- Contraste de normalidad y homocedasticidad.
+
+### Normalidad de los residuos
+
+El análisis visual de la normalidad de los residuos se puede hacer a partir del gráfico Normal Q-Q. Mostrad e interpretad este gráfico.
+
+```{r}
+residuos = residuals(modelo_anova)
+ajustados = fitted(modelo_anova)
+
+ggplot(as.data.frame(residuos),aes(sample = residuos)) +  geom_qq()
+```
+
+En este caso vemos que los residuos sí que siguen más o menos una distribución normal casi perfecta, solo para valores muy pequeños o muy altos hay una ligera desviación, pero en su gran mayoría se ajustan muy bien a la distribución normal.
+
+### Homocedasticidad de los residuos
+
+El gráfico “Residuals vs Fitted” proporciona información sobre la homcedasticidad de los residuos. Mostrad e
+interpretad este gráfico.
+
+```{r}
+qplot(x = ajustados, y = residuos, main = "Residuales Estandarizados vs Valores Ajustados", geom = c("point"), ylab = "Residuales Estandarizados", xlab = "Valores Ajustados") + geom_hline(yintercept = 0 , color = 2)
+```
+
+Tenemos cuatro tiras una por cada nivel que hay de la variable Clasificación, es decir, una tira para "Muy rápido", otra para "Rápido", otra para "Lento" y otra para "Muy lento". Además, los puntos dentro de cada grupo no están distribuidos de forma homógena no se puede garantizar que estemos en un caso de homogeneidad  de varianza, pero para comprobarlo aplicaremos el test de Bartlett en el siguiente punto.
+
+### Contraste de normalidad
+
+Comprobar el supuesto de normalidad de los residuos con las purebas estadísticas de  Shapiro-Wilk o Lilliefors, entre otros.
+
+Realizamos la prueba de Lilliefors:
+```{r}
+lillie.test(residuos)
+```
+
+Como el pvalor es mayor que el nivel de significancia (0.05), mantenemos la hipótesis nula, siendo ésta que los datos siguen una distribución normal.
+
+### Contraste de homocedasticidad
+
+Comprobar el supuesto de homocedasticidad se puede comprobar a partir de la prueba de Bartleet.
+
+Aplicamos la prueba de Bartlett:
+```{r}
+bartlett.test(formula = LogCosteFinal ~ Clasificacion, data = claimNet)
+```
+
+Vemos que el pvalor es menor que alfa (0.05), en este caso rechazamos la hipótesis nula a favor de la alternativa, es decir, estamos en una caso de heterogeneidad de varianzas.
 
 
 

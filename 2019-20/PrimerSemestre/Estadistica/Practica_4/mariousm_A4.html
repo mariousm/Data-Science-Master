@@ -224,6 +224,11 @@ pre code {
 <li><a href="#matriz-de-confusión"><span class="toc-section-number">5.3</span> Matriz de confusión</a></li>
 <li><a href="#predicción"><span class="toc-section-number">5.4</span> Predicción</a></li>
 </ul></li>
+<li><a href="#análisis-de-la-varianza-anova-de-un-factor"><span class="toc-section-number">6</span> Análisis de la varianza (ANOVA) de un factor</a>
+<ul>
+<li><a href="#hipótesis-nula-y-alternativa"><span class="toc-section-number">6.1</span> Hipótesis nula y alternativa</a></li>
+<li><a href="#modelo"><span class="toc-section-number">6.2</span> Modelo</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -1174,6 +1179,29 @@ if (prediccion_valor &gt;= 0.5) cat(&quot;El Deficit que obtenemos a partir de l
 if (prediccion_valor &lt; 0.5) cat(&quot;El Deficit que obtenemos a partir de los datos es: 0&quot;)</code></pre>
 <pre><code>## El Deficit que obtenemos a partir de los datos es: 0</code></pre>
 <p>De la ejecución anterior, observamos que para ese tipo de cliente no hay riesgo de déficit.</p>
+</div>
+</div>
+<div id="análisis-de-la-varianza-anova-de-un-factor" class="section level1" number="6">
+<h1 number="6"><span class="header-section-number">6</span> Análisis de la varianza (ANOVA) de un factor</h1>
+<p>Vamos a realizar un ANOVA para contrastar si existen diferencias en la variable CosteFinal en escala logarítmica en función de la clasificación del siniestro en relación al tiempo transcurrido hasta la apertura. Seguid los pasos que se indican.</p>
+<div id="hipótesis-nula-y-alternativa" class="section level2" number="6.1">
+<h2 number="6.1"><span class="header-section-number">6.1</span> Hipótesis nula y alternativa</h2>
+<p>Escribid la hipótesis nula y la alternativa.</p>
+<p>En un análisis de ANOVA partimos de la hipótesis nula que no hay diferencia de la variabilidad entre los diferentes grupos, y la hipóstesis alternativa es que al menos hay una diferencia. Esto lo podemos representar de la siguiente forma:</p>
+<ul>
+<li><p>H0 (hipótesis nula): variabilidad_MuyRapido = variabilidad_Rapido = variabilidad_Lento = variabilidad_MuyLento</p></li>
+<li><p>H1 (hipótesis alternativa): variablidad_Grupo_I != variabilidad_Grupo_J (donde i y j son los diferentes grupos, muy rápido, rápido, lento, muy lento. Al menos tiene que haber una diferencia entre grupos)</p></li>
+</ul>
+<p>Otra forma de representarlo de forma general es:</p>
+<ul>
+<li><p>H0 (hipótesis nula): alfa_i = alfa_j</p></li>
+<li><p>H1 (hipótesis alternativa): alfa_i != alfa_j para algún i != j</p></li>
+</ul>
+</div>
+<div id="modelo" class="section level2" number="6.2">
+<h2 number="6.2"><span class="header-section-number">6.2</span> Modelo</h2>
+<p>Calculad el análisis de varianza, usando la función aov o lm. Interpretad el resultado del análisis, teniendo en cuenta los valores: Sum Sq, Mean SQ, F y Pr (&gt; F).</p>
+<p>Lo primero de todo es crear el modelo, no indica que tenemos que analizar el CosteFinal en escala logarítmica en función de la clasificación del siniestro:</p>
 </div>
 </div>
 
