@@ -524,5 +524,174 @@ cat("El CosteFinal que se produce a partir de los datos es:", prediccion_valor, 
 
 En este caso vemos que tendríamos un CosteFinal de 13601.47€.
 
+# Regresión logística
+
+## Modelo predictivo
+
+Utilizando las mismas características como variables explicativas, ajustad un modelo predictivo basado en la regresión logística para predecir la probabilidad de que la compañía cuantifique inicialmente el coste del siniestro de forma insuficiente.
+
+Para ello, cread una variable Deficit que indique si la valoración inicial del coste del siniestro (CosteInicio) es inferior a la indemnización finalmente pagada por la compañía (CosteFinal). La variable Deficit debe codificarse como una variable dicotómica, que toma el valor 0 cuando la valoración inicial ha sido suficiente y 1 cuando la valoración inicial ha sido insuficiente.
+
+La variable Deficit será la variable dependiente del modelo. Analizad la calidad del modelo y las variables que son relevantes.
+
+Lo primero que debemos de hacer para crear el modelo es la definición de la variable Deficit, es por ello que lo hacemos ahora:
+```{r}
+claimNet$Deficit[claimNet$CosteInicio >= claimNet$CosteFinal] = 0 
+claimNet$Deficit[claimNet$CosteInicio < claimNet$CosteFinal] = 1
+claimNet$Deficit = as.factor(claimNet$Deficit)
+
+head(claimNet)
+```
+
+Una vez que tenemos la variable dependiente del modelo, creamos el mismo:
+```{r}
+modelo_rlg = glm(formula = Deficit ~ Edad + Sexo + Estado + Dependientes + OtrosDepend + Salario + Jornada + HorasSemana + DiasSemana + Clasificacion + RiesgoSM + LogCosteInicio, family = binomial(link=logit), data = claimNet)
+```
+
+Finalemente, para terminar con este apartado analizamos la calidad del modelo y las variables que son relevantes:
+```{r}
+summary(modelo_rlg)
+```
+
+Para poder medir cómo de bueno es el modelo, nos tenemos que fijar en la devianza, si la devianza residual es menor que la devianza nula, entonces hemos conseguido mejorar el modelo. Podemos obtener un valor númerico si hacemos (Null deviance - Residual deviance) / Null deviance:
+```{r}
+cat("Calidad del modelo de regresión logística es de:", round((modelo_rlg$null.deviance - modelo_rlg$deviance) / modelo_rlg$null.deviance * 100, 2), "%")
+```
+
+Como podemos observar la calidad del modelo no es que sea muy buena, si fuera un bueno modelo su valor estaría cercano al 100%, sin embargo, está más cerca del 0 que del 100 ya que la devianza residual es muy grande, por lo que no es un buen modelo.
+
+El otro aspecto a analizar son las variables relevantes, pero como esto es lo que se pide en el siguiente apartado, es allí dónde lo vamos a hacer.
+
+## Interpretación
+
+Interpretad el modelo ajustado. Concretamente, explicad la contribución de las variables explicativas con coeficiente estadísticamente significativo para predecir si la valoración inicial es insuficiente para cubrir el coste del siniestro.
+
+Las variables estadísticamente significativas son aquellas cuyo Pr(>|z|) < 0.05:
+
+- Edad: su coeficiente es positivo, por lo que a medida que aumenta la edad, la probabilidad de lo que estamos prediciendo (Deficit) aumenta.
+
+- Sexo: su coeficiente es negativo en este caso para ver el impacto tenemos que analizar su OR, es decir, si es un factor de riesgo o de protección. Tal y como podemos observar, si el sexo es masculino es un factor de protección respecto al sexo femenino, es decir, es menos probable que haya un deficit se eres hombre que si eres mujer:
+```{r}
+exp(coefficients(modelo_rlg))
+```
+
+
+- Estado: sucede parecido al Sexo, tenemos un coeficiente negativo y a la vista de los OR, EstadoS su OR es menor que 1, por lo tanto, tenemos un coeficiente de protección, es decir, si el Estado es soltero es menos probable que haya déficit que si estás casado.
+
+- Dependientes: su coeficiente es positivo, por lo que a medida que aumenta dicha variable también aumenta la probabilidad que suceda el déficit.
+
+- Salario: tiene un coeficiente positivo, por lo tanto a medida que aumenta el salario también aumenta la probabilidad de que haya un déficit.
+
+- Jornada: tiene un coeficiente positivo, por lo que aumenta el riesgo de que haya un déficit.
+
+- DiasSemana: tiene un coeficiente negativo, por lo que es un factor de protección, a medida que aumenta dicha variable menos riesgo hay de que haya un déficit.
+
+- Clasificacion: tanto si la clasifación es rápida como lenta es un factor de riesgo, ya que supone un aumento en la probabilidad de que haya un déficit.
+
+- LogCosteInicio: tiene un coeficiente negativo, analizando su OR vemos que es un factor de protección, ya que al aumentar dicha variable reduce la probabilidad de déficit.
+
+## Matriz de confusión
+
+A continuación analizad la precisión del modelo, comparando la predicción del modelo sobre los mismos datos del conjunto de datos. Asumiremos que la predicción del modelo es 1 (valoración inicial del coste insuficiente) si la probabilidad del modelo de regresión logística es superior o igual a 0.5 y 0 en caso contrario. Analizad la matriz de confusión y las medidas de ‘sensitivity’ y ‘specificity’.
+
+Nota: Tomad como categoría de interés que haya déficit en la valoración inicial del coste. Por tanto, déficit igual a 1 será el caso positivo en la matriz de confusión y 0 el caso negativo.
+
+Lo primero de todo es calcular las predicciones del modelo:
+```{r}
+predicciones = predict(object =  modelo_rlg, newdata = claimNet[, c(
+  "Edad",
+  "Sexo",
+  "Estado",
+  "Dependientes",
+  "OtrosDepend",
+  "Salario",
+  "Jornada",
+  "HorasSemana",
+  "DiasSemana",
+  "Clasificacion",
+  "RiesgoSM",
+  "LogCosteInicio"
+)])
+```
+
+Aunque tengamos las predicciones en sí, tienes que estar dicotomizadas, es por ello que si la predicción es >= 0.5 toma valor 1 o 0 en caso contrario:
+```{r}
+predicciones[predicciones >= 0.5] = 1
+predicciones[predicciones < 0.5] = 0
+```
+
+Ahora ya podemos construir la matriz de confusión, pero antes establecemos la variable objetivo como numérica, al hacer as.integer(factor) suma uno, por lo que restamos dicho valor:
+```{r}
+valores_originales = as.integer(claimNet$Deficit) - 1
+```
+
+Creamos la matriz de confusión:
+```{r}
+matriz_confusion = table(valores_originales, predicciones)
+matriz_confusion
+```
+
+Cabe mencionar que "1" es caso positivo (hay déficit) y "0" es caso negativo.
+
+Una vez calculada la matriz de confusión podemos calcular las medias que nos indican:
+
+- Sensibilidad, es la tasa de verdaderos positivos, la proporción de los clasificados correctamente entre todos los que han dado positivo:
+```{r}
+sensibilidad = matriz_confusion[2,2] / (matriz_confusion[2,2] + matriz_confusion[2,1])
+cat("La sensibilidad es igual a", sensibilidad)
+```
+
+Como vemos la sensibilidad no es del todo buena, ya que si fuera 1 indicaría que todo lo ha clasificado correctamente, al ser 0.54 por norma general lo clasifica bien, pero este modelo no es muy bueno al predecir positivos.
+
+- Especificidad, es la tasa de verdaderos negativos, la proporción de casos correctamente clasificados entre todos los que han dado negativo:
+```{r}
+especificidad = matriz_confusion[1,1] / (matriz_confusion[1,1] + matriz_confusion[1,2])
+cat("La especificidad es igual a", especificidad)
+```
+
+En este caso, vemos que la especificidad es algo mejor, está más próxima a uno por lo que el modelo es capaz de predecir mejor cuando un caso es negativo que cuando es positivo.
+
+## Predicción
+
+¿Con que probabilidad la valoración inicial del siniestro será insuficiente para un hombre de 20 años de edad, soltero, sin hijos ni otros dependientes, con un salario semanal de 300 EUR, jornada partida, con 30 horas semanales y cinco días a la semana, una clasificación del tiempo hasta la apertura del siniestro de “Muy lento”, una baja que no es por depresión y una valoración inicial de 10000EUR?
+
+A continuación vamos a predecir el valor de Deficit, pero antes creamos el dataframe con la prediccion, cabe destacar que en el modelo tenemos LogCosteInicio no CosteInicio, por lo tanto convertimos a escala logarítmica dicho valor:
+```{r}
+df_predict = data.frame(20, "M", "S", 0, 0, 300, "P", 30, 5, "Muy lento", "0", log(10000))
+colnames(df_predict) = c("Edad", "Sexo", "Estado", "Dependientes", "OtrosDepend", "Salario", "Jornada", "HorasSemana", "DiasSemana", "Clasificacion", "RiesgoSM", "LogCosteInicio")
+```
+
+Una vez creado el dataframe, realizamos la predicción:
+```{r}
+prediccion_valor = predict(modelo_rlg, df_predict)
+
+if (prediccion_valor >= 0.5) cat("El Deficit que obtenemos a partir de los datos es: 1")
+if (prediccion_valor < 0.5) cat("El Deficit que obtenemos a partir de los datos es: 0")
+```
+
+De la ejecución anterior, observamos que para ese tipo de cliente no hay riesgo de déficit.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
