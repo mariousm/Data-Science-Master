@@ -250,6 +250,7 @@ pre code {
 </ul></li>
 <li><a href="#interpretación-de-los-resultados"><span class="toc-section-number">7.3</span> Interpretación de los resultados</a></li>
 </ul></li>
+<li><a href="#conclusiones"><span class="toc-section-number">8</span> Conclusiones</a></li>
 </ul>
 </div>
 
@@ -920,7 +921,7 @@ str(claimNet)</code></pre>
 ## Residual standard error: 0.7901 on 48660 degrees of freedom
 ## Multiple R-squared:  0.7333, Adjusted R-squared:  0.7332 
 ## F-statistic:  9555 on 14 and 48660 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>La calidad del modelo viene determindada por el coeficiente de determinación o R2. El coeficiente de determinación o R2, nos indica el grado de ajuste de la recta de regresión a los valores de la muestra, es decir, el cómo es la proporción de variación en nuestro modelo. R2 es un coeficiente que puede ir entre 0 y 1, cuanto más próximo a uno mejor es el modelo, ya que significa que los errores/residuos que se cometen son muy pequeños y los valores se ajustan a la línea de regresión.</p>
+<p>La calidad del modelo viene determindada por el coeficiente de determinación o R2. El coeficiente de determinación o R2, nos indica el grado de ajuste de la recta de regresión a los valores de la muestra, es decir, la proporción de variabilidad explicada en nuestro modelo. R2 es un coeficiente que puede ir entre 0 y 1, cuanto más próximo a uno mejor es el modelo, ya que significa que los errores/residuos que se cometen son muy pequeños y los valores se ajustan a la línea de regresión.</p>
 <p>En nuestro caso vemos que tenemoun un R2 de 0.733, es decir, estamos cerca del 1 pero no mucho por lo que aunque el modelo es bueno, no es el mejor de todos (se podría hacer un análisis de correlaciones y ver qué variables están correlacionadas para eliminarlas del modelo y ver si mejora éste…).</p>
 <p>Respecto a la contribución de las variables al modelo, podemos observar que las que más contribuyen son las siguientes:</p>
 <ul>
@@ -1546,6 +1547,26 @@ ggplot(as.data.frame(residuos),aes(sample = residuos)) +  geom_qq()</code></pre>
 <h2 number="7.3"><span class="header-section-number">7.3</span> Interpretación de los resultados</h2>
 <p>Respecto a este modelo ANOVA, hemos visto que no hay interacción entre los factores, es decir, no existe ninguna relación entre Sexo y RiesgoSM. Sin embargo, analizando los efectos principales, hemos visto que si se padece una enfermedad mental el CosteFinal va a ser mayor que ni no se padece, también si el sexo es femenino tiende a suponer un mayor CosteFinal que si el sexo es masculino.</p>
 </div>
+</div>
+<div id="conclusiones" class="section level1" number="8">
+<h1 number="8"><span class="header-section-number">8</span> Conclusiones</h1>
+<p>Resumid las conclusiones principales del análisis. Para ello, podéis resumir las conclusiones de cada uno de los apartados.</p>
+<p>Respecto a la primera parte de la práctica “Estadística inferencial”, nos hemos planetado la pregunta, ¿podemos aceptar que la indemnización a las mujeres supera en más de 1000€ la de hombres? Realizando el contraste de hipótesis correspondiente (contraste de dos muestras independientes sobre la media con varianzas desconocidas y heterogéneas), nos ha dado un pvalor &lt; 2.2e-16 con un nivel de confianza del 95%, por lo que a la vista del contraste, hemos podido rechazar la hipótesis nula en favor de la alternativa, siendo ésta que hay una diferencia en la idemnización de las mujeres respecto a la de los hombres, ya que de media es superada por 1000€.</p>
+<p>La siguiente parte de la práctica nos hemos planteado la predicción del CosteFinal dependiendo de variables como Edad, Sexo, Estado, Dependientes, OtrosDepend, Salario, Jornada, HorasSemana, DiasSemana, Clasificacion, RiesgoSM, CosteInicio. Para ello, hemos creado un modelo de regresión lienal cuyo R2 era 0.733 (73.3% de la variabilidad es explicada por el modelo), es decir, no es el mejor modelo pero ajusta bien los datos.</p>
+<p>Aunque se han incluido muchas variables independientes en el modelo, realmente significativas son: Edad, Sexo, Estado, Dependientes, Salario, Jornada, DiasSemana, Clasificación, RiesgoSM y LogCosteInicio.</p>
+<p>Otra problema que nos hemos planteado era el predecir el Deficit, es decir, si la valoración del coste del siniestro (CosteInicio) es inferior a la indemnización pagada por la compañía (CosteFinal). Para ello, se ha planteado un modelo de regresión logística, siendo 1 si hay déficit o 0 en caso contrario. Como variables independientes de este modelo vamos a tener todas las que teníamos en el modelo anterior. Este modelo nos ha dado una calidad del 8.71%, por lo que no es nada bueno ya que está más cerca del 0% que del 100%.</p>
+<p>En este caso las variables independientes significativas para el modelo han sido: Edad, Sexo, Estado, Dependientes, Salario, Jornada, DiasSemana, Clasificación, LogCosteInicio.</p>
+<p>Al calcular la matriz de confusión, hemos podido analizar cómo clasificaba los datos. Respecto a la medida sensibilidad de la matriz de confusión, es decir, la proporción de los clasificados correctamente entre todos los que han dado positivo, nos ha dado un valor de 54.45%, es decir, de media clasifica bien, pero este modelo no es muy bueno para predecir valores positivos, es decir, cuando hay un déficit. Respecto a la especificidad (la proporción de casos correctamente clasificados entre todos los que han dado negativo) nos ha dado un valor de 70.15%, es decir, este modelo clasifica mejor cuando no hay déficit que cuando lo hay.</p>
+<p>La siguiente parte de la práctia ha estado relacionado con ANOCA, en el primer ejercicio si buscaba saber si había diferencias entre el coste final respecto a la clasificación del siniestro. Para ello, hemos creado el modelo anova y hemos visto que la variable Clasificación era significativa, es decir, que la clasificación del siniestro afecta al coste final de la indemnización.</p>
+<p>Hemos realizado el contraste dos-a-dos para saber qué grupos afectaban de mayor a menor medida al coste final de la indemnización, nos ha salido que cuando la clasificación es “Rápido” este grupo genera un mayor coste final, si es “Lento” o “Muy lento” afecta al coste final pero en menor medida (estos dos niveles están en el mismo grupo), si es “Muy rápido” es el último grupo que obtenemos y el que menos afecta al coste final de la indemnización.</p>
+<p>Finalmente, nos hemos planteado si había diferencias en el coste final según el sexo y el riesgo de padecer una enfermedad mental. Hemos visto que la interacción de sexo y riesgo no existía pero ambas variables eran significtivas en el modelo anova.</p>
+<p>También hemos realizado en contraste dos-a-dos, para saber qué grupos de la interacción afectaban al coste final y en qué medida. En este caso teníamos tres grupos:</p>
+<ul>
+<li><p>Incluía a la mujeres y hombres con enfermedad mental, es decir, da igual si eres hombre o mujer, si padeces una enfermedad mental el CosteFinal va a ser más elevado que si no la padeces.</p></li>
+<li><p>El segundo grupo eran la mujeres sin enfermedad mental. Afecta al coste final menos que el grupo anterior.</p></li>
+<li><p>El tercer grupo eran los hombres sin enfermedad mental, este grupo es que el menos afectaba al coste de la indemnización respecto a los demás.</p></li>
+</ul>
+<p>En resumen, hemos visto que lo que más afecta al CosteFinal es si padeces una enfermedad mental, y luego entre si eres hombre o mujer, estas últimas afectan más que los hombres.</p>
 </div>
 
 
