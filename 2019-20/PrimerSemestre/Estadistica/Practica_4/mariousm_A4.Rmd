@@ -809,6 +809,161 @@ Vemos que el pvalor es menor que alfa (0.05), en este caso rechazamos la hipóte
 
 A continuación, se desea evaluar el efecto sobre CosteFinal en escala logarítmica según Sexo combinado con el factor RiesgoSM. Seguid los pasos que se indican a continuación.
 
+## Análisis de los efectos principales y posibles interacciones
+
+Dibujad en un gráfico la variable CosteFinal en escala logarítmica en función de Sexo y en función de RiesgoSM. El gráfico debe permitir evaluar si hay interacción entre los dos factores. Por ello, se recomienda seguir estos pasos:
+
+1. Agrupad el conjunto de datos por Sexo y por RiesgoSM. Calculad el número de casos disponibles de cada combinación de factores.
+
+2. Calculad la media de coste (en log) para cada grupo.
+
+3. Mostrad en un gráfico el valor medio de la variable CosteFinal en escala logarítmica para cada factor.
+
+4. Interpretad el resultado sobre si sólo hay efectos principales o hay interacción entre los factores. Si hay interacción, explicad cómo se observa esta interacción en el gráfico.
+
+Lo primero que vamos a hacer es crear el dataframe con la información necesaria, respecto a la variable Sexo solo tenemos dos posible valores ("F" o "M") y respecto al RiesgoSM ("1" o "0" ), por lo tanto, vamos a tener 4 combinaciones posibles: F-0, F-1, M-0 y M-1. Creamos el dataframe con la media del CosteFinal en escala logarítmica para cada grupo:
+```{r}
+df_efectos_principales = data.frame(c("F", "F", "M", "M"), c("0", "1", "0", "1"))
+colnames(df_efectos_principales) = c("Sexo", "RiesgoSM")
+df_efectos_principales$Sexo = as.factor(df_efectos_principales$Sexo)
+df_efectos_principales$RiesgoSM = as.factor(df_efectos_principales$RiesgoSM)
+
+# Calculamos la media para cada grupo
+vCosteFinal_F0 = mean(claimNet[claimNet$Sexo == "F" & claimNet$RiesgoSM == "0", "LogCosteFinal"])
+vCosteFinal_F1 = mean(claimNet[claimNet$Sexo == "F" & claimNet$RiesgoSM == "1", "LogCosteFinal"])
+vCosteFinal_M0 = mean(claimNet[claimNet$Sexo == "M" & claimNet$RiesgoSM == "0", "LogCosteFinal"])
+vCosteFinal_M1 = mean(claimNet[claimNet$Sexo == "M" & claimNet$RiesgoSM == "1", "LogCosteFinal"])
+
+# Creamos la nueva variable en el dataframe
+df_efectos_principales$Mean_LogCosteFinal = c(vCosteFinal_F0, vCosteFinal_F1, vCosteFinal_M0, vCosteFinal_M1)
+
+# visualizamos el dataframe creado
+df_efectos_principales
+```
+
+Una vez que tenemos el dataframe que nos interesa, creamos el gráfico de interacción:
+```{r}
+interaction.plot(df_efectos_principales$Sexo, 
+                 df_efectos_principales$RiesgoSM, 
+                 df_efectos_principales$Mean_LogCosteFinal, 
+                 xlab = "Sexo", 
+                 ylab = "Media de CosteFinal", 
+                 trace.label = "Riesgo")
+```
+
+En el eje X tenemos la variable Sexo, la cual tiene los niveles: "F" - Femenino y "M" - Masculino. En el eje Y tenemos la media del CosteFinal. Además, tenemos 4 casos (F0, F1, M0, M1) están unidos por el factor Riesgo.
+
+Una vez hecha esta aclaración, podemos observar que las líenas son paralelas, no se cortan ni se van a cortar, por lo que no hay interacción entre las variables.
+
+Analizando el gráfico anterior, observamos que si el riesgo es 1, el CosteFinal es mucho mayor que si el riesgo fuera 0. Además, si el sexo es femenino suele suponer un CosteFinal mayor que si el sexo es masculino.
+
+A continuación, vamos a realizar el cálculo del modelo ANOVA y se va a analizar.
+
+## Cálculo del modelo
+
+- Calculad el modelo incluyendo la interacción entre los factores.
+
+- Medid el efecto de los factores sobre la variabilidad explicada del Coste final (en escala logarítmica).
+
+- Análizad dos-a-dos las diferencias de medias entre los distintos factores.
+
+- Adecuación del modelo. Realizar análisis visual de normalidad y homocedasticidad.
+
+### Modelo
+
+Lo primero de todo es crear el modelo de las variables LogCosteFinal, el Sexo, el RiesgoSM y la interacción de éstos. Aunque en el anterior apartado hemos visto que no hay interacción, tal y como se indica en el enunciado creamos el modelo con la interacción:
+```{r}
+modelo_anova = aov(formula = LogCosteFinal ~ Sexo + RiesgoSM + Sexo:RiesgoSM, data = claimNet)
+
+summary(modelo_anova)
+```
+
+Analizando el modelo ANOVA creado, vemos que tanto la variable Sexo como RiesgoSM son significantes (tienen Pr(>F) menor que alfa, es decir, Pr(>F) > 0.05), sin embargo, la interacción de estas variables no es significativa (algo que ya sabíamos).
+
+Por otro lado, aquellos factores en los que Pr(>F) < 0.05, rechazamos la hipótesis nula en favor de la alternativa, es decir, que al menos hay una diferencia de la variabilidad de los grupos tanto para Sexo como para RiesgoSM. Esto significa que el CosteFinal sí que se ve afectado por el Sexo y el RiesgoSM.
+
+### Efectos de los niveles del factor
+
+Para medir el efecto de los niveles, hacemos uso de etaSquared:
+```{r}
+etaSquared(modelo_anova)
+```
+
+El eta squared es una medida que nos indica la variabilidad explicada por cada uno de los factores, es decir, por ejemplo la variable Sexo explica el 0.9% de la variabilidad de LogCosteFinal, como vemos es muy poco siendo esta variable la que tiene un mayor eta squared. Por lo tanto, vemos que el LogCosteFinal no depende mucho de estas variables.
+
+### Contraste dos-a-dos
+
+Como la variable Sexo y RiesgoSM son significativas, es decir, hay una diferencia de la variabilidad en sus grupos, tenemos que hacer uso del test de Tukey para saber cómo se distribuyen dichos grupos.
+
+Por lo tanto, lo primero es aplicar dicho test para la variable Sexo:
+```{r}
+HSD.test(modelo_anova, "Sexo", console = TRUE)
+```
+
+En este caso vemos que que tenemos dos grupos, uno relativo al sexo cuando éste es femenino y otro para masculino.
+
+Realizamos el mismo proceso para analizar el RiesgoSM:
+```{r}
+HSD.test(modelo_anova, "RiesgoSM", console = TRUE)
+```
+
+Al igual que antes tenemos dos grupos, uno cuando hay riesgo de padecer enfermedad mental y otro cuando no.
+
+Para termnar con este apartado, vamos a analizar las diferencias dos-a-dos para la interacción de Sexo y RiesgoSM (aunque haya salido que no es significativa). Primero tenemos que quedar con la interacción:
+```{r}
+interaccion = with(claimNet, interaction(claimNet$Sexo, claimNet$RiesgoSM))
+```
+
+Ahora, volvemos a crear el modelo pero solamente para la interacción:
+```{r}
+modelo_anova_interaccion = aov(formula = LogCosteFinal ~ interaccion, data = claimNet)
+```
+
+Finalmente, ejecutamos el HSD test para identificar los grupos:
+```{r}
+HSD.test(modelo_anova_interaccion, "interaccion", console = TRUE)
+```
+
+Vemos que en este caso hay 3 grupos aunque tengamos 4 niveles:
+
+- El grupo A, que incluye F1 y M1, es decir, da igual si eres hombre o mujer, si padeces una enfermedad mental el CosteFinal va a ser más elevado que si no la padeces.
+
+- El grupo B, sexo femenino y sin enfermedad mental.
+
+- El grupo C, sexo masculino y sin enfermedad mental.
+
+En resumen, vemos que lo que más afecta al CosteFinal es si padeces una enfermedad mental, y luego entre si eres hombre o mujer, estas últimas afectan más que los hombres.
+
+### Adecuación del modelo
+
+En este apartado nos indican realizar el análisis visual de normalidad y homocedasticidad.
+
+#### Normalidad de la residuos
+
+El análisis visual de la normalidad de los residuos se puede hacer a partir del gráfico Normal Q-Q. Mostrad e interpretad este gráfico:
+
+```{r}
+residuos = residuals(modelo_anova)
+ajustados = fitted(modelo_anova)
+
+ggplot(as.data.frame(residuos),aes(sample = residuos)) +  geom_qq()
+```
+
+Respecto a este modelo, vemos que los residuos sí que siguen más o menos una distribución normal, solo para valores muy altos o muy bajos hay un ligerísima desviación, pero podemos apreciar que forma una recta casi perfecta, por lo tanto, seguimos una distribución normal.
+
+#### Homocedasticidad de los residuos
+
+El gráfico “Residuals vs Fitted” proporciona información sobre la homcedasticidad de los residuos. Mostrad e interpretad este gráfico:
+
+```{r}
+qplot(x = ajustados, y = residuos, main = "Residuales Estandarizados vs Valores Ajustados", geom = c("point"), ylab = "Residuales Estandarizados", xlab = "Valores Ajustados") + geom_hline(yintercept = 0 , color = 2)
+```
+
+En este caso tenemos 4 grupos, si el RiesgoSM es 1 o 0 y si el Sexo es F o M, vemos que dentro de cada grupo no están distribuidos los puntos de forma homogénea, por lo que no podemos garantizar la homogeneidad de las varianzas, es decir, estamos en un caso de heterogeneidad de varianzas.
+
+## Interpretación de los resultados
+
+Respecto a este modelo ANOVA, hemos visto que no hay interacción entre los factores, es decir, no existe ninguna relación entre Sexo y RiesgoSM. Sin embargo, analizando los efectos principales, hemos visto que si se padece una enfermedad mental el CosteFinal va a ser mayor que ni no se padece, también si el sexo es femenino tiende a suponer un mayor CosteFinal que si el sexo es masculino.
 
 
 
