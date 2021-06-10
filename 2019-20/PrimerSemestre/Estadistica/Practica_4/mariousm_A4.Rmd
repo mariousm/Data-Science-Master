@@ -279,43 +279,36 @@ Utilizando el conjunto de datos claimNet.
 
 Calculad manualmente el intervalo de confianza al 95% de la media poblacional de la variable ‘CosteFinal‘ en escala normal (No se pueden utilizar funciones como t.test o z.test para el cálculo). A partir del resultado obtenido, explicad cómo se interpreta el intervalor de confianza.
 
-En este ejercicio no tenemos una muestra sino que el dataset es el conjunto de toda la población, por lo que, aunque no conozcamos a priori la desviación de la población y su media, lo podríamos calcular fácilmente porque tenemos a la población en sí, no una muestra de ella.
+Al realizar este ejercicio no se nos proporciona la varianza poblacional por lo que tenemos que calcular la varianza o la desviación de la muestra, esto lógicamente supone más incertidumbre ya que calculamos la desviación a partir de la muestra no de la población, es por ello que se recomienda hacer el cálculo a partir de la distribución t-student.
 
-Además, debemos asumir que seguimos una distribución normal, antes hemos comprobado que para esta variable no es así, pero aplicando el Teorema del Límite Central, si tenemos una muestra lo suficientemente grande (mayor que 30 observaciones) la media de la misma sigue una distribución normal. Como podemos calcular la media, solo tenemos que comprobar el tamaño de nuestra muestra que es más bien el tamaño de la población:
+Por lo tanto, lo primero que vamos a hacer es calcular la media y la desviación de la muestra:
 ```{r}
-cat("El tamaño de la muestra (población) es igual a", length(claimNet$CosteFinal))
+media_muestra = mean(claimNet$CosteFinal)
+sd_muestra = sd(claimNet$CosteFinal)
 ```
 
-De la anterior ejecución vemos que tenemos una muestra muy grande, ya que ésta es la población en sí.
-
-Por lo tanto, lo primero que vamos a hacer es calcular la media y la desviación de la población:
-```{r}
-media_poblacion = mean(claimNet$CosteFinal)
-sd_poblacion = sd(claimNet$CosteFinal)
-```
-
-Lo segundo es definir nuestra alfa (nivel de significancia) y el tamaño de la población:
+Lo segundo es definir nuestra alfa (nivel de significancia) y el tamaño de la muestra:
 ```{r}
 alfa = 1 - 0.95
-tam_poblacion = length(claimNet$CosteFinal)
+tam_muestra = length(claimNet$CosteFinal)
 ```
 
 Calculamos el estadístico correspondiente:
 ```{r}
-estadistico = sd_poblacion / sqrt(tam_poblacion)
-z = qnorm(alfa/2, lower.tail = FALSE)
+estadistico = sd_muestra / sqrt(tam_muestra)
+z = qt(alfa/2, tam_muestra - 1, lower.tail = FALSE)
 ```
 
 Finalmente, calculamos los límites:
 ```{r}
-lim_inferior = round(media_poblacion - (z * estadistico), 2)
-lim_superior = round(media_poblacion + (z * estadistico), 2)
+lim_inferior = round(media_muestra - (z * estadistico), 2)
+lim_superior = round(media_muestra + (z * estadistico), 2)
 
 cat("El límite inferior del intervalo de confianza (L) es igual a: ", lim_inferior)
 cat("El límite superior del intervalo de confianza (U) es igual a: ", lim_superior)
 ```
 
-De la anterior ejecución observamos que el intervalo de confianza es [9450.35, 9958.81]. Cuando calculamos el intervalo de confianza no podemos afirmar que cualquier valor de la población esté dentro del intervalo, lo que conseguimos definir al calcular el intervalo de confianza es asegurarnos, en nuestro caso a un 95%, del procedimiento, es decir, que el nivel de confianza en el procedimiento de cualquier muestra esté garantizado dando lugar a un intervalo que contenga el valor.
+De la anterior ejecución observamos que el intervalo de confianza es [9450.34, 9958.82]. Cuando calculamos el intervalo de confianza no podemos afirmar que cualquier valor de la población esté dentro del intervalo, lo que conseguimos definir al calcular el intervalo de confianza es asegurarnos, en nuestro caso a un 95%, del procedimiento, es decir, que el nivel de confianza en el procedimiento de cualquier muestra esté garantizado dando lugar a un intervalo que contenga el valor.
 
 Resumiendo, de lo que nos garantizamos es que el 95% de los intervalos de confianza calculados a partir de cada muestra contengan el valor del CosteFinal.
 
@@ -805,6 +798,9 @@ bartlett.test(formula = LogCosteFinal ~ Clasificacion, data = claimNet)
 
 Vemos que el pvalor es menor que alfa (0.05), en este caso rechazamos la hipótesis nula a favor de la alternativa, es decir, estamos en una caso de heterogeneidad de varianzas.
 
+# ANOVA multifactorial
+
+A continuación, se desea evaluar el efecto sobre CosteFinal en escala logarítmica según Sexo combinado con el factor RiesgoSM. Seguid los pasos que se indican a continuación.
 
 
 
