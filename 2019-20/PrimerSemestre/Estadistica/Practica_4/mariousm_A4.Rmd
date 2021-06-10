@@ -392,7 +392,7 @@ Una vez definida la función la llamamos para obtener los resultados:
 muestrasIndependientes_varianzasDesconocidas(claimNet_femenino$CosteFinal, claimNet_masculino$CosteFinal, 0.05)
 ```
 
-# Interpretación del test
+### Interpretación del test
 
 Podemos interpretar el test de dos formas distintas:
 
