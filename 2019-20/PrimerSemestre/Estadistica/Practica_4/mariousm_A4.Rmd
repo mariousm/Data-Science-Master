@@ -471,11 +471,18 @@ summary(modelo_rlm)
 
 Analizando con summary vemos que tenemos un error estándar residual de 0.7901, cuanto más próximo esté ese valor a 0 significa que mejor ajusta el modelo, si el error fuera 0 significa que a priori el modelo es perfecto porque no comete ningún error, pero esto no sería del todo cierto porque el modelo estaría sobreajustando.
 
-Para analizar los residuos vamos a crear dos gráficos. El primero nos permite ver si la varianza es constante, para ello representamos los residuos vs los valores ajustados:
+Pero para entrar en más análisis vamos a hacer un boxplot de los residuos:
 ```{r}
 residuos = rstandard(modelo_rlm)
 ajustados = fitted(modelo_rlm)
 
+boxplot(residuos)
+```
+
+Del anterior gráfico vemos que el rango intercuartílico es muy pequeño, es decir, vemos que el 50% de los datos están entre -0.44 y 0.36, sin embargo el otro 50% o es superior o inferior a  estos valores. Además, apreciamos que la mediana no se sitúa en el centro de la caja (está casi pero no), presentamos una asimetría positiva, esto significa que los datos se concencetrán más en la parte inferior de la distribución, con esto no quiero decir que haya más datos, sino que el rango es más amplio (están más dispersos). Finalmente, al tener un rango intercuartílico tan pequeño tenemos muchos outliers.
+
+Por otro lado, para analizar los residuos vamos a crear dos gráficos. El primero nos permite ver si la varianza es constante, para ello representamos los residuos vs los valores ajustados:
+```{r}
 qplot(x = ajustados, y = residuos, main = "Residuales Estandarizados vs Valores Ajustados", geom = c("point"), ylab = "Residuales Estandarizados", xlab = "Valores Ajustados") + geom_hline(yintercept = 0 , color = 2)
 ```
 
