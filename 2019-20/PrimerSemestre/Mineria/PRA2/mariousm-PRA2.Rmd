@@ -109,6 +109,7 @@ En todos los puntos anteriores se pide al estudiante, además de aplicar los dif
 En este apartado adjuntamos todas las cargas de librerías necesarias para la resolución de la práctica:
 ```{r}
 library(scales)
+library(cluster)
 ```
 
 ## Resumen del dataset
@@ -247,6 +248,91 @@ write.csv(df_discretizado, file = "./data/breast-cancer-clean-discretized.csv", 
 ```
 
 ## Ejercicio 1
+
+En este primer apartado lo que buscamos es aplicar un algoritmo de aprendizaje no supervisado para saber el cómo se agrupa el cáncer, es decir, aunque en nuestro dataset tenemos etiquetadas para cada observación si es cáncer o no, vamos a ignorar este hecho y se va a aplicar un algoritmo de clustering para saber qué hace de especial a los grupos identificados.
+
+### Generación del modelo
+
+Lo primero de todo es observar el dataframe que vamos a usar para este ejercicio:
+
+```{r}
+str(df_copy)
+```
+
+En este caso, vemos que tenemos información innecesaria ya que los atributos ID y Class no hacen falta, el primero porque sirve para identificar en exclusiva un punto y en este caso no queremos analizar un punto buscamos el análisis de un grupo, y el segundo nos indica el grupo en sí ya que el dataset original estaba pensado para un problema de clasificación, nosotros queremos descubrir qué observaciones representan el cáncer si necesidad de indicarle al algorítmo cuáles son cáncer y cuáles no.
+
+Debido a lo comentado en el párrafo anterior, eliminamos dichas variables:
+```{r}
+df_ejer1 = df_copy[,2:10]
+str(df_ejer1)
+```
+
+Comprobamos que tenemos la información correcta. El siguiente paso es hacer un breve análisis de dichos datos:
+```{r}
+summary(df_ejer1)
+```
+
+Como podemos observar todas las variables están acotadas entre los valores 1 y 10, esto se debe a que un grupo experto "normalizó" el dataset con dichos valores.
+
+El significado de este dataset para una variable en específico sería el siguiente, si estudiamos el tamaño de la célula (Cell_Size), a mayor valor más riesgo de que sea un cáncer maligno.
+
+Si se necestia más información sobre el significado de las variables, análisis de las mismas, análisis del dataset en general, se puede hacer la lectura de la práctica uno.
+
+Una vez que tenemos todo preparado podemos generar el modelo de clustering, pero antes debemos hacer una explicación de los grupos que vamos a indicar al algortimo kmeans.
+
+Por norma general, cuando tenemos un problema de clustering que buscamos resolver a partir de la minería de datos, se realiza un estudio sobre cuántos grupos son los ideales para dicho problema, esto tiene toda la lógica ya que a priori desconocemos los mismos, pero en nuestro caso estamos analizando si los datos sobre las células son sobre células benignas o malignas, es decir, desde un principio ya sabemos que los grupos van a ser dos, o tenemos cáncer o no lo tenemos. Por lo tanto, podríamos crear el modelo directamente con los dos grupos, pero por mera curiosidad, vamos a realizar el estudio de grupos para ver cuántos serían lo ideal (aunque sabemos que solo podemos tener dos).
+
+Vamos a calcular el número de clústers ideales para poder realizar nuestro modelo, cabe destacar que calculamos el valor de la silueta x veces para cada modelo, esto es así porque dicho valor cambia todo el rato, al calcularlo x veces podemos hacer una media y que los “mejores clusters” se mantengan independientemente de las veces que se ejecute:
+```{r}
+kmeans_silhouette = function(df, minCluster = 2, maxCluster = 10, maxIterations = 10) {
+  
+  if (minCluster <= maxCluster & minCluster > 1) {
+    resultados = rep(0, maxCluster)
+    
+    for (i in c(minCluster:maxCluster)) {
+      resultado = rep(0, maxIterations)
+      
+      for (j in c(1:maxIterations)) {
+        fit = kmeans(df, i)
+        y_cluster = fit$cluster
+        sk = silhouette(y_cluster, daisy(df))
+      
+        # Como el valor de la silueta puede cambiar de una iteración a otra, calculamos su valor medio
+        resultado[j] = mean(sk[,3])
+      }
+      resultados[i] = mean(resultado)
+    }
+    return(resultados)
+    
+  } else {
+    print("ERROR: minCluster debe ser menor que maxCluster y mayor que 1")
+  }
+}
+```
+
+Ejecutamos la función anterior, indicándole que el número de grupos mínimo es 2, el máximo 10 y se va a ejecutar 50 veces para cada modelo:
+```{r}
+minCluster = 2
+maxCluster = 10
+maxIterations = 50
+
+mean_silhouette = kmeans_silhouette(df_ejer1, minCluster, maxCluster, maxIterations)
+
+plot(minCluster:maxCluster, mean_silhouette[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="Silueta")
+```
+
+Como podemos apreciar en el anterior gráfico, el número de clústers ideal es cuando tenemos dos grupos, lo cual vemos que coincide con nuestro problema real, es decir, tenemos el grupo de si el tumor es benigno o no.
+
+Por lo tanto, vamos a crear el modelo con dos grupos:
+```{r}
+set.seed(0)
+
+modelo_ejer1 = kmeans(df_ejer1, 2)
+```
+
+### Análisis y muestra de las medidas del modelo generado
+
+
 
 ******
 # Criterios de evaluación
