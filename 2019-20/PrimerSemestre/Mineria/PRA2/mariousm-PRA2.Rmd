@@ -1,0 +1,163 @@
+---
+title: 'Minería de datos: PRA2 - Modelado de un juego de datos'
+author: "Autor: Nombre estudiante"
+date: "Mayo 2021"
+output:
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  word_document: default
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: 75.584-PEC-header.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+******
+# Introducción
+******
+## Presentación
+Esta práctica cubre de forma transversal la asignatura.
+
+Las Prácticas 1 y 2 de la asignatura se plantean de una forma conjunta de modo que la Práctica 2 será continuación de la 1.
+
+El objetivo global de la **Práctica 2** es de extraer conocimientos y de comparar las diferentes soluciones aplicando todo lo aprendido mediante los algoritmos de clustering, asociación y clasificación.
+
+## Competencias
+Las competencias que se trabajan en esta prueba son:  
+
+* Uso y aplicación de las TIC en el ámbito académico y profesional.
+* Capacidad para innovar y generar nuevas ideas.
+* Capacidad para evaluar soluciones tecnológicas y elaborar propuestas de proyectos teniendo en cuenta los recursos, las alternativas disponibles y las condiciones de mercado.
+* Conocer las tecnologías de comunicaciones actuales y emergentes así como saberlas aplicar convenientemente para diseñar y desarrollar soluciones basadas en sistemas y tecnologías de la información.
+* Aplicación de las técnicas específicas de ingeniería del software en las diferentes etapas del ciclo de vida de un proyecto.
+* Capacidad para aplicar las técnicas específicas de tratamiento, almacenamiento y administración de datos.
+* Capacidad para proponer y evaluar diferentes alternativas tecnológicas para resolver un problema concreto.
+
+## Objetivos
+La correcta asimilación de todos los aspectos trabajados durante el semestre.  
+En esta práctica abordamos un caso real de minería de datos donde tenemos que poner en juego todos los conceptos trabajados.
+Hay que trabajar todo el ciclo de vida del proyecto. Desde el objetivo del proyecto hasta la implementación del conocimiento encontrado pasando por la preparación, limpieza de los datos, conocimiento de los datos, generación del modelo, interpretación y evaluación.
+
+## Descripción de la PRA a realizar
+La práctica consta de ejercicios en los cuales el estudiante aplicará algunos de los métodos supervisados y no supervisados aprendidos durante el semestre.
+
+## Recursos Básicos
+Material docente proporcionado por la UOC. 
+
+## Criterios de valoración
+
+**Ejercicios prácticos** 
+
+Para todas las PRA es necesario documentar en cada apartado del ejercicio práctico que se ha hecho y como se ha hecho.
+
+## Formato y fecha de entrega
+El formato de entrega es: **usernameestudiante-PRA2** *.Rmd* y el **output generado** en uno de estos formatos *html/doc/docx/odt/pdf*.
+
+Fecha de entrega: **16/06/2021**  
+
+Se debe entregar la PRA en el buzón de entregas del aula en formato comprimido que incluye los ficheros:
+- ejecutable
+- output
+- el dataset seleccionado o en su defecto indicar la ruta para su descarga en el ejecutable.  
+
+## Nota: Propiedad intelectual 
+
+> A menudo es inevitable, al producir una obra multimedia, hacer uso de recursos creados por terceras personas. Es por lo tanto comprensible hacerlo en el marco de una práctica de los estudios de Informática, Multimedia y Telecomunicación de la UOC, siempre y cuando esto se documente claramente y no suponga plagio en la práctica. 
+
+> Por lo tanto, al presentar una práctica que haga uso de recursos ajenos, se debe presentar junto con ella un documento en que se detallen todos ellos, especificando el nombre de cada recurso, su autor, el lugar donde se obtuvo y su estatus legal: si la obra esta protegida por el copyright o se acoge a alguna otra licencia de uso (Creative Commons, licencia GNU, GPL ...). 
+El estudiante deberá asegurarse de que la licencia no impide específicamente su uso en el marco de la práctica. En caso de no encontrar la información correspondiente tendrá que asumir que la obra esta protegida por copyright. 
+
+> Deberéis, además, adjuntar los ficheros originales cuando las obras utilizadas sean digitales, y su código fuente si corresponde.  
+
+******
+# Enunciado
+******
+Como continuación del estudio iniciado en la práctica 1, procedemos en **aplicar modelos analíticos** sobre el juego de datos seleccionado y preparado.  En esta práctica 2 se aconseja de adjuntar los “chunks” de la parte de preparación previa, ejemplo (limpieza, discretización, normalización, PCA/SVD etc.), o en su defecto cargar solo los datos ya preparadados.
+
+De este modo se pide al estudiante que complete los siguientes pasos:
+
+1. Aplicar un modelo **no supervisado** y basado en el concepto de distancia, sobre el juego de datos.
+
+2. Aplicar de nuevo el modelo anterior, pero usando una **métrica distinta** y comparar los resultados.
+
+3. Razonar si tiene sentido aplicar al dataset seleccionado, un método de **generación de reglas de asociaciones**. En caso afirmativo, realizar tal proceso y explicar los resultados. En caso contrario, reformula el problema para que sí lo tenga.
+
+4. Aplicar un modelo de generación de reglas a partir de **árboles de decisión** sin y con opciones de poda y comparar los resultados.
+
+5. Aplicar una mejora con **técnicas de boosting** y comparar el resultado con el anterior.
+	
+6. Identificar eventuales **limitaciones** del dataset seleccionado y **analizar los riesgos** para el caso de uso.
+
+7. (Punto común para todos los ejercicios) - 
+En todos los puntos anteriores se pide al estudiante, además de aplicar los diferentes métodos, de analizar correctamente el problema, **detallar de manera exhaustiva** resaltando el porque y como se ha realizado, incluyendo elementos visuales, explicando los resultados, realizar las comparativas oportunas con sus conclusiones.
+
+
+******
+# Criterios de evaluación
+******
+
+* Ejercicio 1 (25%)
+	- Se genera un modelo no supervisado.
+	- Se analizan, muestran y comentan las medidas de calidad del modelo generado.
+	- Se comentan las conclusiones.
+
+* Ejercicio 2 (10%)
+	- Se genera de nuevo el modelo no supervisado anterior, pero usando una métrica de distancia distinta.
+	- Se muestran y comentan las medidas de calidad del modelo generado.
+	- Adicionalmente se comparan los dos modelos no supervisados con métricas de distancia distintas.
+	- Se comentan las conclusiones. 
+	
+* Ejercicio 3 (10%)
+	- Se representa, analiza y comenta un ejemplo de reglas de asociaciones aplicado al dataset seleccionado, o en su defecto se reformula el problema (mínimo de 250 palabras).
+	- Se comentan las conclusiones.
+
+* Ejercicio 4 (25%)
+	- Se generan reglas y se comentan e interpretan las más significativas.
+	- Extraemos las reglas del modelo en formato texto y gráfico.
+	- Adicionalmente se genera matriz de confusión para medir la capacidad predictiva del algoritmo.
+	- Se comparan e interpretan los resultados sin y con opciones de poda, explicando las ventajas e inconvenientes del modelo generado respecto a otro método de construcción.
+	- Se evalúa la tasa de error en cada nivel de árbol, la eficiencia en clasificación (en las fases de training, validación y test) y la comprensibilidad.
+	- Se comentan las conclusiones.
+
+* Ejercicio 5 (10%)
+	- Se aplica una mejora con técnica de boosting. 
+	- Se detalla, comenta y evalúa la calidad de clasificación.
+	- Se comparan y comentan los resultados de manera exhaustiva con el anterior método de construcción.
+
+* Ejercicio 6 (10%)
+  - Identifica qué posibles limitaciones tienen los datos que has seleccionado para obtener conclusiones con los modelos (supervisado y no supervisado)
+  - Se identifican posibles riesgos del uso del modelo  (mínimo 250 palabras).
+  
+* Consideración general (10%) 
+  - Se presenta el código y es fácilmente reproducible.
+  - Se detalla cada pregunta de manera correcta, mostrando el código, comentando como se ha hecho y porque se ha hecho, comparando los resultados y/o indicando otras alternativas al problema indicado.
+  - Se muestran las conclusiones en cada apartado
+  - Se indican eventuales citaciones bibliográficas, fuentes internas/externas y materiales de investigación.
+
+******
+# Recursos de programación
+******
+* Incluimos en este apartado una lista de recursos de programación para minería de datos donde podréis encontrar ejemplos, ideas e inspiración:
+  + [Material adicional del libro: Minería de datos Modelos y Algoritmos](http://oer.uoc.edu/libroMD/)
+  + [Espacio de recursos UOC para ciencia de datos](http://datascience.recursos.uoc.edu/es/)
+  + [Buscador de código R](https://rseek.org/)  
+  + [Colección de cheatsheets en R](https://rstudio.com/resources/cheatsheets/)  
+  
+
+******
+
+******
+
+
+
+
+
+
