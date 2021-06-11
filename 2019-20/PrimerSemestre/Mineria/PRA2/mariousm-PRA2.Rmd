@@ -1,12 +1,8 @@
 ---
 title: 'Minería de datos: PRA2 - Modelado de un juego de datos'
-author: "Autor: Nombre estudiante"
+author: "Autor: Mario Ubierna San Mamés"
 date: "Mayo 2021"
 output:
-  pdf_document:
-    highlight: zenburn
-    toc: yes
-  word_document: default
   html_document:
     highlight: default
     number_sections: yes
@@ -15,6 +11,10 @@ output:
     toc_depth: 2
     includes:
       in_header: 75.584-PEC-header.html
+  word_document: default
+  pdf_document:
+    highlight: zenburn
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -101,6 +101,154 @@ En todos los puntos anteriores se pide al estudiante, además de aplicar los dif
 
 
 ******
+# Solución
+******
+
+## Librerías
+
+En este apartado adjuntamos todas las cargas de librerías necesarias para la resolución de la práctica:
+```{r}
+library(scales)
+```
+
+## Resumen del dataset
+
+El dataset elegido para dar respuestas a las preguntas que nos hemos hecho en la práctica uno es el de Breast Cancer Wisconsin (Original) Data Set de Machine Learning Repository [https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Original%29]
+
+Hemos elegido dicho dataset porque nos proporciona toda la información necesaria, a partir de datos como el tamaño de la célula, la forma de la célula...
+
+Es verdad que hay datasets similares a este pero con más atributos, es decir, aquí solo tenemos un campo para el tamaño de la célula, mientras que en otros datasets ese campo podía venir representado por tres atributos, pero este dataset consigue mantener la misma información reduciendo ya la dimensionalidad de los atributos. Por otro lado, los valores numéricos en este conjunto de datos van del 1 al 10, es decir, [1-10], estos valores no son aleatorios sino que un grupo de expertos ha "normalizado" dichos valores para representar la misma información pero de una forma más sencilla.
+
+Finalmente, a continuación se indica los atributos que tiene este dataset:
+
+**Id**
+    integer - identificador de la observación.
+    
+**Thickness**
+    integer [1-10] - espesor/grosor del tumor.
+    
+**Cell_Size**
+    integer [1-10] - uniformidad del tamaño celular.
+    
+**Cell_Shape**
+    integer [1-10] - uniformidad de la forma celular.
+    
+**Adhesion**
+    integer [1-10] - adherencia celular.
+    
+**Epithelial_Cell_Size**
+    integer [1-10] - tamaño de una sola célula epitelial.
+    
+**Bare_Nuclei**
+    integer [1-10] - núcleo desnudo.
+    
+**Bland_Chromatin**
+    integer [1-10] - textura del núcleo.
+    
+**Normal_Nucleoli**
+    integer [1-10] - nucléolos normales.
+    
+**Mitoses**
+    integer [1-10] - mitosis.
+    
+**Class**
+    integer - clase si es beningno 2, si es maligno 4.
+    
+Aunque algun concepto es fácil de entender los demás no, es por ello que vamos a definir cada concepto:
+
+- Thickness: hace referencia al espesor/grosor de la masa mamaria que se estudia, es decir, del tumor.
+
+- Cell_Size: tamaño de las células que se estudian, las células cancerígenas suelen cambiar de tamaño.
+
+- Cell_Shape: forma de las células que se estudian, las células cancerígenas suelen cambiar de forma.
+
+- Adhesion: las células que son cancerígenas tienden a separarse unas de las otras, mientras que en las células normales sucede todo lo contrario.
+
+- Epithelial_Cell_Size: las células que son significativamente grandes suelen ser cancerígenas.
+
+- Bare_Nuclei: nos indica si el núcleo de las células está rodeado por el citoplasma (células normales), en caso contrario es probable que sean células cancerígenas.
+
+- Bland_Chromatin: textura de los núcleos de las células, cuanto más tosco sea más probabiliades de que la célula sea cancerígena.
+
+- Normal_Nucleoli: los nucleólos son pequeñas estructuras que se encuentran en los núcleos, en células benignas suelen ser estructuras pequeñas mientras que en las malignas son más grandes.
+
+- Mitoses: proceso en el cual las células eucariotas se dividen.
+
+Toda esta información se ha obtenido de la siguiente página [https://core.ac.uk/download/pdf/77274625.pdf], cabe destacar que a mayor valor de cada atributo más probable es que la célula sea anormal y dentro de esta anormalidad sea cancerígena.
+
+Por último, tenemos 699 observaciones y 11 atributos en el dataset original, pero se han creado tambien el dataset normalizado con 699 observaciones y 11 atributos, y el discretizado con 699 observaciones y 21 variables.
+
+## Preparación de los datos
+
+En este primer apartado vamos a preparar el conjunto de datos para así poder aplicar modelos analíticos. Cabe destacar que esta limpieza ya se hizo en la práctica uno, por lo que vamos a adjuntar el código necesario para generar el dataset final sin entrar en la explicación del mismo ni en el análisis de los datos.
+
+```{r}
+# CARGAMOS
+df = read.table(file="./data/breast-cancer-wisconsin.data", fileEncoding="UTF-8", sep=",", na.strings = "NA")
+
+# Cambiamos el nombre de las columnas tal y como se llaman según la página web
+colnames(df) = c("Id", "Thickness", "Cell_Size", "Cell_Shape", "Adhesion", "Epithelial_Cell_Size", "Bare_Nuclei", "Bland_Chromatin", "Normal_Nucleoli", "Mitoses", "Class")
+
+# Creamos una copia del dataframe, ya que va a ser la copia sobre la que vamos a realizar las modificaciones
+df_copy = df
+
+# IMPUTAMOS
+df_copy[df_copy$Bare_Nuclei == "?", "Bare_Nuclei"] = NA
+df_copy$Bare_Nuclei = as.integer(df_copy$Bare_Nuclei)
+
+nMediana = median(df_copy$Bare_Nuclei, na.rm = TRUE)
+df_copy$Bare_Nuclei[is.na(df_copy$Bare_Nuclei)] = nMediana
+
+# nORMALIZAMOS
+df_normalizado = scale(df_copy)
+
+# Generamos el dataset normalizado
+write.csv(df_normalizado, file = "./data/breast-cancer-clean-normalized.csv", row.names = FALSE)
+
+# DISCRETIZAMOS
+
+df_discretizado = df_copy
+
+# Dicretización del grosor
+df_discretizado["d-Thickness"] = ordered(cut(df_discretizado[["Thickness"]], breaks = c(0,4,7,10), labels = c("Delgado", "Mediano", "Grueso")))
+
+# Dicretización del tamaño
+df_discretizado["d-Cell_Size"] = ordered(cut(df_discretizado[["Cell_Size"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
+
+# Dicretización del forma
+df_discretizado["d-Cell_Shape"] = ordered(cut(df_discretizado[["Cell_Shape"]], breaks = c(0,4,7,10), labels = c("Clase1", "Clase2", "Clase3")))
+
+# Dicretización a la adhesión marginal
+df_discretizado["d-Adhesion"] = factor(cut(df_discretizado[["Adhesion"]], breaks = c(0,5,10), labels = c("Alta", "Baja")))
+
+# Dicretización del tamaño de las células epiteliales
+df_discretizado["d-Epithelial_Cell_Size"] = ordered(cut(df_discretizado[["Epithelial_Cell_Size"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
+
+# Dicretización los núcleos desnudos
+df_discretizado["d-Bare_Nuclei"] = factor(cut(df_discretizado[["Bare_Nuclei"]], breaks = c(0,4,7,10), labels = c("Presente", "Presente/Ausente", "Ausente")))
+
+# Dicretización de la textura de la núcleos
+df_discretizado["d-Bland_Chromatin"] = factor(cut(df_discretizado[["Bland_Chromatin"]], breaks = c(0,4,7,10), labels = c("Uniforme", "Uniforme/Burda", "Burda")))
+
+# Dicretización de la estructoras de los nucleólis
+df_discretizado["d-Normal_Nucleoli"] = ordered(cut(df_discretizado[["Normal_Nucleoli"]], breaks = c(0,4,7,10), labels = c("Pequeño", "Mediano", "Grande")))
+
+# Dicretización de la mitosis
+df_discretizado["d-Mitoses"] = ordered(cut(df_discretizado[["Mitoses"]], breaks = c(0,4,7,10), labels = c("Mitosis1", "Mitosis2", "Mitosis3")))
+
+# Creamos una columna respecto a la clase, aunque no es discretización como tal, es más fácil ver si un cáncer es benigno respecto a su nombre que no respecto a su valor.
+df_discretizado$`d-Class`[df_discretizado$Class == 2] = "Benigno" 
+df_discretizado$`d-Class`[df_discretizado$Class == 4] = "Maligno"
+df_discretizado$`d-Class` = as.factor(df_discretizado$`d-Class`)
+
+# Generamos el dataset discretizado
+write.csv(df_discretizado, file = "./data/breast-cancer-clean-discretized.csv", row.names = FALSE)
+
+```
+
+## Ejercicio 1
+
+******
 # Criterios de evaluación
 ******
 
@@ -141,6 +289,7 @@ En todos los puntos anteriores se pide al estudiante, además de aplicar los dif
   - Se detalla cada pregunta de manera correcta, mostrando el código, comentando como se ha hecho y porque se ha hecho, comparando los resultados y/o indicando otras alternativas al problema indicado.
   - Se muestran las conclusiones en cada apartado
   - Se indican eventuales citaciones bibliográficas, fuentes internas/externas y materiales de investigación.
+
 
 ******
 # Recursos de programación
