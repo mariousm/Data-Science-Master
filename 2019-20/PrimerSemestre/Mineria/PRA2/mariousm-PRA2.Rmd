@@ -332,7 +332,238 @@ modelo_ejer1 = kmeans(df_ejer1, 2)
 
 ### Análisis y muestra de las medidas del modelo generado
 
+Antes de realizar el análisis de los clústers que nos ha generado el modelo y qué caracteriza a cada grupo, vamos a ver cómo de bueno es el modelo que hemos creado.
 
+Lo primero que vamos a hacer es saber cómo de bueno son los agrupamientos, ésto también nos va a definir el número ideal de clústers para nuestro problema, aunque como venimos diciendo van a ser dos. Sabemos que tenemos dos grupos, pero por mera curiosidad vamos a ver si es verdad que el mejor modelo es cuando tenemos dos clústers.
+
+Para ver cómo de bueno es el modelo podemos hacer dos cosas:
+
+- Fijarnos en la menor suma de los cuadrados de las distancias de los puntos de cada grupo con respecto a su centro (withinss).
+
+- Y obtener la mayor separación posible entre los centros de cada grupo (betweenss).
+
+Por lo tanto, primero observamos la withinss, es decir, ver qué clústers hacen que la mínima suma de los cuadrados de las distancias de los punto de cada grupo con su centro:
+```{r}
+# Método que nos devuelve el valor medio del tot.withinss para un rango de clústers y de iteraciones sobre el mismo clúster
+kmeans_totWithinss = function(df, minCluster = 2, maxCluster = 10, maxIterations = 10) {
+  
+  if (minCluster <= maxCluster & minCluster > 1) {
+    resultados = rep(0, maxCluster)
+    
+    for (i in c(minCluster:maxCluster))
+    {
+      resultado = rep(0, maxIterations)
+      
+      for (j in c(1:maxIterations)) {
+        fit = kmeans(df, i)
+        resultado[j] = fit$tot.withinss
+      }
+      
+      resultados[i] = mean(resultado)
+    }
+    return(resultados)
+    
+  } else {
+     print("ERROR: minCluster debe ser menor que maxCluster y mayor que 1")
+  }
+}
+```
+
+Obtenemos las métricas de la withinss para cada modelo de 2 clústers a 10:
+```{r}
+mean_totWithinss = kmeans_totWithinss(df_ejer1, minCluster, maxCluster, maxIterations)
+
+plot(minCluster:maxCluster,mean_totWithinss[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="tot.tot.withinss")
+```
+
+Como podemos apreciar, a mayor número de clústers menor es el error, pero esto no es lo correcto porque nos generaría un modelo muy específico, y lo que buscamos generalizar. Para nuestro problema seguimos considerando que lo mejor son dos clústers, ya que buscamos saber si el tumor es benigno o no, aunque a la vista de la anterio gráfica es en este caso cuando obtenemos una mayor separación entre los puntos de cada grupo y su centro.
+
+Continuando con la calidad del modelo, vamos a ver cómo es la betweenss, es decir, cuanto más separados estén los grupos mejor:
+```{r}
+# Método que nos devuelve el valor medio de la betweenss para un rango de clústers y de iteraciones sobre el mismo clúster
+kmeans_betweenss = function(df, minCluster = 2, maxCluster = 10, maxIterations = 10) {
+  
+  if (minCluster <= maxCluster & minCluster > 1) {
+    resultados = rep(0, maxCluster)
+    
+    for (i in c(minCluster:maxCluster))
+    {
+      resultado = rep(0, maxIterations)
+      
+      for (j in c(1:maxIterations)) {
+        fit = kmeans(df, i)
+        resultado[j] = fit$betweenss
+      }
+      
+      resultados[i] = mean(resultado)
+    }
+    return(resultados)
+    
+  } else {
+     print("ERROR: minCluster debe ser menor que maxCluster y mayor que 1")
+  }
+}
+```
+
+Una vez definida la función la llamamos:
+```{r}
+mean_betweenss = kmeans_betweenss(df_ejer1, minCluster, maxCluster, maxIterations)
+
+plot(minCluster:maxCluster,mean_betweenss[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="betweenss")
+```
+
+Aunque de la gráfica anterior un modelo con 4, 5 o 6 clústeres obtendríamos una mejor betweenss y un modelo más general, el caso que estamos abordando no se vería representado, es decir, no podemos categorizar el cáncer de seis formas distintas, es decir, o tienes cáncer o no.
+
+Debido a esto vamos a analizar para el modelo creado, es decir, un modelo con dos clústers, cómo es la silueta, cómo es su withinss, y su betweenss.
+
+Respecto a la silueta:
+```{r}
+set.seed(0)
+cat("La silueta del modelo con 2 grupos es: ", kmeans_silhouette(df_ejer1, 2, 2, 1)[2])
+```
+
+La silueta nos indica cómo de similar es un elemento con los de su propio grupo y cómo de diferente respecto a los demás, su valor va entre -1 y 1, cuanto más próximo esté el valor a uno mejor es el modelo, ya que esto significa que un elemento está bien emparejado con los de su gurpo (es muy similar) y a su vez es muy diferente respecto a los demás grupos.
+
+En nuestro caso, obtenemos un valor de silueta de casi el 0.60, por lo que el modelo está bastante bien aunque podría estar mejor, pero como primera aproximación el modelo se comporta bien.
+
+Lo siguiente que vamos a hacer es ver si withinss:
+```{r}
+cat("El withinss del modelo con 2 grupos es: ", modelo_ejer1$tot.withinss)
+```
+
+En este caso vemos que obtenemos una withinss muy elevada, esto significa que la suma de las distancias de cada punto respecto al centro de su grupo es mayor, lógicamente como ya hemos visto antes, a mayor número de clústers menor es la withinss, pero en nuestro caso tenemos que tener dos clústers sí o sí, por lo tanto aunque tenemos una elevada withinss esto se debe al número bajo de clústers no porque el modelo sea malo en sí, como vimos la siuelta es elevada por lo que el modelo es bueno.
+
+La última medida a analizar es la betweenss:
+```{r}
+cat("La betweenss del modelo con 2 grupos es: ", modelo_ejer1$betweenss)
+```
+
+Respecto a la betweenss no tenemos un valor suficientemente alto, como ya vimos esto también es lógico, a mayor número de clústers más centros dando lugar a una mayor betweenss, pero al igual que antes estamos "condenados" a dos grupos.
+
+En resumen, aunque la métricas withinss y betweens no son las mejores, respecto a cambiar el número de clústers no podemos hacer nada, ya que el tumor es benigno o maligno, solo hay dos clases. Sin embargo, nos podemos fiar de la silueta del modelo cuando tenemos dos clústers, y hemos visto que este valor es elevado, por lo que tenemos un buen modelo para analizar el cómo se agrupan los tumores y ver si hay cáncer o no.
+
+### Conclusiones
+
+En este apartado vamos a realizar el análisis del modelo, es decir, cómo agrupa los tumores según su características principales: el tamaño de la célula, la forma, el grosor del tumor...
+
+Lo primero que vamos a analizar es el grosor del tumor, el ver cómo el tamaño de la célula, la adhesión (las células que son cancerígenas tienden a separarse unas de las otras, mientras que en las células normales sucede todo lo contrario), y si presenta núcleos desnudos (si el núcleo de las células está rodeado por el citoplasma (células normales), en caso contrario es probable que sean células cancerígenas).
+
+Por lo tanto, mostramos el grosdor del tumor y el tamaño de la célula y vemos cómmo lo agrupa el modelo:
+```{r}
+plot(df_ejer1[,c("Thickness", "Cell_Size")], col=modelo_ejer1$cluster, main="Grosor de la célula respecto al tamaño")
+```
+
+Lo primero de todo es identificar los grupos que nos genera, podemos ver claramente que los grupos vienen determinados por el tamaño de la célula y no tanto por el grosor, es decir, a mayor tamaño de la célula más riesgo de que el tumor sea maligno (grupo negro) y menor tamaño de que sea benigno (grupo rojo).
+
+Algo curioso del anterior gráfico es que podemos tenemos un grosor muy elevado, pero que la célula sea muy pequeña y esto no significa para nada que tengamos cáncer, es decir, es muy influyente el cómo es el tamaño de la célula para dictaminar si ésta es cancerígena o no.
+
+El siguiente análisis es comprobar el cómo influye el grosor a la adhesión de las células:
+```{r}
+plot(df_ejer1[,c("Thickness", "Adhesion")], col=modelo_ejer1$cluster, main="Grosor de la célula respecto a la adhesión de las mismas")
+```
+
+En este caso vemos que ya no están tan bien definidos los clústers, es decir, hay casos especiales. Por norma general, un mayor grosor lleva implícito una peor adhesión, es decir, cuánto más gruesa sea la célula más probabilidades hay de que sea cancerígena y tienda a serparase unas de otras más fácilmente. Sin embargo, a menor grosor más probable que la célula sea benigna y no se separe las unas de las otras.
+
+Por último respecsto al grosor, vamos a comporar si Bare_Nuclei afecta, es decir, si las células que están rodeadas de citoplasma y las que no dependen del grosor o no:
+```{r}
+plot(df_ejer1[,c("Thickness", "Bare_Nuclei")], col=modelo_ejer1$cluster, main="Grosor de la célula respecto a las células con citoplasma")
+```
+
+En este caso vemos que el grosor de la célula también influye, es decir, cuanto mayor sea el grosor más probabilidades de que la célula no tenga citoplasma o éste esté presente en bajas cantidades, esto significaría cáncer. En caso contrario, estaríamos ante un tumor benigno.
+
+El siguiente paso es analizar el tamaño de la célula, el ver cómo influye ésta respecto a la forma de la misma, al tamaño de las células epiteliales, y a la textura de los núcleos. Todo esto nos sirve para determinar en qué casos tenemos un cáncer benigno o maligno.
+
+Por lo tanto, analizamos el tamaño de la célula respecto a la forma de la misma:
+```{r}
+plot(df_ejer1[,c("Cell_Size", "Cell_Shape")], col=modelo_ejer1$cluster, main="Tamaño de la célula respecto a la forma")
+```
+
+Como podemos observar, a mayor tamaño de célula mayor es su forma y esto lleva implícito un mayor riesgo de cáncer. Cabe destacar, que los tumores beningnos tienen un tamaño y una forma pequeña, es decir, el normal es moverse entre un tamaño de 1 y 3, a nada que nos movamos de dicho tamaño el riesgo aumenta muchísmo.
+
+El siguiente análisis es el tamaño respecto al tamaño de las célula epiteliales:
+```{r}
+plot(df_ejer1[,c("Cell_Size", "Epithelial_Cell_Size")], col=modelo_ejer1$cluster, main="Tamaño de la célula respecto al tamaño de las células epiteliales")
+```
+
+En este caso, podemos apreciar que tener un tamaño de célula epitelial muy elevado no significa cáncer, pero a medida que aumenta el tamaño de las células, al igual que en el caso anterior, sí que aumenta el riesgo de que el tumor seas maligno.
+
+Finalmente, analizamos el tamaño respecto a la textura de los núcleos:
+```{r}
+plot(df_ejer1[,c("Cell_Size", "Bland_Chromatin")], col=modelo_ejer1$cluster, main="Tamaño de la célula respecto a la textura del núcleo")
+```
+
+En este caso, vemos que si tenemos una textura muy tosca, es decir, un valor elevado de la variable Bland_Chromatin, podemos estar hablando de un caso de cáncer, es decir, esta variable es significativa para dictaminar si el tumor es benigno o no. También, como hemos ido estudiando, al aumentar el tamaño de la célula esto sigue suponiendo un mayor riesgo de cáncer.
+
+El siguiente análisis que vamos a hacer es relativo al tamaño epitelial de las células, vamos a comprobar si dicho tamaño es afectado por si hay nucleólos pequeños o grandes y el proceso de mitosis.
+
+Por lo tanto, mostramos el tamaño epitelial frente a la nuclólos:
+```{r}
+plot(df_ejer1[,c("Epithelial_Cell_Size", "Normal_Nucleoli")], col=modelo_ejer1$cluster, main="Tamaño de las células epiteliales respecto al tamaño de los nucleólos")
+```
+
+Podemos concluir que no por tener una estructura de nucleólos grande significa que vaya a tener cáncer, sin embargo, a medida que aumenta el tamaño de las células epiteliales, y la estructura de los nucleólos aumenta, vemos que sí que hay una ligera relación, esto supone un mayor riesgo de que el tumor se maligno.
+
+Analizamos el tamaño de las células epiteliales frente a la mitosis:
+```{r}
+plot(df_ejer1[,c("Epithelial_Cell_Size", "Mitoses")], col=modelo_ejer1$cluster, main="Tamaño de las células epiteliales respecto a la mitosis")
+```
+
+En este caso vemos que no hay relación, es decir, no por tener una mejor mitosis tenemos mayor riesgo, sino que el riesgo viene determinado por el tamaño de la célula epitelial.
+
+El siguiente elemento a estudiar va a ser si el núcleo de las células está rodeado de citoplasma (signnifica un menor riesgo de cáncer) o no (mayor riesgo), respecto a la forma de la célula, la capacidad de separarse de otras células y si la textura del núcleo influye.
+
+Por lo tanto, analizamos primero si el citoplasma se ve afectado por la forma de la célula:
+```{r}
+plot(df_ejer1[,c("Bare_Nuclei", "Cell_Shape")], col=modelo_ejer1$cluster, main="La presencia de citoplasma respecto a la forma de la célula")
+```
+
+Podemos apreciar que hay una relación, cuando aumenta la forma de la célula lo hace también Bare_Nuclei (menos presencia de citoplasma), esto supone un mayor riesgo de cáncer. De primeras podríamos intuir que al aumentar la forma hay más espacio para más citoplasma, pero vemos que es todo lo contrario, ya que al aumentar la forma la célula va tomando las característias de una célula cancerígena y esto suele suponer reducir el citoplasma de la misma.
+
+Analizamos la capacidad que tiene la célula de separarse:
+```{r}
+plot(df_ejer1[,c("Bare_Nuclei", "Adhesion")], col=modelo_ejer1$cluster, main="La presencia de citoplasma respecto a la adhesión")
+```
+
+En este caso, vemos que también está relacionado, al reducirse el citoplasma de las células (aumenta Bare_Nuclei) éstas tienden a separase más, por lo tanto, incrementa el riesgo de padecer cáncer.
+
+Otro aspecto a analizar, es si al reducir el citoplasma se ve afectado la textura del núcleo:
+```{r}
+plot(df_ejer1[,c("Bare_Nuclei", "Bland_Chromatin")], col=modelo_ejer1$cluster, main="La presencia de citoplasma respecto a la textura del núcleo")
+```
+
+En este caso vemos que no hay una relación tan fuerte, pero es verdad que cuando aumenta la textura del núcleo de por sí ya tenemos un mayor riesgo de cáncer, lo mismo sucede con el citoplasma, cuando se reduce éste aumenta el riesgo de que el tumor sea maligno.
+
+Para terminar con el análisis de este ejercicio, vamos a analizar si el tamaño de las estructuras de los nucleólos se ve afectado o no por el tamaño de la célula y la mitosis, y si esto significa un mayor riesgo de cáncer o no.
+
+Por lo tanto, analizamos las estructuras de los nucleólos frente al tamaño de las células:
+```{r}
+plot(df_ejer1[,c("Normal_Nucleoli", "Cell_Size")], col=modelo_ejer1$cluster, main="Tamaño de los nucleólos respecto al tamaño de la célula")
+```
+
+Apenas podemos apreciar una relación, vemos que el tamaño de la célula de por sí es muy influyente, es decir, el tamaño de los nucleólos tiene que ser muy elevado con un valor de 9 o 10 para que sea significativo el aumento en esta variable, ya que para valores más pequeños presentamos prácticamente la misma relación respecto al tamaño de la célula.
+
+El otro aspecto a analizar es si la estructura de los nucleólos se ve afectado por el proceso de mitosis:
+```{r}
+plot(df_ejer1[,c("Normal_Nucleoli", "Mitoses")], col=modelo_ejer1$cluster, main="Tamaño de los nucleólos respecto a la mitosis")
+```
+
+En este caso, aunque en la primera parte de la práctica veíamos una ligera correlación, al analizar los grupos vemos que no hay relación, es decir, el cáncer no se ve afectado por la mitosis, sin embargo, sí que presentamos un mayor riesgo cuando el tamaño de los nucleólos es mayor.
+
+#### Resumen
+
+El primer análisis que hemos hecho ha sido respecto al grosor de la célula, y hemos visto que en cuanto al tamaño de la célula tener un grosor mayor no implicaba un tamaño mayor y por lo tanto no podíamos garantizar que fuera cáncer, es decir, influía más en el cáncer el tamaño de la célula que el grosor en sí mismo. También hemos analizado el grosor respecto a la capacidad de separarse la células, y hemos visto  que sí que hay relación, a mayor grosor más se separan las células unas de otras y esto supone cáncer. Finalmente, se ha estudiado el cómo afectaba el grosor a si las células tenían citoplasma o no, y hemos visto que también está relacionado, es decir, a mayor grosor las células tienen menos citoplasma o no tienen y esto supone que el tumor sea maligno.
+
+El segundo análisis ha sido respecto al tamaño de la célula, hemos estudiado si la forma de la misma se veía afectada por el tamaño y hemos visto que sí, a mayor tamaño mayor forma y mayor riesgo de cáncer. Después hemos comprobado si el tamaño de las células epiteliales se veían afectadas, y hemos visto que no del todo, es verdad que a mayor tamaño mayor riesgo de cáncer, pero si el tamaño de las células epiteliales es elevado y tamaño de las células "normales" es pequeño podemos garantizar que es un tumor benigno. Finalmente, hemos comprobado que la textura del núcleo se ve afectada por el tamaño, ya que el núcleo es más tosco y esto supone un mayor riesgo de un tumor maligno.
+
+El siguente análisis ha sido el tamaño de las células epiteliales, hemos estudiado si el tamaño de los nucleólos estaba relacionado, y hemos visto que sí pero de una forma muy ligera, es decir, no podíamos garantizar al 100% de que hubiera riesgo de cáncer si aumentaba el tamaño de la estructura de los nucleólos. Por otro lado, hemos analaizado el proceso de mitosis según el tamaño de las células epiteliales, y en este caso hemos visto que no había relación, por tanto no podíamos garantizar que al tener un mayor o menor proceso de mitosis hubiera un peligro en si el tumor era benigno o no.
+
+El cuarto análisis ha sido el citoplasma presente en las células, hemos comprobado si la forma de la célula afectaba al citoplasma y hemos visto que sí, que cuando aumenta la forma de la célula, ésta va adquiriendo las características de las células cancerígenas, y por tanto reduce el citoplasma de las misma. También hemos estudiado la capacidad de separación de estas células, y también están relacionadas, es decir, cuando el citoplasma es menor la célula tiende a separarse más unas de otras, lo que origina el cáncer. Finalemnte, hemos analizado si afectaba la textura del núcleo, y hemos comprobado que no hay una relación muy fuerte entre a menor citoplasma que los núcleos sean más toscos.
+
+El último análisis ha sido el tamaño de los nucleólos, hemos comprobado si se veía afectado por el tamaño de las células, y hemos apreciado que apenas hay una relación, es decir, un mayor tamaño de la célula implica ya de por sí un mayor riesgo de cáncer, sin embargo, para que el nucleólo sea significativo éste tiene que tener un tamaño grande respecto al tamaño de la célula. También hemos estudiado si se veía afectado por la mitosis, hemos comprobado que no, no había relación.
+
+## Ejercicio 2
+
+## Ejercicio 3
 
 ******
 # Criterios de evaluación
