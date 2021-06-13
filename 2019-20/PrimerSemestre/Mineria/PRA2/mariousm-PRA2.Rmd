@@ -113,6 +113,9 @@ library(cluster)
 library(dplyr)
 library(arules)
 library(arulesViz)
+library(rpart)
+library(rpart.plot)
+library(caret)
 ```
 
 ## Resumen del dataset
@@ -699,6 +702,230 @@ Las conclusiones obtenidas son las siguientes:
 - Cuando hablamos de un tumor maligno, presente características como una forma de la célula mayor, un tamaño de la misma mayor, no hay o apenas hay citoplasma en la célula, suelen tener un grosor mayor, y los nucleólos suelen ser grandes.
 
 - Sin embargo si el tumor es beningno, la forma suele ser menor, el tamaño de la misma también, presentan citoplasma en las células, suelen tener un grosor delgado, el núcleo tiene estructura uniforme y los nucleólos son pequeños.
+
+## Ejercicio 4
+
+En este ejercicio se plantea la problemática de clasificar el tumor a partir de árboles de decisión, pero en este caso no vamos a tener solo un modelo, sino que dos, uno va a ser sin poda y otro podado, es decir, en el primero no vamos a acotar el árbol mientras que en el segundo sí.
+
+Por lo tanto, el objetivo de este ejercicio es analizar y comparar qué modelo funciona mejor, si el árbol de decisión sin podar o podado.
+
+### Preparación de los datos
+
+Antes de crear los modelos tenemos que preparar los datos, es decir, ver qué variables vamos a introducir y generar tanto los datos de entrenamiento como de test.
+
+Para que sea más fácil de interpretar el árbol vamos a hacer uso del dataframe con las variables discretizadas:
+```{r}
+df_ejer4 = df_discretizado[, c(12:21)]
+
+str(df_ejer4)
+```
+
+Tal y como hemos visto en anteriores ejercicio, la variable Mitoses no proporciona información determinante para clasificar si un tumor es benigno o no, por lo que vamos a eliminarla:
+```{r}
+df_ejer4 = df_ejer4[, -c(9)]
+
+str(df_ejer4)
+```
+
+Una vez que tenemos el dataset, pasasmos a dividir el mismo en dos conjuntos, uno para el entrenamiento y otro para el test. Caba destacar que para el entrenamiento vamos a usar 2/3 de los datos, y para el test 1/3:
+```{r}
+set.seed(0)
+
+# Dividimos los datos para train y test
+separacion = 3
+
+indexes = sample(1:nrow(df_ejer4), size=floor(((separacion-1)/separacion)*nrow(df_ejer4)))
+df_ejer4_train = df_ejer4[indexes,]
+df_ejer4_test = df_ejer4[-indexes,]
+```
+
+Una vez que se nos ha generado los conjuntos comprobamos su información:
+```{r}
+summary(df_ejer4_train)
+summary(df_ejer4_test)
+```
+
+De la anterior ejecución vemos que no hay mucha diferencia en cuanto a los conjuntos de datos en sí, es decir, dejando de lado que en test hay menos datos que en train, vemos que la prporción para cada variable se mantiene más o menos, es decir, no sesgamos la información.
+
+### Creación de los modelos
+
+Una vez que ya tenemos el dataset tanto para el entrenamiento como para el test, podemos crear los modelos. Recordamos que va a haber dos: un modelo que no se va a podar y otro en el que sí.
+
+Creación del árbol de decisión sin opción de poda:
+```{r}
+modelo_ejer4_sin_podar = rpart(formula = `d-Class` ~ ., data = df_ejer4_train, method = "class")
+```
+
+El segundo modelo se basa en la poda, es por ello que hemos usado la librería rpart, hay un parámetro denominado "cp" que nos permite optimizar la poda para el árbol.
+
+Como a priori no sabes cuál es el subárbol óptimo, vamos a generar el árbol más detallado y a partir de éste haremos la poda. Para ello, vamos a crear un modelo base cuyo cp va a ser igual a 0, ya que a medida que aumenta este cp el error va a ser mayor, al tener un cp igual a cero vamos a tener un modelo sobreajustado, pero de esta forma luego podemos analizar cuál es el valor óptimo para hacer la poda.
+
+Generamos el modelo base:
+```{r}
+modelo_ejer4_podado = rpart(formula = `d-Class` ~ ., 
+                            data = df_ejer4_train, 
+                            method = "class", 
+                            control = rpart.control(cp = 0))
+```
+
+Una vez generado el modelo, comprobamos cómo evoluciona el valor cp respecto al error:
+```{r}
+plotcp(modelo_ejer4_podado)
+```
+
+En este caso como es lógico cuanto más proóximo a cero sea el valor cp, menos error vamos a tener porque el modelo está sobreajustado, pero nosotros no queremos un modelo sobreajustado sino que el modelo tiene que ser capaz de generalizar. Por lo tanto, de la anterior gráfica vemos que valor ideal para el cp es 0.31, ya que es aquí donde empieza el "codo" de la gráfica.
+
+Creamos el modelo con el cp para este caso:
+```{r}
+modelo_ejer4_podado = prune(modelo_ejer4_podado, cp = 0.31)
+```
+
+Una vez que hemos creado los modelos, vamos a ver qué reglas tenemos junto con su análisis visual.
+
+### Análisis de reglas e interpretación visual
+
+Lo primero de todo es analizar las reglas que nos ha generado los dos modelos que tenemos, como es lógico en el modelo que no está podado vamos a tener más reglas que en el modelo podado.
+
+Respecto al modelo no podado obtenemos las siguientes reglas:
+```{r}
+rpart.rules(modelo_ejer4_sin_podar)
+```
+
+Respecto a este modelo obtenemos las siguientes reglas:
+
+- Cuando la forma de la célula es clase1 (célula normal), el citoplasma que hay dentro de ella está presente o hay una pequeña cantidad, y el tamaño de la célula epitelial es pequeño, este es el único caso en el que el tumor es benigno. Por lo que esta información es muy valiosa, ya que sabemos perfectamente lo que define a un tumor "bueno" con un 2%.
+
+- Cuando la forma de la célula es clase1, el citoplasma está presente o hay poca cantidad, y el tamaño de la célula epitelial es mediano o grande, estamos en un caso de tumor maligno, es decir, de cáncer con un 64%.
+
+- Si la forma de la célula es clase1, y no hay citoplasma dentro de ella, estamos en una situación de cáncer con un 89%.
+
+- Y si la forma de la célula es de clase2, o clase3, ambas son tamaños grandes respecto a lo que suele ser una célula, estamos directamente en un caso de cáncer con un 93%.
+
+Estas reglas las podemos representar también de forma visual:
+```{r}
+rpart.plot(modelo_ejer4_sin_podar,
+           box.palette = c( "green","red"),
+           main = "Cáncer de mama")
+```
+
+Cabe destacar que el único caso en el que una hoja presenta un tumor benigno, éste se ve reflejado en el 63% de los datos del dataset de entramiento. Sin embargo, cuando el tumor es maligno, representa el 37% de los casos del dataset de entrenamiento.
+
+Con el análisis anterior podemos ver que hay más casos de que el cáncer sea benigno a que sea maligno.
+
+Por último, nos falta analizar las reglas del modelo que hemos podado:
+```{r}
+rpart.rules(modelo_ejer4_podado)
+```
+En este caso, vemos que tenemos un modelo muy general respecto al anterior, esto se debe a que en el primer modelo sin podar, de por sí ya nos generaba un árbol muy pequeño, entonces al hacer la poda es aún más pequeño y por lo tanto más general. Las dos reglas que nos genera son:
+
+- Si la forma de la célula es del tipo clase1, estamos en un caso en el que el tumor es benigno con un 11%.
+
+- Si la forma de la célula es del tipo clase2 o clase3, en este caso es tumor es maligno con un 0.93%.
+
+Finalmente, vamos a hacer la representación visual de las reglas generadas por este modelo:
+```{r}
+rpart.plot(modelo_ejer4_podado,
+           box.palette = c( "green","red"),
+           main = "Cáncer de mama árbol podado")
+```
+
+En este caso vamos que solo la forma de la célula nos va a dictaminar el tipo de tumor que estamos analizando, como podemos apreciar es un modelo muy general, en el que el 71% de los datos del entramiento representan a casos benignos, mientras que el 29% son tumores malignos.
+
+### Evaluación de los modelos
+
+En este apartado vamos a evaluar cada unos de los modelos según ciertos parámetros, y su vez vamos a ir haciendo comparaciones entre ambos para ver cuáles son los resultados, y qué ventajas o desventajas presenta uno respecto al otro.
+
+El primer parámetro que vamos a analizar es la comprensibilidad, es decir, qué modelo es más fácil de interpretar. Tal y como hemos visto en el apartado anterior, ambos modelos son muy fáciles de interpretar ya que no nos generan demasiadas reglas, es decir, para nuestro conjunto de datos los árboles obtenidos son muy sencillos.
+
+Es verdad, que por norma general el árbol podado es más fácil de interpretar que un árbol no podado, ya que cuando podamos lo que buscamos es crear un subárbol, y que éste sea capaz de generalizar muy bien pero teniendo en cuenta menos reglas. En nuestro caso, esto se sigue cumpliendo, es decir, el subárbol creado es más fácil de interpretar porque solo tiene dos reglas, sin embargo, el modelo no podado tiene cuatro reglas.
+
+En resumen, repecto a la compresnibilidad ambos modelos son idóneos, ya que el dataset que tenemos genera árboles sencillos, no se aprecia una gran diferencia entre un modelo u otro en este aspecto.
+
+Otro punto a analizar es ver la capacidad predictiva de cada modelo, para ello lo idóneo es calcular la matriz de confusión, ésta nos permite saber si el valor que se ha predicho coincide con el valor real o no.
+
+Para ello, creamos la matriz de confusión para el modelo sin podar, pero antes hay que calcular las predicciones:
+```{r}
+predicciones_modelo_sin_podar = predict(modelo_ejer4_sin_podar, newdata = df_ejer4_test, type = "class")
+
+confusionMatrix(predicciones_modelo_sin_podar, df_ejer4_test$`d-Class`, positive="Maligno")
+```
+
+Como podemos apreciar de la anterior ejecución, el modelo del árbol sin podar es muy bueno. Tiene una precisión del 95% para nuevas observaciones, es decir, que el 95% de los datos nuevos ha sido capaz de clasificarlos correctamente.
+
+Este método nos devuelve métricas interesantes, como por ejemplo:
+
+- La sensibilidad no es más que la tasa de verdaderos positivos, es decir, la proporción de casos positivos que el modelo ha sido capaz de clasificar, en nuestro caso, un 87% de los casos cuando el tumor es maligno lo sabe clasificar.
+
+- La especificidad es la tasa de verdaderos negativos, la proporción de casos negativos que el modelo ha sido capaz de clasificar, en nuestro caso, un 99% de los casos en los que el tumor es benigno los ha sabido clasificar correctamente.
+
+A la vista de los datos anteriores, vemos que el modelo en líneas generales es muy bueno para nuevos datos, y suele tener una tasa de éxito mayor cuando el tumor es benigno a cuando es maligno.
+
+Realizamos lo mismo para el modelo podado, para ver así qué modelo se comporta mejor:
+```{r}
+predicciones_modelo_podado = predict(modelo_ejer4_podado, newdata = df_ejer4_test, type = "class")
+
+confusionMatrix(predicciones_modelo_podado, df_ejer4_test$`d-Class`, positive="Maligno")
+```
+
+En este caso conseguimos una menor precisión, antes teníamos un accuracy del 95% y ahora del 89%, a priori sobre un modelo podado tendríamos que tener un mejor modelo en sí, ya que sería capaz de generalizar perfectamente, pero nuestro dataset es simple y el modelo sin podar se ajusta mejor que este modelo.
+
+Aunque el árbol de decisión podado ofrezca una menor precisión, aún así ésta sigue siendo muy elevada, por lo que el modelo sigue siendo muy bueno.
+
+Por otro lado, vemos que la sensibilidad de este modelo es peor, es decir, no clasifica del todo bien los positivos, en nuestro caso solo el 68% es clasificado correctamente.
+
+Respecto a la especificidad, este modelo se comporta mejor que el anterior, clasifica mejor los casos negativos, ya que conseguimos que el 100% de los tumores benignos sean clasificados correctamente.
+
+En resumen, este modelo en líneas generales se comporta peor que el anterior, pero es verdad que a la hora de clasificar los tumores benignos éste nos da una mayor fiabilidad.
+
+Finalmente, para terminar con la evaluación de los modelos, vamos a ver el error que se genera en cada uno de los niveles en cada modelo. Para ello, mostramos el error generado cuando el modelo no es podado, es decir, el número incorrecto de clasificaciones respecto al número de observaciones:
+```{r}
+rpart.plot(modelo_ejer4_sin_podar,
+           box.palette = c( "green","red"),
+           main = "Cáncer de mama",
+           extra = 3)
+```
+
+Del anterior gráfico, podemos ver que el mayor error se comete en el nodo hoja cuando el tamaño epitelial de la célula no es pequeño, ya que nos está generando un error en dicha hoja del 36%, en el resto de los casos se clasifca mal un pequeño número de observaciones respecto a las observaciones del nodo.
+
+En resumen, apreciamos que el modelo anterior es bastante bueno ya que apenas se produce error a la hora de clasificar mal las observaciones.
+
+Realizamos lo mismo pero para el árbol podado:
+```{r}
+rpart.plot(modelo_ejer4_podado,
+           box.palette = c( "green","red"),
+           main = "Cáncer de mama árbol podado",
+           extra = 3)
+```
+
+En este árbol obtenemos el mismo error que en el modelo anterior, por lo que podemos seguir asumiendo que el modelo es bastante bueno, aunque como vimos el árbol no podado tiene una mejor precisión que el árbol podado.
+
+### Conclusiones
+
+Este ejercicio nos ha permitido saber el cómo de bueno es capaz de clasificar un modelo cuando tenemos un problema de aprendizaje supervisado.
+
+Para ello hemos creado dos modelos, un árbol sin podar y otro árbol podado, este último se ha establecido el corte según el atributo cp idóneo que se ha calculado, en nuestro caso dicho valor fue de 0.31.
+
+Cabe destacar que las ventajas que presenta un modelo podado frente a otro sin podar es que tiene una mayor comprensibilidad, es decir, es más fácil de interpretar, esto tiene todo el sentido del mundo, ya que un árbol podado no es más que un subárbol del árbol "completo". Además, un árbol podado es capaz de generalizar mejor que si no es podado, esto se debe a que al tener menos reglas el modelo se las tiene que "apañar" para conseguir clasificar de forma correcta teniendo menos información.
+
+En nuestro caso, el árbol sin podar presentaba unas mejores características, es decir, era mejor modelo que el modelo podado, básicamente conseguía clasificar mejor, tenía una precisión del 95% mientras que el árbol podado del 89%. Sin embargo, hemos visto que el modelo podado se comportaba mejor a la hora de detectar los tumores benignos, ya que en este caso clasificaba las nuevas observaciones de forma correcta sin fallo.
+
+Respecto a los resultados que hemos obtenido al aplicar a nuestro problema un árbol de decisión no podado son los siguientes:
+
+- Cuando la forma de la célula es clase1 (célula normal), el citoplasma que hay dentro de ella está presente o hay una pequeña cantidad, y el tamaño de la célula epitelial es pequeño, estamos en un caso en el que el tumor es benigno.
+
+- Cuando la forma de la célula es clase1, el citoplasma está presente o hay poca cantidad, y el tamaño de la célula epitelial es mediano o grande, estamos en un caso de tumor maligno, es decir, de cáncer.
+
+- Si la forma de la célula es clase1, y no hay citoplasma dentro de ella, estamos en una situación de un tumor maligno.
+
+- Y si la forma de la célula es de clase2, o clase3, ambas son tamaños grandes respecto a lo que suele ser una célula, por lo que estamos en un caso de cáncer.
+
+Respecto a los resultados obtenidos al aplicar un árbol de decisión podado son los siguientes:
+
+- Si la forma de la célula es del tipo clase1, estamos en un caso en el que el tumor es benigno.
+
+- Si la forma de la célula es del tipo clase2 o clase3, en este caso es tumor es maligno.
+
+En resumen, ambos modelos son muy buenos, pero en líneas general el modelo cuyo árbol de decisión no está podado se comporta mejor.
 
 ******
 # Criterios de evaluación
