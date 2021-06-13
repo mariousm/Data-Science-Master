@@ -110,6 +110,9 @@ En este apartado adjuntamos todas las cargas de librerías necesarias para la re
 ```{r}
 library(scales)
 library(cluster)
+library(dplyr)
+library(arules)
+library(arulesViz)
 ```
 
 ## Resumen del dataset
@@ -564,6 +567,138 @@ El último análisis ha sido el tamaño de los nucleólos, hemos comprobado si s
 ## Ejercicio 2
 
 ## Ejercicio 3
+
+En este caso se nos pide identificar si tiene sentido un modelo de generación de reglas de asociación y de ser casi afirmativo crear el proceso y explicar los resultados.
+
+### Identificación del problema
+
+En nuestro caso sí que tiene sentido aplicar un método de generación de reglas asociadas. Recapitulando, tenemos un dataset sobre el cáncer de mamá, en él hay variables como el tamaño de las células, su forma, si hay citoplasma o no dentro de la célula... Todas estas variables nos permiten saber si el tumor que estamos analizando es benigno o maligno, en otras palabras, si es cáncer o no.
+
+Como vemos, en el dataset tenemos la variable objetivo que es la clase de tumor, cuyo valor es 2 si es benigno o 4 maligno.
+
+Si aplicamos un método que nos permita obtener las reglas de asociación podríamos ver qué condiciones son las más frecuentes para dictaminar si un cáncer es benigno o no, sin entrar a predecir, es decir, con la información que tenemos ver qué variables y qué valores para dichas variables influyen en el cáncer.
+
+Para ponernos en situación podríamos tener una regla del tipo:
+
+- Tamaño de la célula es grande => Cáncer maligno.
+
+La anterior regla la podemos interpretar como, si el tamaño de la célula es grande, ésto suele conllevar que el tumor es maligno. Cabe mencionar que una regla no tiene porque cumplirse siempre, es decir, nos da una idea de lo que puede pasar porque hay más probabilidades, pero esto no significa que tenga que suceder siempre.
+
+Como vemos, nuestro dataset sí que tiene sentido aplicarle reglas de asociación, pero ya no solo para dictaminar si es cáncer o no, sino que también nos puede hacer una idea de cómo se relacionan las variables entre sí, por ejemplo:
+
+- Tamaño de la célula es grande => la forma de la célula es grande.
+
+En este caso nos aporta información de cómo se relacionan las variables entre sí, sin tener que estar relacionadas directamente con saber si es cáncer o no.
+
+Una vez aclarado el sentido de las reglas de asociación, vamos a crear un modelo para obtener aquellas reglas más representativas, cabe destacar que la realización de este ejercicio ha estado basado en un artículo de internet (https://danielredondo.com/posts/20200405_reglas_asociacion/), se ha usado la guía de este artíuclo para resolver el ejercicio.
+
+### Conjunto de datos
+
+Lo primero de todo es que al usar el algoritmo a priori, todas las variables tienen que ser categóricas, en otras palabras factores. Para ello, en la primera parte de la práctica se creó un dataset discretizado, dicho dataset contenía tanto las variables del dataset original más las discretizadas, es por ello que solo nos vamos a quedar con las discretizadas:
+```{r}
+df_ejer3 = df_discretizado[, c(12:21)]
+
+str(df_ejer3)
+```
+
+Puesto que tanto en la práctica uno, como en el comienzo de esta práctica hemos visto que la variable Mitoses no proporciona mucha información sobre el tipo de cáncer, vamos a eliminarla para obtener reglas que realmente sean interesantes:
+```{r}
+df_ejer3 = df_ejer3[, -c(9)]
+
+str(df_ejer3)
+```
+
+Una vez que ya tenemos la información deseada, convertimos el datset al conjunto de tipo transacciones para poder aplicar el método a priori:
+```{r}
+transacciones_ejer3 = as(df_ejer3, "transactions")
+```
+
+Para hacernos una primera idea de qué reglas tiene un soporte (el soporte indica cuantas veces se ha encontrado dicha regla en el dataset) mayor o igual al 50%, mostramos el siguiente gráfico:
+```{r}
+itemFrequencyPlot(transacciones_ejer3, support = 0.5)
+```
+
+Como podemos apreciar, los anteriores items son los más frecuentes en el dataset, es decir, que la adhesión sea alta, que el tamaño de la célula sea pequeño, que la célula sea delgada...
+
+Algo a mencionar en el anterior gráfico es que suele ser frecuente que la clase de tumor sea benigno, esto puedo hacernos una idea de que a lo mejor el dataset original no está del todo balanceado, o que por norma general los tumores son benignos.
+
+### Creación del modelo a priori
+
+Antes de crear el modelo, tenemos que definir dos parámetros fundamentales, uno es el soporte y otro la confianza:
+
+- El soporte nos indica cuantas veces se ha encontrado la regla (lsh => rhs) en el dataset. A mayor soporte más aparece la regla por lo que más evidente es, es decir, mejor.
+
+- La confianza indica la probabilidad de que rhs dependa de lsh. A mayor confianza más relación hay entre lsh y rsh, es decir, mejor.
+
+Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que seon los que usa por defecto el método apriori:
+```{r}
+reglas = apriori(transacciones_ejer3, parameter = list(support = 0.1, confidence = 0.8))
+```
+
+Lo siguiente que vamos a hacer es ordenar la reglas según la confianza, para posteriormente comprobar si hay reglas redundates o no:
+```{r}
+reglas_ordenadas = sort(reglas, by="confidence")
+```
+
+Eliminamos las reglas redundates, es decir, reglas que están incluidas unas dentro de otras:
+```{r}
+# Comprobamos para cada regla qué elementos son subconjutos
+conjunto = is.subset(reglas_ordenadas, reglas_ordenadas)
+
+# Obtenemos las reglas redundantes, es decir, aquellas que están contenidas en 2 o más reglas
+reglas_redundates = colSums(conjunto, na.rm = TRUE) >= 2
+
+# Eliminamos las reglas redundantes
+reglas_no_redundantes = reglas_ordenadas[!reglas_redundates]
+```
+
+Ahora eliminamos las reglas con una confianza igual a 1, este tipo de reglas pueden no proporcionarnos información relevante, ya que son obviedades:
+```{r}
+reglas_seleccionadas = subset(reglas_no_redundantes, subset = confidence < 1)
+```
+
+Otro atributo a destacar es lift, éste nos indica cuanta aleatoriedad hay en cada una de las reglas, un lift de 1 o menor significa que hay aleatoriedad, ésto no nos interesa ya que buscamos reglas que no sean aleatorias, es decir, que realmente estén relacionadas y sean influyentes. Debido a esto, filtramos de nuevo las reglas seleccionadas para un lift mayor que 1:
+```{r}
+reglas_seleccionadas = subset(reglas_seleccionadas, subset = lift > 1)
+```
+
+### Análisis de las reglas
+
+Una vez que ya tenemos las reglas seleccionadas las vamos a analizar las reglas cuando rhs sea la clase del tumor:
+```{r}
+reglas_clase_tumor = subset(reglas_seleccionadas, subset = rhs %pin% "d-Class")
+
+inspect(head(reglas_clase_tumor))
+```
+
+Una vez que hemos usado el algoritmo apriori con un soporte de 0.1 y una confianza del 0.8, y su respectivo filtrado para eliminar aquellas reglas redundates y triviales, llegamos a que los factores más determinantes para dictaminar si un tumor es maligno son los siguientes:
+
+- La forma de la célula, tener una forma grande, es decir, de Clase3 suele implicar que el tumor es maligno, con un nivel de confianza del 98%, es decir, que sí que hay una relación entre ambas variables.
+
+- El tamaño de la célula, tanto si es Grande como si es Mediano significa que prácticamente el tumor es maligno. Si el tamaño es grande obtenemos un nivel de confianza del 98%, mientras que si es mediano del 96%, esto nos lleva a la conclusión de que es más determinante un tamaño grande de célula para un tumor maligno.
+
+- Otro aspecto es la cantidad de citoplasma que hay en la célula, y vemos que si es Ausente, es decir, no hay o apenas hay citplasma, suele indicar que tenemos cáncer.
+
+- El grosor de la célula también está implicito en si el tumor es maligno o no, ya que si el grosor es Grueso es más probable que tengamos un cáncer.
+
+- Finalmente, otro factor determinante es saber si la estructura de los nucleólos es grande tiene a indicarnos que el tumor es maligno.
+
+Otro análisis que podemos hacer es ver qué variables están relacionadas entre sí, independientemente del la clase del tumor:
+```{r}
+inspect(reglas_seleccionadas)
+```
+
+Como vemos de la anterior ejecución, un grosor delgado de la célula lleva implícito que el tamaño de las células epiteliales es pequeño, el tamaño de las células también, la forma de la misma suele ser de Clase1 (forma normal), la estructura de los nucleólos es pequeño, el núcleo tiene una estructura uniforme y sí que presenta citoplasma las células.
+
+Todo lo descrito anteriomente nos indica que el tumor es benigno, es decir, sabemos perfectamente cuando el tumor es benigno o maligno.
+
+### Conclusiones
+
+Las conclusiones obtenidas son las siguientes:
+
+- Cuando hablamos de un tumor maligno, presente características como una forma de la célula mayor, un tamaño de la misma mayor, no hay o apenas hay citoplasma en la célula, suelen tener un grosor mayor, y los nucleólos suelen ser grandes.
+
+- Sin embargo si el tumor es beningno, la forma suele ser menor, el tamaño de la misma también, presentan citoplasma en las células, suelen tener un grosor delgado, el núcleo tiene estructura uniforme y los nucleólos son pequeños.
 
 ******
 # Criterios de evaluación
