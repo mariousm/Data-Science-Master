@@ -211,6 +211,7 @@ pre code {
 <li><a href="#ejercicio-2"><span class="toc-section-number">3.5</span> Ejercicio 2</a></li>
 <li><a href="#ejercicio-3"><span class="toc-section-number">3.6</span> Ejercicio 3</a></li>
 <li><a href="#ejercicio-4"><span class="toc-section-number">3.7</span> Ejercicio 4</a></li>
+<li><a href="#ejercicio-5"><span class="toc-section-number">3.8</span> Ejercicio 5</a></li>
 </ul></li>
 <li><a href="#criterios-de-evaluación"><span class="toc-section-number">4</span> Criterios de evaluación</a></li>
 <li><a href="#recursos-de-programación"><span class="toc-section-number">5</span> Recursos de programación</a></li>
@@ -331,6 +332,8 @@ library(rpart.plot)</code></pre>
 <pre><code>## Warning: package &#39;caret&#39; was built under R version 4.0.5</code></pre>
 <pre><code>## Loading required package: lattice</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>library(C50)</code></pre>
+<pre><code>## Warning: package &#39;C50&#39; was built under R version 4.0.5</code></pre>
 </div>
 <div id="resumen-del-dataset" class="section level2" number="3.2">
 <h2 number="3.2"><span class="header-section-number">3.2</span> Resumen del dataset</h2>
@@ -522,7 +525,7 @@ maxIterations = 50
 mean_silhouette = kmeans_silhouette(df_ejer1, minCluster, maxCluster, maxIterations)
 
 plot(minCluster:maxCluster, mean_silhouette[minCluster:maxCluster],type=&quot;o&quot;,col=&quot;blue&quot;,pch=0,xlab=&quot;Número de clusters&quot;,ylab=&quot;Silueta&quot;)</code></pre>
-<p><img src="data:image/png;base64,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" width="672" /></p>
+<p><img src="data:image/png;base64,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" width="672" /></p>
 <p>Como podemos apreciar en el anterior gráfico, el número de clústers ideal es cuando tenemos dos grupos, lo cual vemos que coincide con nuestro problema real, es decir, tenemos el grupo de si el tumor es benigno o no.</p>
 <p>Por lo tanto, vamos a crear el modelo con dos grupos:</p>
 <pre class="r"><code>set.seed(0)
@@ -755,7 +758,7 @@ str(df_ejer3)</code></pre>
 <li><p>El soporte nos indica cuantas veces se ha encontrado la regla (lsh =&gt; rhs) en el dataset. A mayor soporte más aparece la regla por lo que más evidente es, es decir, mejor.</p></li>
 <li><p>La confianza indica la probabilidad de que rhs dependa de lsh. A mayor confianza más relación hay entre lsh y rsh, es decir, mejor.</p></li>
 </ul>
-<p>Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que seon los que usa por defecto el método apriori:</p>
+<p>Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que son los que usa por defecto el método apriori:</p>
 <pre class="r"><code>reglas = apriori(transacciones_ejer3, parameter = list(support = 0.1, confidence = 0.8))</code></pre>
 <pre><code>## Apriori
 ## 
@@ -1097,6 +1100,439 @@ confusionMatrix(predicciones_modelo_podado, df_ejer4_test$`d-Class`, positive=&q
 <li><p>Si la forma de la célula es del tipo clase2 o clase3, en este caso es tumor es maligno.</p></li>
 </ul>
 <p>En resumen, ambos modelos son muy buenos, pero en líneas general el modelo cuyo árbol de decisión no está podado se comporta mejor.</p>
+</div>
+</div>
+<div id="ejercicio-5" class="section level2" number="3.8">
+<h2 number="3.8"><span class="header-section-number">3.8</span> Ejercicio 5</h2>
+<p>En este ejercicio tenemos como objetivo seguir usando un algoritmo de clasificación, pero en el que podamos hacer una técnica de boosting. De esta forma, vamos a ver si el nuevo modelo que vamos a crear se comporta mejor o igual o peor, que el modelo sin podar del ejercicio anterior.</p>
+<p>Lo primero de todo es decicir qué técnica de boosting vamos a hacer, nos hemos decantado por usar la librería C50, y con el algoritmo C5.0 vamos a hacer uso del adaptive boosting (<a href="https://fhernanb.github.io/libro_mod_pred/adaboost.html" class="uri">https://fhernanb.github.io/libro_mod_pred/adaboost.html</a>), esta técnica tiene como objetivo crear diferentes clasificadores para que lo que el primero no fue capaz de clasificar bien, el segundo clasificador lo haga y así sucesivamente, para ello se le da un peso a cada clasificador y finalmente se suma todo para determinar a qué clase pertenece la nueva observación.</p>
+<div id="preparación-de-los-datos-2" class="section level3" number="3.8.1">
+<h3 number="3.8.1"><span class="header-section-number">3.8.1</span> Preparación de los datos</h3>
+<p>En este caso, vamos a usar el mismo dataset que se usó en el ejercicio 4, pero para mantener la lógica de un dataframe por ejercicio, creamos uno nuevo. Cabe destacar que vamos a seguir teniendo un conjunto para el entreamiento, y otro para el test, de esta forma conseguimos saber cómo de bueno es prediciendo el modelo a partir del entrenamiento:</p>
+<pre class="r"><code>df_ejer5_train = df_ejer4_train
+df_ejer5_test = df_ejer4_test</code></pre>
+<p>Comprobamos que la estrucutra de ambos conjuntos es la correcta y no hay datos sesgados:</p>
+<pre class="r"><code>summary(df_ejer5_train)</code></pre>
+<pre><code>##   d-Thickness   d-Cell_Size  d-Cell_Shape d-Adhesion d-Epithelial_Cell_Size
+##  Delgado:250   Pequeño:344   Clase1:333   Alta:383   Pequeño:363           
+##  Mediano:122   Mediano: 54   Clase2: 70   Baja: 83   Mediano: 62           
+##  Grueso : 94   Grande : 68   Clase3: 63              Grande : 41           
+##           d-Bare_Nuclei      d-Bland_Chromatin d-Normal_Nucleoli    d-Class   
+##  Presente        :331   Uniforme      :345     Pequeño:364       Benigno:304  
+##  Presente/Ausente: 23   Uniforme/Burda: 80     Mediano: 37       Maligno:162  
+##  Ausente         :112   Burda         : 41     Grande : 65</code></pre>
+<pre class="r"><code>summary(df_ejer5_test)</code></pre>
+<pre><code>##   d-Thickness   d-Cell_Size  d-Cell_Shape d-Adhesion d-Epithelial_Cell_Size
+##  Delgado:133   Pequeño:177   Clase1:179   Alta:196   Pequeño:190           
+##  Mediano: 65   Mediano: 22   Clase2: 24   Baja: 37   Mediano: 30           
+##  Grueso : 35   Grande : 34   Clase3: 30              Grande : 13           
+##           d-Bare_Nuclei      d-Bland_Chromatin d-Normal_Nucleoli    d-Class   
+##  Presente        :164   Uniforme      :178     Pequeño:177       Benigno:154  
+##  Presente/Ausente: 19   Uniforme/Burda: 37     Mediano: 20       Maligno: 79  
+##  Ausente         : 50   Burda         : 18     Grande : 36</code></pre>
+<p>De la anterior ejecución vemos que no hay mucha diferencia en cuanto a los conjuntos de datos en sí, es decir, dejando de lado que en test hay menos datos que en train, vemos que la prporción para cada variable se mantiene más o menos, es decir, no sesgamos la información.</p>
+</div>
+<div id="creación-del-modelo" class="section level3" number="3.8.2">
+<h3 number="3.8.2"><span class="header-section-number">3.8.2</span> Creación del modelo</h3>
+<p>El siguiente paso es crear el modelo, para ello le pasamos el conjunto de entrenamiento con las variables independientes (todas menos la variable objetivo) y la variable objetivo (d-Class), por último le indicamos el trials, este parámatro nos indica cuantas iteraciones de boosting tiene que ejecutar el algoritmo, en nuestro caso le hemos indicado 3 iteraciones (para así poder hacer un análisis de las reglas obtenidas), por defecto este valor es 1:</p>
+<pre class="r"><code>set.seed(0)
+
+modelo_ejer5 = C5.0(df_ejer5_train[, -c(9)], df_ejer5_train$`d-Class`, trials = 3, rules = TRUE)</code></pre>
+<p>Comrobamos cómo se ha definido el modelo:</p>
+<pre class="r"><code>summary(modelo_ejer5)</code></pre>
+<pre><code>## 
+## Call:
+## C5.0.default(x = df_ejer5_train[, -c(9)], y = df_ejer5_train$`d-Class`,
+##  trials = 3, rules = TRUE)
+## 
+## 
+## C5.0 [Release 2.07 GPL Edition]      Mon Jun 14 20:28:56 2021
+## -------------------------------
+## 
+## Class specified by attribute `outcome&#39;
+## 
+## Read 466 cases (9 attributes) from undefined.data
+## 
+## -----  Trial 0:  -----
+## 
+## Rules:
+## 
+## Rule 0/1: (292/6, lift 1.5)
+##  d-Cell_Size = Pequeño
+##  d-Bare_Nuclei = Presente
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Benigno  [0.976]
+## 
+## Rule 0/2: (317/22, lift 1.4)
+##  d-Cell_Size = Pequeño
+##  d-Cell_Shape = Clase1
+##  -&gt;  class Benigno  [0.928]
+## 
+## Rule 0/3: (41, lift 2.8)
+##  d-Bland_Chromatin = Burda
+##  -&gt;  class Maligno  [0.977]
+## 
+## Rule 0/4: (101/2, lift 2.8)
+##  d-Cell_Shape in [Clase2-Clase3]
+##  d-Bare_Nuclei in {Presente/Ausente, Ausente}
+##  -&gt;  class Maligno  [0.971]
+## 
+## Rule 0/5: (40/1, lift 2.7)
+##  d-Thickness = Grueso
+##  d-Bland_Chromatin = Uniforme/Burda
+##  -&gt;  class Maligno  [0.952]
+## 
+## Rule 0/6: (122/5, lift 2.7)
+##  d-Cell_Size in [Mediano-Grande]
+##  -&gt;  class Maligno  [0.952]
+## 
+## Rule 0/7: (112/5, lift 2.7)
+##  d-Bare_Nuclei = Ausente
+##  -&gt;  class Maligno  [0.947]
+## 
+## Default class: Benigno
+## 
+## -----  Trial 1:  -----
+## 
+## Rules:
+## 
+## Rule 1/1: (359.2/82.2, lift 1.2)
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Benigno  [0.770]
+## 
+## Rule 1/2: (23.5/2.3, lift 2.4)
+##  d-Thickness = Grueso
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Maligno  [0.872]
+## 
+## Rule 1/3: (17.4/1.5, lift 2.4)
+##  d-Thickness in [Mediano-Grueso]
+##  d-Adhesion = Alta
+##  d-Epithelial_Cell_Size in [Mediano-Grande]
+##  d-Bare_Nuclei = Presente
+##  -&gt;  class Maligno  [0.870]
+## 
+## Rule 1/4: (106.8/21.1, lift 2.2)
+##  d-Bland_Chromatin in {Uniforme/Burda, Burda}
+##  -&gt;  class Maligno  [0.797]
+## 
+## Rule 1/5: (85.5/17.3, lift 2.2)
+##  d-Adhesion = Baja
+##  -&gt;  class Maligno  [0.791]
+## 
+## Default class: Benigno
+## 
+## -----  Trial 2:  -----
+## 
+## Rules:
+## 
+## Rule 2/1: (301.3/25.4, lift 1.4)
+##  d-Cell_Size = Pequeño
+##  d-Cell_Shape = Clase1
+##  -&gt;  class Benigno  [0.913]
+## 
+## Rule 2/2: (310.8/52.9, lift 1.2)
+##  d-Adhesion = Alta
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Benigno  [0.828]
+## 
+## Rule 2/3: (56.8, lift 3.2)
+##  d-Cell_Shape in [Clase2-Clase3]
+##  d-Bland_Chromatin in {Uniforme/Burda, Burda}
+##  -&gt;  class Maligno  [0.983]
+## 
+## Rule 2/4: (41.3, lift 3.1)
+##  d-Cell_Shape in [Clase2-Clase3]
+##  d-Adhesion = Baja
+##  -&gt;  class Maligno  [0.977]
+## 
+## Rule 2/5: (23.9/0.6, lift 3.0)
+##  d-Thickness = Delgado
+##  d-Cell_Shape in [Clase2-Clase3]
+##  -&gt;  class Maligno  [0.936]
+## 
+## Rule 2/6: (10.3, lift 3.0)
+##  d-Cell_Size in [Mediano-Grande]
+##  d-Cell_Shape = Clase1
+##  -&gt;  class Maligno  [0.919]
+## 
+## Default class: Benigno
+## 
+## 
+## Evaluation on training data (466 cases):
+## 
+## Trial            Rules     
+## -----      ----------------
+##      No      Errors
+## 
+##    0      7   15( 3.2%)
+##    1      5   22( 4.7%)
+##    2      6   43( 9.2%)
+## boost             11( 2.4%)   &lt;&lt;
+## 
+## 
+##     (a)   (b)    &lt;-classified as
+##    ----  ----
+##     301     3    (a): class Benigno
+##       8   154    (b): class Maligno
+## 
+## 
+##  Attribute usage:
+## 
+##  100.00% d-Bland_Chromatin
+##   97.85% d-Cell_Shape
+##   95.28% d-Cell_Size
+##   92.49% d-Bare_Nuclei
+##   88.41% d-Adhesion
+##   19.74% d-Thickness
+##    2.79% d-Epithelial_Cell_Size
+## 
+## 
+## Time: 0.0 secs</code></pre>
+<p>Vemos que el modelo no es perfecto del todo, ya que contiene errores, para ser más exactos ha clasificado mal 11 registros, pero solo 11 registros de 466 observaciones, por lo que el error que está cometiendo este modelo es de un 2.4%, esto es muy poco, es decir, el modelo se comporta muy bien en el entrenamiento.</p>
+<p>De los registros que clasifica mal, vemos que 8 los ha clasificado como benigno cuando realmente son malignos, y 3 los ha clasificado como maligno cuando realmente es benigno, es decir, el modelo ajusta bien los datos.</p>
+<p>A priori podríamos decir que este modelo es el mejor de todos los que hemos hecho, pero esto lo evaluaremos más adelante, para saber si a la hora de predecir también es bueno o no.</p>
+</div>
+<div id="análisis-de-reglas" class="section level3" number="3.8.3">
+<h3 number="3.8.3"><span class="header-section-number">3.8.3</span> Análisis de reglas</h3>
+<p>Una vez que hemos creado el modelo, podemos realizar la interpretación de las reglas que nos ha generado. En nuestro caso, obtenemos las siguientes reglas:</p>
+<pre class="r"><code>summary(modelo_ejer5)</code></pre>
+<pre><code>## 
+## Call:
+## C5.0.default(x = df_ejer5_train[, -c(9)], y = df_ejer5_train$`d-Class`,
+##  trials = 3, rules = TRUE)
+## 
+## 
+## C5.0 [Release 2.07 GPL Edition]      Mon Jun 14 20:28:56 2021
+## -------------------------------
+## 
+## Class specified by attribute `outcome&#39;
+## 
+## Read 466 cases (9 attributes) from undefined.data
+## 
+## -----  Trial 0:  -----
+## 
+## Rules:
+## 
+## Rule 0/1: (292/6, lift 1.5)
+##  d-Cell_Size = Pequeño
+##  d-Bare_Nuclei = Presente
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Benigno  [0.976]
+## 
+## Rule 0/2: (317/22, lift 1.4)
+##  d-Cell_Size = Pequeño
+##  d-Cell_Shape = Clase1
+##  -&gt;  class Benigno  [0.928]
+## 
+## Rule 0/3: (41, lift 2.8)
+##  d-Bland_Chromatin = Burda
+##  -&gt;  class Maligno  [0.977]
+## 
+## Rule 0/4: (101/2, lift 2.8)
+##  d-Cell_Shape in [Clase2-Clase3]
+##  d-Bare_Nuclei in {Presente/Ausente, Ausente}
+##  -&gt;  class Maligno  [0.971]
+## 
+## Rule 0/5: (40/1, lift 2.7)
+##  d-Thickness = Grueso
+##  d-Bland_Chromatin = Uniforme/Burda
+##  -&gt;  class Maligno  [0.952]
+## 
+## Rule 0/6: (122/5, lift 2.7)
+##  d-Cell_Size in [Mediano-Grande]
+##  -&gt;  class Maligno  [0.952]
+## 
+## Rule 0/7: (112/5, lift 2.7)
+##  d-Bare_Nuclei = Ausente
+##  -&gt;  class Maligno  [0.947]
+## 
+## Default class: Benigno
+## 
+## -----  Trial 1:  -----
+## 
+## Rules:
+## 
+## Rule 1/1: (359.2/82.2, lift 1.2)
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Benigno  [0.770]
+## 
+## Rule 1/2: (23.5/2.3, lift 2.4)
+##  d-Thickness = Grueso
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Maligno  [0.872]
+## 
+## Rule 1/3: (17.4/1.5, lift 2.4)
+##  d-Thickness in [Mediano-Grueso]
+##  d-Adhesion = Alta
+##  d-Epithelial_Cell_Size in [Mediano-Grande]
+##  d-Bare_Nuclei = Presente
+##  -&gt;  class Maligno  [0.870]
+## 
+## Rule 1/4: (106.8/21.1, lift 2.2)
+##  d-Bland_Chromatin in {Uniforme/Burda, Burda}
+##  -&gt;  class Maligno  [0.797]
+## 
+## Rule 1/5: (85.5/17.3, lift 2.2)
+##  d-Adhesion = Baja
+##  -&gt;  class Maligno  [0.791]
+## 
+## Default class: Benigno
+## 
+## -----  Trial 2:  -----
+## 
+## Rules:
+## 
+## Rule 2/1: (301.3/25.4, lift 1.4)
+##  d-Cell_Size = Pequeño
+##  d-Cell_Shape = Clase1
+##  -&gt;  class Benigno  [0.913]
+## 
+## Rule 2/2: (310.8/52.9, lift 1.2)
+##  d-Adhesion = Alta
+##  d-Bland_Chromatin = Uniforme
+##  -&gt;  class Benigno  [0.828]
+## 
+## Rule 2/3: (56.8, lift 3.2)
+##  d-Cell_Shape in [Clase2-Clase3]
+##  d-Bland_Chromatin in {Uniforme/Burda, Burda}
+##  -&gt;  class Maligno  [0.983]
+## 
+## Rule 2/4: (41.3, lift 3.1)
+##  d-Cell_Shape in [Clase2-Clase3]
+##  d-Adhesion = Baja
+##  -&gt;  class Maligno  [0.977]
+## 
+## Rule 2/5: (23.9/0.6, lift 3.0)
+##  d-Thickness = Delgado
+##  d-Cell_Shape in [Clase2-Clase3]
+##  -&gt;  class Maligno  [0.936]
+## 
+## Rule 2/6: (10.3, lift 3.0)
+##  d-Cell_Size in [Mediano-Grande]
+##  d-Cell_Shape = Clase1
+##  -&gt;  class Maligno  [0.919]
+## 
+## Default class: Benigno
+## 
+## 
+## Evaluation on training data (466 cases):
+## 
+## Trial            Rules     
+## -----      ----------------
+##      No      Errors
+## 
+##    0      7   15( 3.2%)
+##    1      5   22( 4.7%)
+##    2      6   43( 9.2%)
+## boost             11( 2.4%)   &lt;&lt;
+## 
+## 
+##     (a)   (b)    &lt;-classified as
+##    ----  ----
+##     301     3    (a): class Benigno
+##       8   154    (b): class Maligno
+## 
+## 
+##  Attribute usage:
+## 
+##  100.00% d-Bland_Chromatin
+##   97.85% d-Cell_Shape
+##   95.28% d-Cell_Size
+##   92.49% d-Bare_Nuclei
+##   88.41% d-Adhesion
+##   19.74% d-Thickness
+##    2.79% d-Epithelial_Cell_Size
+## 
+## 
+## Time: 0.0 secs</code></pre>
+<p>Para el primer árbol de clasificación obtenemos las siguientes reglas:</p>
+<ul>
+<li><p>Si el tamaño de la célula es pequeño, hay citoplasma en la célula y la textura del núcleo es uniforme =&gt; es un tumor benigno con un 98% probabilidad.</p></li>
+<li><p>Si el tamaño de la célula es pequeño y la la forma es de clase1 (forma normal) =&gt; el tumor es benigno con un 93% probabilidad.</p></li>
+<li><p>Si la textura del núcleo es burda =&gt; tumo maligno con 97%.</p></li>
+<li><p>Si la forma es clase2 o clase3 (formas anormales) y tiene poco citoplasma o no está presente =&gt; el tumor es maligno con un 97%.</p></li>
+<li><p>Si el grosor de la célula es grueso y la textura del núcleo está tirando a burgos =&gt; tumor maligno con un 95% de probabilidad.</p></li>
+<li><p>Si el tamaño de la célula es grande o mediano =&gt; el tumor es maligno con un 95%.</p></li>
+<li><p>Si no hay citoplasma en la célula =&gt; el tumor es maligno con un 95%.</p></li>
+</ul>
+<p>El segundo árbol que nos genera al hacer boosting presenta las siguientes reglas:</p>
+<ul>
+<li><p>Si la textura del núcleo es uniforme =&gt; el tumor es benigno con un 77% de probabilidades.</p></li>
+<li><p>Si el grosor de la célula es grueso y al textura del núcleo es uniforme =&gt; tumor maligno con 87%.</p></li>
+<li><p>Si el grosor es mediano o grueso, la capacidad de separarse las células es alta, el tamaño de las células epiteliales es mediano o grande, y hay citoplasma =&gt; el tumor es maligno con un 87%.</p></li>
+<li><p>Si la textura del núcleo es burda o tira a ser burda =&gt; el tumor es maligno con un 80%.</p></li>
+<li><p>Si la capacidad de separarse la células es baja =&gt; el tumor es malingo con un 79% de probabilidades.</p></li>
+</ul>
+<p>Por último, analizamos las reglas del tercer árbol de clasificación:</p>
+<ul>
+<li><p>Si la célula es pequeña y la forma es normal =&gt; el tumor es benigno con un 91%.</p></li>
+<li><p>Si la capacidad de separarse la células es alta pero la textura del núcleo uniforme =&gt; el tumor es benigno con un 83% de probabilidad.</p></li>
+<li><p>Si la forma de la célula no es normal y la textura del núcleo tira a ser burda =&gt; el tumor es maligno con un 98% de probabilidad.</p></li>
+<li><p>Si la forma no es normal y la capacidad de separarse la célula es baja =&gt; tumor maligno con un 98%.</p></li>
+<li><p>Si el grosor de la célula es delgado y la forma no es normal =&gt; tumor maligno con un 94%.</p></li>
+<li><p>Si el tamaño de la cálula es mediano o grande y la forma es normal =&gt; el tumor es maligno con un 92% de probabilidad.</p></li>
+</ul>
+<p>En resumen, analizando las reglas vemos que sigue la tendencia de todos los ejercicios anteriores, es decir, si tenemos valores normales el tumor es benigno, pero a nada que haya un par de variables fuera de lo normal, como el tamaño de la célula, la forma, el grosor de la misma… Estas variables influyen altamente en cómo es un tumor, por lo que tener valores “normales” en dichas variables nos va a garantizar que el tumor es benigno, en caso contrario estaríamos hablando de cáncer.</p>
+</div>
+<div id="evaluación-del-modelo" class="section level3" number="3.8.4">
+<h3 number="3.8.4"><span class="header-section-number">3.8.4</span> Evaluación del modelo</h3>
+<p>En este apartado vamos a realizar la evaluación de este modelo y vamos a compararlo con el mejor modelo del apartado anterior, cabe recordar que dicho modelo fue el árbol no podado.</p>
+<p>El análisis lo vamos a hacer dependiendo de varios parámetros, el primero de ellos es la comprensibilidad.</p>
+<p>Tal y como se comentó en el ejercicio anterior, entendemos por comprensibilidad aquellos modelos que son más fáciles de interpretar, ya sea a nivel visual o de reglas. En este caso, el modelo generado en este ejercicio presenta una técnia de boosting, es decir, una técnica para mejorar el rendimiento del modelo. Hemos elegido como técnica de boosting, el generar varios modelos clasificatorios para un mismo modelo, es decir, buscamos que lo que no sea capaz de clasificar bien el primer modelo lo haga el seguno y así sucesivamente.</p>
+<p>Por lo tanto, en este ejercicio no tenemos un modelo en sí, sino que tenemos varios modelos que de forma conjunta forman un único modelo, es por ello que la compresibilidad de este modelo es peor que el árbol sin podar del ejercicio anterior, es decir, al tener más modelos hay más reglas y es más difícil de interpretar.</p>
+<p>El siguiente parámetro a analizar es ver cómo es la capacidad predictiva del modelo, para ello calculamos la matriz de confusión:</p>
+<pre class="r"><code>predicciones_modelo_boosting = predict(modelo_ejer5, newdata = df_ejer5_test, type = &quot;class&quot;)
+
+confusionMatrix(predicciones_modelo_boosting, df_ejer5_test$`d-Class`, positive = &quot;Maligno&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction Benigno Maligno
+##    Benigno     154      14
+##    Maligno       0      65
+##                                           
+##                Accuracy : 0.9399          
+##                  95% CI : (0.9012, 0.9668)
+##     No Information Rate : 0.6609          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.8599          
+##                                           
+##  Mcnemar&#39;s Test P-Value : 0.000512        
+##                                           
+##             Sensitivity : 0.8228          
+##             Specificity : 1.0000          
+##          Pos Pred Value : 1.0000          
+##          Neg Pred Value : 0.9167          
+##              Prevalence : 0.3391          
+##          Detection Rate : 0.2790          
+##    Detection Prevalence : 0.2790          
+##       Balanced Accuracy : 0.9114          
+##                                           
+##        &#39;Positive&#39; Class : Maligno         
+## </code></pre>
+<p>Tal y como podemos ver, este modelo es muy bueno, tiene una precisión del 94%, es decir, va a clasificar correctamente por norma general el 94% de los datos nuevos que se le introducen. ¿Pero es sufuciente como para decir si es mejor que el modelo creado en el ejercicio anterior?</p>
+<p>Recordando la precisión que teníamos en el árbol no podado era de un 94.5%, por lo que por norma general el modelo anterior se comporta mejor que el modelo con boosting, pero puede ser que un modelo se comporte mejor que otro en determinados aspectos así que vamos a analizar la sensibilidad y la especificidad.</p>
+<ul>
+<li><p>La sensibilidad nos determina cómo es de bueno el modelo clasificando los casos positivos, en el modelo con boosting presentamos una sensibilidad del 82% mientras que en el modelo del ejercicio anterior tenemos un valor del 87%, es decir, vemos que cuando hay un caso positivo (el tumor es maligno) el modelo sin boosting se comporta mejor que el de boosting. Por lo tanto, respecto a este punto sigue siendo el árbol no podado el mejor modelo.</p></li>
+<li><p>La especificidad indica cómo de bien clasifica el modelo los casos negativos, en el modelo con boosting presentamos un 100% mientras que en el árbol no podado su especificidad es del 99%, por lo tanto el modelo con boosting presenta una mejora al clasificar los tumores benignos, pero vemos que esta mejora no es muy grande respecto al modelo del árbol sin podar.</p></li>
+</ul>
+<p>En resumen, vemos que tenemos dos modelos muy buenos, ambos tienen una elevada precisión, sin embargo, el modelo del árbol sin podar se comporta un pelín mejor, sobre todo cuando los datos a clasificar son tumores malignos, mientras que el modelo con boosting es mejor para clasificar los tumores benignos.</p>
+<p>Por lo tanto, podríamos hacer uso de ambos modelos dependiendo de qué datos vayamos a utilizar, es decir, si queremos tener un mayor éxsito para clasificar el tumor como beningno o como maligno.</p>
+</div>
+<div id="conclusiones-3" class="section level3" number="3.8.5">
+<h3 number="3.8.5"><span class="header-section-number">3.8.5</span> Conclusiones</h3>
+<p>Para realizar este ejercicio se ha creado un modelo con una mejora de boosting, y para ello hemos usado la librería C50 que con el parámetro trials, dicho parámetro lo hemos establecido a 3 para así crear tres modelos de clasificación y poder analizarlos correctamente.</p>
+<p>Tal y como hemos visto en la evaluación del modelo, se consigue generar un modelo muy bueno, pero no lo suficiente como para mejorar el árbol de decisión no podado del ejercicio anterior.</p>
+<p>Nos hemos basado en diferentes parámetros para dictaminar qué modelo es mejor:</p>
+<ul>
+<li><p>La precisión, el modelo con boosting tiene una precisión del 94% mientras que el árbol no podado su precisión es del 94.5%.</p></li>
+<li><p>El modelo con boosting clasifica peor cuando los casos son tumores malignos, ya que presenta una sensbilidad del 82%, mientras que el árbol de decisión sin podar clasifica correctamente el 87% de los tumores malignos.</p></li>
+<li><p>Respecto a la especificidad, el modelo con boosting se comporta mejor, es decir, es capaz de clasificar correctamente 100% de los tumores benignos, mientras que el árbol sin podar clasifica el 99% de forma correcta.</p></li>
+</ul>
+<p>En resumidas palabras, ambos modelos son muy buenos, es verdad que si el modelo con boosting tuvierna más iteraciones sería aún mejor modelo, pero esto nos generaría muchas reglas para cada iteración y para poder analizarlas se ha considerado lo óptimo 3 iteraciones.</p>
+<p>Respecto a la información que obtenemos, sigue la línea de todos los ejercicios anteriores, es decir, si tenemos valores normales el tumor es benigno, pero a nada que haya un par de variables fuera de lo normal, como el tamaño de la célula, la forma, el grosor de la misma… Estas variables influyen altamente en cómo es un tumor, por lo que tener valores “normales” en dichas variables nos va a garantizar que el tumor es benigno, en caso contrario estaríamos hablando de cáncer.</p>
 <hr />
 </div>
 </div>

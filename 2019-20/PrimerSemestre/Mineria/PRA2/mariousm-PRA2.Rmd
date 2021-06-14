@@ -116,6 +116,7 @@ library(arulesViz)
 library(rpart)
 library(rpart.plot)
 library(caret)
+library(C50)
 ```
 
 ## Resumen del dataset
@@ -633,7 +634,7 @@ Antes de crear el modelo, tenemos que definir dos parámetros fundamentales, uno
 
 - La confianza indica la probabilidad de que rhs dependa de lsh. A mayor confianza más relación hay entre lsh y rsh, es decir, mejor.
 
-Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que seon los que usa por defecto el método apriori:
+Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que son los que usa por defecto el método apriori:
 ```{r}
 reglas = apriori(transacciones_ejer3, parameter = list(support = 0.1, confidence = 0.8))
 ```
@@ -926,6 +927,147 @@ Respecto a los resultados obtenidos al aplicar un árbol de decisión podado son
 - Si la forma de la célula es del tipo clase2 o clase3, en este caso es tumor es maligno.
 
 En resumen, ambos modelos son muy buenos, pero en líneas general el modelo cuyo árbol de decisión no está podado se comporta mejor.
+
+## Ejercicio 5
+
+En este ejercicio tenemos como objetivo seguir usando un algoritmo de clasificación, pero en el que podamos hacer una técnica de boosting. De esta forma, vamos a ver si el nuevo modelo que vamos a crear se comporta mejor o igual o peor, que el modelo sin podar del ejercicio anterior.
+
+Lo primero de todo es decicir qué técnica de boosting vamos a hacer, nos hemos decantado por usar la librería C50, y con el algoritmo C5.0 vamos a hacer uso del adaptive boosting (https://fhernanb.github.io/libro_mod_pred/adaboost.html), esta técnica tiene como objetivo crear diferentes clasificadores para que lo que el primero no fue capaz de clasificar bien, el segundo clasificador lo haga y así sucesivamente, para ello se le da un peso a cada clasificador y finalmente se suma todo para determinar a qué clase pertenece la nueva observación.
+
+### Preparación de los datos
+
+En este caso, vamos a usar el mismo dataset que se usó en el ejercicio 4, pero para mantener la lógica de un dataframe por ejercicio, creamos uno nuevo. Cabe destacar que vamos a seguir teniendo un conjunto para el entreamiento, y otro para el test, de esta forma conseguimos saber cómo de bueno es prediciendo el modelo a partir del entrenamiento:
+```{r}
+df_ejer5_train = df_ejer4_train
+df_ejer5_test = df_ejer4_test
+```
+
+Comprobamos que la estrucutra de ambos conjuntos es la correcta y no hay datos sesgados:
+```{r}
+summary(df_ejer5_train)
+summary(df_ejer5_test)
+```
+
+De la anterior ejecución vemos que no hay mucha diferencia en cuanto a los conjuntos de datos en sí, es decir, dejando de lado que en test hay menos datos que en train, vemos que la prporción para cada variable se mantiene más o menos, es decir, no sesgamos la información.
+
+### Creación del modelo
+
+El siguiente paso es crear el modelo, para ello le pasamos el conjunto de entrenamiento con las variables independientes (todas menos la variable objetivo) y la variable objetivo (d-Class), por último le indicamos el trials, este parámatro nos indica cuantas iteraciones de boosting tiene que ejecutar el algoritmo, en nuestro caso le hemos indicado 3 iteraciones (para así poder hacer un análisis de las reglas obtenidas), por defecto este valor es 1:
+```{r}
+set.seed(0)
+
+modelo_ejer5 = C5.0(df_ejer5_train[, -c(9)], df_ejer5_train$`d-Class`, trials = 3, rules = TRUE)
+```
+
+Comrobamos cómo se ha definido el modelo:
+```{r}
+summary(modelo_ejer5)
+```
+
+Vemos que el modelo no es perfecto del todo, ya que contiene errores, para ser más exactos ha clasificado mal 11 registros, pero solo 11 registros de 466 observaciones, por lo que el error que está cometiendo este modelo es de un 2.4%, esto es muy poco, es decir, el modelo se comporta muy bien en el entrenamiento.
+
+De los registros que clasifica mal, vemos que 8 los ha clasificado como benigno cuando realmente son malignos, y 3 los ha clasificado como maligno cuando realmente es benigno, es decir, el modelo ajusta bien los datos.
+
+A priori podríamos decir que este modelo es el mejor de todos los que hemos hecho, pero esto lo evaluaremos más adelante, para saber si a la hora de predecir también es bueno o no.
+
+### Análisis de reglas
+
+Una vez que hemos creado el modelo, podemos realizar la interpretación de las reglas que nos ha generado. En nuestro caso, obtenemos las siguientes reglas:
+```{r}
+summary(modelo_ejer5)
+```
+
+Para el primer árbol de clasificación obtenemos las siguientes reglas:
+
+- Si el tamaño de la célula es pequeño, hay citoplasma en la célula y la textura del núcleo es uniforme => es un tumor benigno con un 98% probabilidad.
+
+- Si el tamaño de la célula es pequeño y la la forma es de clase1 (forma normal) => el tumor es benigno con un 93% probabilidad.
+
+- Si la textura del núcleo es burda => tumo maligno con 97%.
+
+- Si la forma es clase2 o clase3 (formas anormales) y tiene poco citoplasma o no está presente => el tumor es maligno con un 97%.
+
+- Si el grosor de la célula es grueso y la textura del núcleo está tirando a burgos => tumor maligno con un 95% de probabilidad.
+
+- Si el tamaño de la célula es grande o mediano => el tumor es maligno con un 95%.
+
+- Si no hay citoplasma en la célula => el tumor es maligno con un 95%.
+
+El segundo árbol que nos genera al hacer boosting presenta las siguientes reglas:
+
+- Si la textura del núcleo es uniforme => el tumor es benigno con un 77% de probabilidades.
+
+- Si el grosor de la célula es grueso y al textura del núcleo es uniforme => tumor maligno con 87%.
+
+- Si el grosor es mediano o grueso, la capacidad de separarse las células es alta, el tamaño de las células epiteliales es mediano o grande, y hay citoplasma => el tumor es maligno con un 87%.
+
+- Si la textura del núcleo es burda o tira a ser burda => el tumor es maligno con un 80%.
+
+- Si la capacidad de separarse la células es baja => el tumor es malingo con un 79% de probabilidades.
+
+Por último, analizamos las reglas del tercer árbol de clasificación:
+
+- Si la célula es pequeña y la forma es normal => el tumor es benigno con un 91%.
+
+- Si la capacidad de separarse la células es alta pero la textura del núcleo uniforme => el tumor es benigno con un 83% de probabilidad.
+
+- Si la forma de la célula no es normal y la textura del núcleo tira a ser burda => el tumor es maligno con un 98% de probabilidad.
+
+- Si la forma no es normal y la capacidad de separarse la célula es baja => tumor maligno con un 98%.
+
+- Si el grosor de la célula es delgado y la forma no es normal => tumor maligno con un 94%.
+
+- Si el tamaño de la cálula es mediano o grande y la forma es normal => el tumor es maligno con un 92% de probabilidad.
+
+En resumen, analizando las reglas vemos que sigue la tendencia de todos los ejercicios anteriores, es decir, si tenemos valores normales el tumor es benigno, pero a nada que haya un par de variables fuera de lo normal, como el tamaño de la célula, la forma, el grosor de la misma... Estas variables influyen altamente en cómo es un tumor, por lo que tener valores "normales" en dichas variables nos va a garantizar que el tumor es benigno, en caso contrario estaríamos hablando de cáncer.
+
+### Evaluación del modelo
+
+En este apartado vamos a realizar la evaluación de este modelo y vamos a compararlo con el mejor modelo del apartado anterior, cabe recordar que dicho modelo fue el árbol no podado.
+
+El análisis lo vamos a hacer dependiendo de varios parámetros, el primero de ellos es la comprensibilidad.
+
+Tal y como se comentó en el ejercicio anterior, entendemos por comprensibilidad aquellos modelos que son más fáciles de interpretar, ya sea a nivel visual o de reglas. En este caso, el modelo generado en este ejercicio presenta una técnia de boosting, es decir, una técnica para mejorar el rendimiento del modelo. Hemos elegido como técnica de boosting, el generar varios modelos clasificatorios para un mismo modelo, es decir, buscamos que lo que no sea capaz de clasificar bien el primer modelo lo haga el seguno y así sucesivamente.
+
+Por lo tanto, en este ejercicio no tenemos un modelo en sí, sino que tenemos varios modelos que de forma conjunta forman un único modelo, es por ello que la compresibilidad de este modelo es peor que el árbol sin podar del ejercicio anterior, es decir, al tener más modelos hay más reglas y es más difícil de interpretar.
+
+El siguiente parámetro a analizar es ver cómo es la capacidad predictiva del modelo, para ello calculamos la matriz de confusión:
+```{r}
+predicciones_modelo_boosting = predict(modelo_ejer5, newdata = df_ejer5_test, type = "class")
+
+confusionMatrix(predicciones_modelo_boosting, df_ejer5_test$`d-Class`, positive = "Maligno")
+```
+
+Tal y como podemos ver, este modelo es muy bueno, tiene una precisión del 94%, es decir, va a clasificar correctamente por norma general el 94% de los datos nuevos que se le introducen. ¿Pero es sufuciente como para decir si es mejor que el modelo creado en el ejercicio anterior?
+
+Recordando la precisión que teníamos en el árbol no podado era de un 94.5%, por lo que por norma general el modelo anterior se comporta mejor que el modelo con boosting, pero puede ser que un modelo se comporte mejor que otro en determinados aspectos así que vamos a analizar la sensibilidad y la especificidad.
+
+- La sensibilidad nos determina cómo es de bueno el modelo clasificando los casos positivos, en el modelo con boosting presentamos una sensibilidad del 82% mientras que en el modelo del ejercicio anterior tenemos un valor del 87%, es decir, vemos que cuando hay un caso positivo (el tumor es maligno) el modelo sin boosting se comporta mejor que el de boosting. Por lo tanto, respecto a este punto sigue siendo el árbol no podado el mejor modelo.
+
+- La especificidad indica cómo de bien clasifica el modelo los casos negativos, en el modelo con boosting presentamos un 100% mientras que en el árbol no podado su especificidad es del 99%, por lo tanto el modelo con boosting presenta una mejora al clasificar los tumores benignos, pero vemos que esta mejora no es muy grande respecto al modelo del árbol sin podar.
+
+En resumen, vemos que tenemos dos modelos muy buenos, ambos tienen una elevada precisión, sin embargo, el modelo del árbol sin podar se comporta un pelín mejor, sobre todo cuando los datos a clasificar son tumores malignos, mientras que el modelo con boosting es mejor para clasificar los tumores benignos.
+
+Por lo tanto, podríamos hacer uso de ambos modelos dependiendo de qué datos vayamos a utilizar, es decir, si queremos tener un mayor éxsito para clasificar el tumor como beningno o como maligno.
+
+### Conclusiones
+
+Para realizar este ejercicio se ha creado un modelo con una mejora de boosting, y para ello hemos usado la librería C50 que con el parámetro trials, dicho parámetro lo hemos establecido a 3 para así crear tres modelos de clasificación y poder analizarlos correctamente.
+
+Tal y como hemos visto en la evaluación del modelo, se consigue generar un modelo muy bueno, pero no lo suficiente como para mejorar el árbol de decisión no podado del ejercicio anterior.
+
+Nos hemos basado en diferentes parámetros para dictaminar qué modelo es mejor:
+
+- La precisión, el modelo con boosting tiene una precisión del 94% mientras que el árbol no podado su precisión es del 94.5%.
+
+- El modelo con boosting clasifica peor cuando los casos son tumores malignos, ya que presenta una sensbilidad del 82%, mientras que el árbol de decisión sin podar clasifica correctamente el 87% de los tumores malignos.
+
+- Respecto a la especificidad, el modelo con boosting se comporta mejor, es decir, es capaz de clasificar correctamente 100% de los tumores benignos, mientras que el árbol sin podar clasifica el 99% de forma correcta.
+
+En resumidas palabras, ambos modelos son muy buenos, es verdad que si el modelo con boosting tuvierna más iteraciones sería aún mejor modelo, pero esto nos generaría muchas reglas para cada iteración y para poder analizarlas se ha considerado lo óptimo 3 iteraciones.
+
+Respecto a la información que obtenemos, sigue la línea de todos los ejercicios anteriores, es decir, si tenemos valores normales el tumor es benigno, pero a nada que haya un par de variables fuera de lo normal, como el tamaño de la célula, la forma, el grosor de la misma... Estas variables influyen altamente en cómo es un tumor, por lo que tener valores "normales" en dichas variables nos va a garantizar que el tumor es benigno, en caso contrario estaríamos hablando de cáncer.
+
 
 ******
 # Criterios de evaluación
