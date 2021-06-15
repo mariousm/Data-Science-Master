@@ -282,9 +282,9 @@ summary(df_ejer1)
 
 Como podemos observar todas las variables están acotadas entre los valores 1 y 10, esto se debe a que un grupo experto "normalizó" el dataset con dichos valores.
 
-El significado de este dataset para una variable en específico sería el siguiente, si estudiamos el tamaño de la célula (Cell_Size), a mayor valor más riesgo de que sea un cáncer maligno.
+El significado de este dataset para una variable en específico sería el siguiente, si estudiamos el tamaño de la célula (Cell_Size), a mayor valor más riesgo de que sea un tumor maligno.
 
-Si se necestia más información sobre el significado de las variables, análisis de las mismas, análisis del dataset en general, se puede hacer la lectura de la práctica uno.
+Si se necesita más información sobre el significado de las variables, análisis de las mismas, análisis del dataset en general, se puede hacer la lectura de la práctica 1.
 
 Una vez que tenemos todo preparado podemos generar el modelo de clustering, pero antes debemos hacer una explicación de los grupos que vamos a indicar al algortimo kmeans.
 
@@ -384,7 +384,7 @@ mean_totWithinss = kmeans_totWithinss(df_ejer1, minCluster, maxCluster, maxItera
 plot(minCluster:maxCluster,mean_totWithinss[minCluster:maxCluster],type="o",col="blue",pch=0,xlab="Número de clusters",ylab="tot.tot.withinss")
 ```
 
-Como podemos apreciar, a mayor número de clústers menor es el error, pero esto no es lo correcto porque nos generaría un modelo muy específico, y lo que buscamos generalizar. Para nuestro problema seguimos considerando que lo mejor son dos clústers, ya que buscamos saber si el tumor es benigno o no, aunque a la vista de la anterio gráfica es en este caso cuando obtenemos una mayor separación entre los puntos de cada grupo y su centro.
+Como podemos apreciar, a mayor número de clústers menor es el error, pero esto no es lo correcto porque nos generaría un modelo muy específico, y lo que buscamos generalizar. Para nuestro problema seguimos considerando que lo mejor son dos clústers, ya que buscamos saber si el tumor es benigno o no, aunque a la vista de la anterior gráfica es en este caso cuando obtenemos una mayor separación entre los puntos de cada grupo y su centro.
 
 Continuando con la calidad del modelo, vamos a ver cómo es la betweenss, es decir, cuanto más separados estén los grupos mejor:
 ```{r}
@@ -430,7 +430,7 @@ set.seed(0)
 cat("La silueta del modelo con 2 grupos es: ", kmeans_silhouette(df_ejer1, 2, 2, 1)[2])
 ```
 
-La silueta nos indica cómo de similar es un elemento con los de su propio grupo y cómo de diferente respecto a los demás, su valor va entre -1 y 1, cuanto más próximo esté el valor a uno mejor es el modelo, ya que esto significa que un elemento está bien emparejado con los de su gurpo (es muy similar) y a su vez es muy diferente respecto a los demás grupos.
+La silueta nos indica cómo de similar es un elemento con los de su propio grupo y cómo de diferente respecto a los demás, su valor va entre -1 y 1, cuanto más próximo esté el valor a uno mejor es el modelo, ya que esto significa que un elemento está bien emparejado con los de su grupo (es muy similar) y a su vez es muy diferente respecto a los demás grupos.
 
 En nuestro caso, obtenemos un valor de silueta de casi el 0.60, por lo que el modelo está bastante bien aunque podría estar mejor, pero como primera aproximación el modelo se comporta bien.
 
@@ -439,7 +439,7 @@ Lo siguiente que vamos a hacer es ver si withinss:
 cat("El withinss del modelo con 2 grupos es: ", modelo_ejer1$tot.withinss)
 ```
 
-En este caso vemos que obtenemos una withinss muy elevada, esto significa que la suma de las distancias de cada punto respecto al centro de su grupo es mayor, lógicamente como ya hemos visto antes, a mayor número de clústers menor es la withinss, pero en nuestro caso tenemos que tener dos clústers sí o sí, por lo tanto aunque tenemos una elevada withinss esto se debe al número bajo de clústers no porque el modelo sea malo en sí, como vimos la siuelta es elevada por lo que el modelo es bueno.
+En este caso vemos que obtenemos una withinss muy elevada, esto significa que la suma de las distancias de cada punto respecto al centro de su grupo es mayor, lógicamente como ya hemos visto antes, a mayor número de clústers menor es la withinss, pero en nuestro caso tenemos que tener dos clústers sí o sí, por lo tanto aunque tenemos una elevada withinss esto se debe al número bajo de clústers no porque el modelo sea malo en sí, como vimos la silueta es elevada por lo que el modelo es bueno.
 
 La última medida a analizar es la betweenss:
 ```{r}
@@ -463,7 +463,7 @@ plot(df_ejer1[,c("Thickness", "Cell_Size")], col=modelo_ejer1$cluster, main="Gro
 
 Lo primero de todo es identificar los grupos que nos genera, podemos ver claramente que los grupos vienen determinados por el tamaño de la célula y no tanto por el grosor, es decir, a mayor tamaño de la célula más riesgo de que el tumor sea maligno (grupo negro) y menor tamaño de que sea benigno (grupo rojo).
 
-Algo curioso del anterior gráfico es que podemos tenemos un grosor muy elevado, pero que la célula sea muy pequeña y esto no significa para nada que tengamos cáncer, es decir, es muy influyente el cómo es el tamaño de la célula para dictaminar si ésta es cancerígena o no.
+Algo curioso del anterior gráfico es que podemos tener un grosor muy elevado, pero que la célula sea muy pequeña y esto no significa para nada que tengamos cáncer, es decir, es muy influyente el cómo es el tamaño de la célula para dictaminar si ésta es cancerígena o no.
 
 El siguiente análisis es comprobar el cómo influye el grosor a la adhesión de las células:
 ```{r}
@@ -472,7 +472,7 @@ plot(df_ejer1[,c("Thickness", "Adhesion")], col=modelo_ejer1$cluster, main="Gros
 
 En este caso vemos que ya no están tan bien definidos los clústers, es decir, hay casos especiales. Por norma general, un mayor grosor lleva implícito una peor adhesión, es decir, cuánto más gruesa sea la célula más probabilidades hay de que sea cancerígena y tienda a serparase unas de otras más fácilmente. Sin embargo, a menor grosor más probable que la célula sea benigna y no se separe las unas de las otras.
 
-Por último respecsto al grosor, vamos a comporar si Bare_Nuclei afecta, es decir, si las células que están rodeadas de citoplasma y las que no dependen del grosor o no:
+Por último respecto al grosor, vamos a comprobar si Bare_Nuclei afecta, es decir, si las células que están rodeadas de citoplasma y las que no dependen del grosor o no:
 ```{r}
 plot(df_ejer1[,c("Thickness", "Bare_Nuclei")], col=modelo_ejer1$cluster, main="Grosor de la célula respecto a las células con citoplasma")
 ```
@@ -559,7 +559,7 @@ En este caso, aunque en la primera parte de la práctica veíamos una ligera cor
 
 #### Resumen
 
-El primer análisis que hemos hecho ha sido respecto al grosor de la célula, y hemos visto que en cuanto al tamaño de la célula tener un grosor mayor no implicaba un tamaño mayor y por lo tanto no podíamos garantizar que fuera cáncer, es decir, influía más en el cáncer el tamaño de la célula que el grosor en sí mismo. También hemos analizado el grosor respecto a la capacidad de separarse la células, y hemos visto  que sí que hay relación, a mayor grosor más se separan las células unas de otras y esto supone cáncer. Finalmente, se ha estudiado el cómo afectaba el grosor a si las células tenían citoplasma o no, y hemos visto que también está relacionado, es decir, a mayor grosor las células tienen menos citoplasma o no tienen y esto supone que el tumor sea maligno.
+El primer análisis que hemos hecho ha sido respecto al grosor de la célula, y hemos visto que en cuanto al tamaño de la célula tener un grosor mayor no implicaba un tamaño mayor y por lo tanto no podíamos garantizar que fuera cáncer, es decir, influía más en el cáncer el tamaño de la célula que el grosor en sí mismo. También hemos analizado el grosor respecto a la capacidad de separarse las células, y hemos visto  que sí que hay relación, a mayor grosor más se separan las células unas de otras y esto supone cáncer. Finalmente, se ha estudiado el cómo afectaba el grosor a si las células tenían citoplasma o no, y hemos visto que también está relacionado, es decir, a mayor grosor las células tienen menos citoplasma o no tienen y esto supone que el tumor sea maligno.
 
 El segundo análisis ha sido respecto al tamaño de la célula, hemos estudiado si la forma de la misma se veía afectada por el tamaño y hemos visto que sí, a mayor tamaño mayor forma y mayor riesgo de cáncer. Después hemos comprobado si el tamaño de las células epiteliales se veían afectadas, y hemos visto que no del todo, es verdad que a mayor tamaño mayor riesgo de cáncer, pero si el tamaño de las células epiteliales es elevado y tamaño de las células "normales" es pequeño podemos garantizar que es un tumor benigno. Finalmente, hemos comprobado que la textura del núcleo se ve afectada por el tamaño, ya que el núcleo es más tosco y esto supone un mayor riesgo de un tumor maligno.
 
@@ -593,7 +593,7 @@ Seguimos manteniendo todas las variables con valores acotados, es decir, como va
 
 ### Creación del modelo
 
-Una vez analizado el dataset, tenemos que crear el modelo correspondiente. Cabe destacar que el algoritmo que se va usar para este ejercicio es PAM, tanto kmeans como PAM son parecidos, pero PAM su medida es la mediana da las observaciones del clúster (medoid), mientra que en kmeans se usa la media.
+Una vez analizado el dataset, tenemos que crear el modelo correspondiente. Cabe destacar que el algoritmo que se va usar para este ejercicio es PAM, tanto kmeans como PAM son parecidos, pero PAM su medida es la mediana da las observaciones del clúster (medoid), mientras que en kmeans se usa la media.
 
 Para usar PAM, hay que definir de entrada cuántos clústers vamos a tener, es decir, lo mismo que sucedía con kmeans, en nuestro caso sabemos que solo hay dos grupos, o tienes cáncer o no tienes, pero para comprobarlo vamos a ejecutar la siguiente línea, la cual nos devuelve el número de grupos ideal para PAM:
 ```{r}
@@ -620,9 +620,9 @@ silueta_ejer2 = silhouette(modelo_ejer2)
 cat("El valor de la silueta para este ejercicio es: ", mean(silueta_ejer2[,3]))
 ```
 
-La silueta nos indica cómo de similar es un elemento respecto a los de su propio grupo y cómo de diferente respecto a los demás, cuanto más próximo esté el valor a 1 mejor es el modelo, esto significa que una observación está muy relacionada con los de se grupo y a su vez es muy deferente respecto a los demás.
+La silueta nos indica cómo de similar es un elemento respecto a los de su propio grupo y cómo de diferente respecto a los demás, cuanto más próximo esté el valor a 1 mejor es el modelo, esto significa que una observación está muy relacionada con los de se grupo y a su vez es muy diferente respecto a los demás.
 
-Por lo tanto, obtenemos una silueta apróximada a 0.60, es decir, el modelo agrupa bien la información pero la podría mejorar.
+Por lo tanto, obtenemos una silueta aproximada a 0.60, es decir, el modelo agrupa bien la información pero la podría mejorar.
 
 Una vez que sabemos la silueta, vamos a vér qué grupos ha generado a nivel visual:
 ```{r}
@@ -645,7 +645,7 @@ fviz_silhouette(silhouette(modelo_ejer1$cluster, dist(df_ejer1)))
 
 El modelo anterior nos genera una silueta media de 0.6, es decir, el mismo valor que el modelo generado en este ejercicio. Respecto al modelo kmeans, vemos que el resultado de clustering es mejor con el segudo grupo.
 
-Además, la silueta media del primer clúster es de 0.28 y del segundo 0.76, es decirk, confirmamos de forma numérica que el segundo clúster es mejor.
+Además, la silueta media del primer clúster es de 0.28 y del segundo 0.76, es decir, confirmamos de forma numérica que el segundo clúster es mejor.
 
 Realizamos lo mismo para el modelo PAM:
 ```{r}
@@ -664,7 +664,7 @@ Respecto al modelo de kmeans realizado en el ejercicio 1, nos daba un silueta pr
 
 Respecto a la información que obtenemos al analizar los clústers de PAM frente a los de kmeans, sigue siendo la misma, es decir para valores bajos en cada atributo estamos en un caso de tumor benigno, mientras que valores altos tiende a implicar un tumor maligno.
 
-Aunque en este ejercicio no se ha realizado las conclusiones a nivel visual como hicimos con kmeans, analizando y evaluando el modelo PAM, hemos visto que es prácticament el mismo modelo que kmeans con la diferencia en la agrupación de dos observaciones, es decir, con kmeans el grupo más pequeño tiene dos observaciones más, y con PAM el grupo más grande es el que tiene dichas observaciones, por lo tanto, la información que obtenemos es la misma que en el ejercicio anterior.
+Aunque en este ejercicio no se ha realizado las conclusiones a nivel visual como hicimos en el ejercicio anterior, analizando y evaluando el modelo PAM, hemos visto que es prácticament el mismo modelo que kmeans con la diferencia en la agrupación de dos observaciones, es decir, con kmeans el grupo más pequeño tiene dos observaciones más, y con PAM el grupo más grande es el que tiene dichas observaciones, por lo tanto, la información que obtenemos es la misma que en el ejercicio anterior.
 
 
 ## Ejercicio 3
@@ -673,7 +673,7 @@ En este caso se nos pide identificar si tiene sentido un modelo de generación d
 
 ### Identificación del problema
 
-En nuestro caso sí que tiene sentido aplicar un método de generación de reglas asociadas. Recapitulando, tenemos un dataset sobre el cáncer de mamá, en él hay variables como el tamaño de las células, su forma, si hay citoplasma o no dentro de la célula... Todas estas variables nos permiten saber si el tumor que estamos analizando es benigno o maligno, en otras palabras, si es cáncer o no.
+En nuestro caso sí que tiene sentido aplicar un método de generación de reglas asociadas. Recapitulando, tenemos un dataset sobre el cáncer de mama, en él hay variables como el tamaño de las células, su forma, si hay citoplasma o no dentro de la célula... Todas estas variables nos permiten saber si el tumor que estamos analizando es benigno o maligno, en otras palabras, si es cáncer o no.
 
 Como vemos, en el dataset tenemos la variable objetivo que es la clase de tumor, cuyo valor es 2 si es benigno o 4 maligno.
 
@@ -695,7 +695,7 @@ Una vez aclarado el sentido de las reglas de asociación, vamos a crear un model
 
 ### Conjunto de datos
 
-Lo primero de todo es que al usar el algoritmo a priori, todas las variables tienen que ser categóricas, en otras palabras factores. Para ello, en la primera parte de la práctica se creó un dataset discretizado, dicho dataset contenía tanto las variables del dataset original más las discretizadas, es por ello que solo nos vamos a quedar con las discretizadas:
+Lo primero de todo es que al usar el algoritmo apriori, todas las variables tienen que ser categóricas, en otras palabras factores. Para ello, en la primera parte de la práctica se creó un dataset discretizado, dicho dataset contenía tanto las variables del dataset original más las discretizadas, es por ello que solo nos vamos a quedar con las discretizadas:
 ```{r}
 df_ejer3 = df_discretizado[, c(12:21)]
 
@@ -709,7 +709,7 @@ df_ejer3 = df_ejer3[, -c(9)]
 str(df_ejer3)
 ```
 
-Una vez que ya tenemos la información deseada, convertimos el datset al conjunto de tipo transacciones para poder aplicar el método a priori:
+Una vez que ya tenemos la información deseada, convertimos el datset al conjunto de tipo transacciones para poder aplicar el método apriori:
 ```{r}
 transacciones_ejer3 = as(df_ejer3, "transactions")
 ```
@@ -723,7 +723,7 @@ Como podemos apreciar, los anteriores items son los más frecuentes en el datase
 
 Algo a mencionar en el anterior gráfico es que suele ser frecuente que la clase de tumor sea benigno, esto puedo hacernos una idea de que a lo mejor el dataset original no está del todo balanceado, o que por norma general los tumores son benignos.
 
-### Creación del modelo a priori
+### Creación del modelo apriori
 
 Antes de crear el modelo, tenemos que definir dos parámetros fundamentales, uno es el soporte y otro la confianza:
 
@@ -731,7 +731,7 @@ Antes de crear el modelo, tenemos que definir dos parámetros fundamentales, uno
 
 - La confianza indica la probabilidad de que rhs dependa de lsh. A mayor confianza más relación hay entre lsh y rsh, es decir, mejor.
 
-Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que son los que usa por defecto el método apriori:
+Una vez aclarado esto vamos a hacer uso del método apriori para obtener las reglas, como no se indica qué parámetros debemos de hacer uso vamos a usar para el soporte un 0.1 y para la confianza un 0.8. Se han elegido estos parámetros ya que son los que usa por defecto el método apriori:
 ```{r}
 reglas = apriori(transacciones_ejer3, parameter = list(support = 0.1, confidence = 0.8))
 ```
@@ -778,9 +778,9 @@ Una vez que hemos usado el algoritmo apriori con un soporte de 0.1 y una confian
 
 - El tamaño de la célula, tanto si es Grande como si es Mediano significa que prácticamente el tumor es maligno. Si el tamaño es grande obtenemos un nivel de confianza del 98%, mientras que si es mediano del 96%, esto nos lleva a la conclusión de que es más determinante un tamaño grande de célula para un tumor maligno.
 
-- Otro aspecto es la cantidad de citoplasma que hay en la célula, y vemos que si es Ausente, es decir, no hay o apenas hay citplasma, suele indicar que tenemos cáncer.
+- Otro aspecto es la cantidad de citoplasma que hay en la célula, y vemos que si es Ausente, es decir, no hay o apenas hay citoplasma, suele indicar que tenemos cáncer.
 
-- El grosor de la célula también está implicito en si el tumor es maligno o no, ya que si el grosor es Grueso es más probable que tengamos un cáncer.
+- El grosor de la célula también está implícito en si el tumor es maligno o no, ya que si el grosor es Grueso es más probable que tengamos un cáncer.
 
 - Finalmente, otro factor determinante es saber si la estructura de los nucleólos es grande tiene a indicarnos que el tumor es maligno.
 
@@ -1175,7 +1175,7 @@ Una de las principales limitaciones que presenta este dataset, es que viene info
 
 Esta limitación puede llegar ser como tal si tenemos otros objetivos, en nuestro caso el objetivo principal era identificar a grandes rasgos el cómo se clasificaba el cáncer y qué lo caracterizaba, por lo que saber si una célula es 1 nanómeto o 10 nanómetros nos da más igual, ya que a grandes rasgos tenemos caracterizada la misma. Pero si nuestro objetivo fuera diferente, como por ejemplo, predecir el grosor del tumor a partir de otros atributos, vemos que en este caso el dataset seleccionado no nos sirve, es decir, no podemos saber cuál es el grosor teniendo solo como información si una célula es grande o pequeña en una escala del 1 al 10, podríamos predecir el valor dentro de esa escala pero no tendríamos un valor real del problema.
 
-Otra limitación respecto al contenido en en sí, es que tenemos la información muy sintetizada, es decir, en el dataset nos viene un atributo para el tamaño de la célula, pero ésta a su vez la podría definir como dos atributos o como tres, anchura, altura, profundidad. En nuestro caso vemos que no es así, por un lado está bien porque simplifica el problema, pero por otro estamos perdiendo mucha información, es decir, a lo mejor el cáncer viene dictaminado por la profundiad de la célula y no por el tamaño en sí.
+Otra limitación respecto al contenido en sí, es que tenemos la información muy sintetizada, es decir, en el dataset nos viene un atributo para el tamaño de la célula, pero ésta a su vez la podría definir como dos atributos o como tres, anchura, altura y profundidad. En nuestro caso vemos que no es así, por un lado está bien porque simplifica el problema, pero por otro estamos perdiendo mucha información, es decir, a lo mejor el cáncer viene dictaminado por la profundiad de la célula y no por el tamaño en sí.
 
 Otro aspecto a tener en cuenta es la información sesgada, en nuestro caso podemos tenemor muchos sesgos:
 
@@ -1195,7 +1195,7 @@ Si los datos de entrada que proporcionamos a cada modelo no son idóneos, ya sea
 
 Respecto a los modelos de clustering, el principal riesgo es no saber identificar los grupos, pero en nuestro caso esto está bien definido ya que siempre son dos, o el tumor es benigno o es maligno. También pueder ser que haya un solapamiento de grupos, haciendo que cada vez muchas observaciones sean tumores benignos y en otras ocasiones tumores malignos, es decir, depende mucho de la aleatoriedad del algoritmo. Tal y como vimos en la práctica, había una pequeña diferencia entre usar kmeans que es vulnerable a los outliers, ya que se basa en la media, y PAM que se centra en la mediana por lo tanto no es vulnerable a los valores extremos.
 
-En cuanto a las reglas de asociación, el mayor riesgo que presentamos es que haya reglas insiginificantes, ya sea porque son redudantes, es decir, una misma regla se puede obtener de otras, también porque sea una regla muy aleatoria, y cuando estamos analizando un problema no queremos aleatoriedad, sino que la información que obtenemos sea certera.
+En cuanto a las reglas de asociación, el mayor riesgo que presentamos es que haya reglas insignificantes, ya sea porque son redudantes, es decir, una misma regla se puede obtener de otras, también porque sea una regla muy aleatoria, y cuando estamos analizando un problema no queremos aleatoriedad, sino que la información que obtenemos sea certera.
 
 Otro aspecto interesante de las reglas de asociación, es que se basan en la información que le hemos proporcionado, por lo que si el día de mañana introducimos otro dataset, las reglas que obtenemos pueden cambiar, es decir, este modelo nos sirve para un conjunto de datos en particular, solamente para analizar la información de un caso muy específico.
 
