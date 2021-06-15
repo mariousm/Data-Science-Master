@@ -111,6 +111,7 @@ En este apartado adjuntamos todas las cargas de librerías necesarias para la re
 library(scales)
 library(cluster)
 library(dplyr)
+library(factoextra)
 library(arules)
 library(arulesViz)
 library(rpart)
@@ -569,6 +570,102 @@ El cuarto análisis ha sido el citoplasma presente en las células, hemos compro
 El último análisis ha sido el tamaño de los nucleólos, hemos comprobado si se veía afectado por el tamaño de las células, y hemos apreciado que apenas hay una relación, es decir, un mayor tamaño de la célula implica ya de por sí un mayor riesgo de cáncer, sin embargo, para que el nucleólo sea significativo éste tiene que tener un tamaño grande respecto al tamaño de la célula. También hemos estudiado si se veía afectado por la mitosis, hemos comprobado que no, no había relación.
 
 ## Ejercicio 2
+
+En este ejercicio tenemos como objetivo seguir obteniendo respuestas para nuestro dataset, a partir de un modelo no supervisado y que nos permita determinar qué es lo que hace que un tumor sea benigno o maligno. En otras palabras, seguimos hablando de clustering, pero en este caso vamos a crear otro modelo haciendo uso de un algoritmo diferente, para ver qué modelo se comporta mejor, y si podemos obtener información que antes no.
+
+### Conjunto de datos
+
+En este caso, para poder hacer una comparativa entre el modelo del ejercicio anterior y éste, debemos de usar los mismos datos, aunque podríamos usar el dataframe creado para el ejercicio uno, vamos a volverlo a crear para este problema:
+```{r}
+df_ejer2 = df_copy[, 2:10]
+
+str(df_ejer2)
+```
+
+Vemos que tenemos todos los datos de forma correcta, es decir, no se encuentran ni la variable ID (no nos aporta información), ni la variable Class (al hacer clustering no podemos tener en cuenta la variable objetivo, ya que buscamos encontrar patrones de agrupación).
+
+Realizamos el análisis de los datos:
+```{r}
+summary(df_ejer2)
+```
+
+Seguimos manteniendo todas las variables con valores acotados, es decir, como valor mínimo va a ser 1 y como máximo 10. A medida que aumenta el valor de cada variable, tenemos más riesgo de que el tumor sea maligno, en caso contrario estaríamos en un caso benigno.
+
+### Creación del modelo
+
+Una vez analizado el dataset, tenemos que crear el modelo correspondiente. Cabe destacar que el algoritmo que se va usar para este ejercicio es PAM, tanto kmeans como PAM son parecidos, pero PAM su medida es la mediana da las observaciones del clúster (medoid), mientra que en kmeans se usa la media.
+
+Para usar PAM, hay que definir de entrada cuántos clústers vamos a tener, es decir, lo mismo que sucedía con kmeans, en nuestro caso sabemos que solo hay dos grupos, o tienes cáncer o no tienes, pero para comprobarlo vamos a ejecutar la siguiente línea, la cual nos devuelve el número de grupos ideal para PAM:
+```{r}
+fviz_nbclust(df_ejer2, pam, method="silhouette")+theme_classic()
+```
+
+En este caso, seguimos viendo que el número de clústers ideales para nuestro modelo son dos: o el tumor es benigno o es maligno.
+
+Una vez que tenemos claro los grupos, definimos el modelo:
+```{r}
+set.seed(0)
+
+modelo_ejer2 = pam(df_ejer2, 2)
+```
+
+### Análisis y comparación de los modelos
+
+Antes de realizar la comparación de los modelos, vamos a ver cómo de bueno el modelo que generamos con PAM. Para ello, vamos a realizar el análisis de los clústers que genera y cuál es el valor de la silueta.
+
+Por lo tanto, para ver cómo de bueno es el modelo vamos a calcular la silueta:
+```{r}
+silueta_ejer2 = silhouette(modelo_ejer2)
+
+cat("El valor de la silueta para este ejercicio es: ", mean(silueta_ejer2[,3]))
+```
+
+La silueta nos indica cómo de similar es un elemento respecto a los de su propio grupo y cómo de diferente respecto a los demás, cuanto más próximo esté el valor a 1 mejor es el modelo, esto significa que una observación está muy relacionada con los de se grupo y a su vez es muy deferente respecto a los demás.
+
+Por lo tanto, obtenemos una silueta apróximada a 0.60, es decir, el modelo agrupa bien la información pero la podría mejorar.
+
+Una vez que sabemos la silueta, vamos a vér qué grupos ha generado a nivel visual:
+```{r}
+eclust(df_ejer2, "pam", k = 2, hc_metric="euclidean")
+```
+
+Tal y como podemos ver agrupa los datos medianamente bien, pero es verdad que hay una zona en la que se solapan ambos clústers, es decir, tenemos una zona de conflicto en el que esos datos podrían pertenecer a un grupo o a otro. Es por ello, que el valor de la silueta no es muy elevado, es decir, es un bueno modelo pero podría ser mejor.
+
+Para ver cómo de bueno es el modelo, vamos a compararlo con el kmeans del ejercicio anterior, lo primero de todo es ver cómo agrupa la información kmeans:
+```{r}
+eclust(df_ejer1, "kmeans", k = 2, hc_metric="euclidean")
+```
+
+Como podemos observar, la agrupación que hace kmeans es muy similar a la que hace PAM, no se sabe a ciencia cierta qué modelo agrupa mejor la información, es decir, quién es mejor. Para ello, vamos a realizar de nuevo el cálculo de la silueta pero en este caso para ambos modelos.
+
+Respecto al modelo kmeans del primer ejercicio, obtenemos la siguiente silueta:
+```{r}
+fviz_silhouette(silhouette(modelo_ejer1$cluster, dist(df_ejer1)))
+```
+
+El modelo anterior nos genera una silueta media de 0.6, es decir, el mismo valor que el modelo generado en este ejercicio. Respecto al modelo kmeans, vemos que el resultado de clustering es mejor con el segudo grupo.
+
+Además, la silueta media del primer clúster es de 0.28 y del segundo 0.76, es decirk, confirmamos de forma numérica que el segundo clúster es mejor.
+
+Realizamos lo mismo para el modelo PAM:
+```{r}
+fviz_silhouette(silhouette(modelo_ejer2$clustering, dist(df_ejer2)))
+```
+
+En este caso, el grupo 1 tiene un tamaño de 467 y su silueta media es de 0.75, un pelín menor que el grupo de mayor tamaño del kmeans, cuyo tamaño era de 465 y tenía una media de silueta en dicho grupo de 0.76, por lo que el modelo se comportaba mejor con el algoritmo kmean que con PAM respecto a este grupo. Por otro lado, el segundo grupo (grupo más pequeño) sigue teniendo la misma silueta, con un valor de 0.28, es decir, en este caso ambos modelos se comportan igual.
+
+En resumen, vemos que ambos modelos se comporta igual, pero es verdad que el kmeans en este caso funciona un poco mejor que el PAM. Además, la agrupación que hace de datos es muy similar, solo se diferencias en dos observaciones, es decir, con kmeans el grupo más pequeño tiene dos observaciones más, y con PAM el grupo más grande es el que tiene dichas observaciones.
+
+### Conclusiones
+
+En este ejercicio hemos creado otro modelo de clustering, pero en este caso basándonos en PAM en vez de kmeans. La diferencia entre ambos modelos es que PAM se basa en la mediana y kmeans en la media, a pesar de eso hemos visto que ambos modelos eran similares, es decir, no eran perfectos pero sí que agrupaban bien los datos.
+
+Respecto al modelo de kmeans realizado en el ejercicio 1, nos daba un silueta próxima a 0.6, mientras que en este ejercicio, PAM nos daba también una siluete media de 0.6. Es decir, ambos modelos son buenos y apenas hay diferencia entre ellos.
+
+Respecto a la información que obtenemos al analizar los clústers de PAM frente a los de kmeans, sigue siendo la misma, es decir para valores bajos en cada atributo estamos en un caso de tumor benigno, mientras que valores altos tiende a implicar un tumor maligno.
+
+Aunque en este ejercicio no se ha realizado las conclusiones a nivel visual como hicimos con kmeans, analizando y evaluando el modelo PAM, hemos visto que es prácticament el mismo modelo que kmeans con la diferencia en la agrupación de dos observaciones, es decir, con kmeans el grupo más pequeño tiene dos observaciones más, y con PAM el grupo más grande es el que tiene dichas observaciones, por lo tanto, la información que obtenemos es la misma que en el ejercicio anterior.
+
 
 ## Ejercicio 3
 
