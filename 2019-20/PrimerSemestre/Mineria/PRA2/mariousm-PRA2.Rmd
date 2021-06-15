@@ -1165,6 +1165,41 @@ En resumidas palabras, ambos modelos son muy buenos, es verdad que si el modelo 
 
 Respecto a la información que obtenemos, sigue la línea de todos los ejercicios anteriores, es decir, si tenemos valores normales el tumor es benigno, pero a nada que haya un par de variables fuera de lo normal, como el tamaño de la célula, la forma, el grosor de la misma... Estas variables influyen altamente en cómo es un tumor, por lo que tener valores "normales" en dichas variables nos va a garantizar que el tumor es benigno, en caso contrario estaríamos hablando de cáncer.
 
+## Ejercicio 6
+
+En este ejercicio se nos planeta dos preguntas, la primera de ellas, ¿qué limitaciones tiene el dataset?, y la segunda, ¿qué riesgos presenta?
+
+### Limitaciones del dataset
+
+Una de las principales limitaciones que presenta este dataset, es que viene información sobre las células, pero ésta no es información real, es decir, no sabemos el tamaño de la célula en nanómetros, sino que tenemos un valor del 1-10 que nos indica cómo de grande o pequeña es la célula, cuanto más pequeño sea el valor más pequeño es el tamaño.
+
+Esta limitación puede llegar ser como tal si tenemos otros objetivos, en nuestro caso el objetivo principal era identificar a grandes rasgos el cómo se clasificaba el cáncer y qué lo caracterizaba, por lo que saber si una célula es 1 nanómeto o 10 nanómetros nos da más igual, ya que a grandes rasgos tenemos caracterizada la misma. Pero si nuestro objetivo fuera diferente, como por ejemplo, predecir el grosor del tumor a partir de otros atributos, vemos que en este caso el dataset seleccionado no nos sirve, es decir, no podemos saber cuál es el grosor teniendo solo como información si una célula es grande o pequeña en una escala del 1 al 10, podríamos predecir el valor dentro de esa escala pero no tendríamos un valor real del problema.
+
+Otra limitación respecto al contenido en en sí, es que tenemos la información muy sintetizada, es decir, en el dataset nos viene un atributo para el tamaño de la célula, pero ésta a su vez la podría definir como dos atributos o como tres, anchura, altura, profundidad. En nuestro caso vemos que no es así, por un lado está bien porque simplifica el problema, pero por otro estamos perdiendo mucha información, es decir, a lo mejor el cáncer viene dictaminado por la profundiad de la célula y no por el tamaño en sí.
+
+Otro aspecto a tener en cuenta es la información sesgada, en nuestro caso podemos tenemor muchos sesgos:
+
+- Los profesionales que normalizaron el dataset en una escala del 1 al 10, cómo fue la decisión de saber cuándo un tumor tiene un atributo con valor 2 y no con valor 3, es decir, la información que tenemos está influenciada por cómo se han definido los atributos, y éstos no dependen de nosotros, por lo que las conclusiones que podemos obtener con los modelos no son las correctas.
+
+- Otro sesgo importante es la cantidad de tumores benignos y malignos que tenemos en el propio dataset, es decir, cuando hacemos un modelo de clasificación, la "línea" que nos permite separar las observaciones de una clase y de otra depende de la cantidad de registros que haya, si tenemos 700 casos que son benignos pero 1 que es maligno, al modelo no le interesa aprender cuando una observación es un tumor maligno, predice que siempre el tumor es benigno y hay menos error. En nuestro dataset tal y como se analizó en la práctica 1, hay el doble de casos cuyo tumor es benigno respecto a maligno, vemos entonces que el dataset no está del todo balanceado, y esto nos puede generar un riesgo a la hora de obtener las conclusiones.
+
+- También podemos tener la información sesgada porque no sabemos el origen de los datos, las observaciones del dataset pueden ser a nivel mundial, a nivel nacional, de mujeres, de niños, de hombres, de europeos, africanos... Es decir, al no saber de dónde procede la información no podemos generalizar con este dataset, por lo tanto, las conclusiones que obtenemos son solo para los datos que tenemos.
+
+- ...
+
+### Riesgos del uso del modelo
+
+Los principales riesgos que nos encontramos al usar los modelos, son aquellos que tal y como hemos visto en el apartado anterior nos sesgan la información.
+
+Si los datos de entrada que proporcionamos a cada modelo no son idóneos, ya sea porque están mal balancedas las clases, no sabemos el origen de los datos... Al hacer uso del modelo estaremos cometiendo un gran error.
+
+Respecto a los modelos de clustering, el principal riesgo es no saber identificar los grupos, pero en nuestro caso esto está bien definido ya que siempre son dos, o el tumor es benigno o es maligno. También pueder ser que haya un solapamiento de grupos, haciendo que cada vez muchas observaciones sean tumores benignos y en otras ocasiones tumores malignos, es decir, depende mucho de la aleatoriedad del algoritmo. Tal y como vimos en la práctica, había una pequeña diferencia entre usar kmeans que es vulnerable a los outliers, ya que se basa en la media, y PAM que se centra en la mediana por lo tanto no es vulnerable a los valores extremos.
+
+En cuanto a las reglas de asociación, el mayor riesgo que presentamos es que haya reglas insiginificantes, ya sea porque son redudantes, es decir, una misma regla se puede obtener de otras, también porque sea una regla muy aleatoria, y cuando estamos analizando un problema no queremos aleatoriedad, sino que la información que obtenemos sea certera.
+
+Otro aspecto interesante de las reglas de asociación, es que se basan en la información que le hemos proporcionado, por lo que si el día de mañana introducimos otro dataset, las reglas que obtenemos pueden cambiar, es decir, este modelo nos sirve para un conjunto de datos en particular, solamente para analizar la información de un caso muy específico.
+
+Finalmente, en cuanto a los modelos de clasificación, que un modelo sea bueno o no depende mucho de los datos de entrada y del entreamiento del mismo, es decir, si los datos que le proporcionamos no están balanceados, a la hora de entrenar el modelo vamos a tener un sobreajuste para una determinada clase, y esa clase va a ser de la que haya más datos en el dataset, por lo tanto, para nuevas observaciones no va a ser capaz el modelo de clasificar correctamente. Otro problema, es que para poder aplicar un modelo de clasificación necesitamos la variable objetivo, y pude ser que haya observaciones que no contengan información de la misma, por lo que si no las incluímos en el modelo estamos perdiendo información, y si las incluimos tenemos que predecir previamente dicho valor, y esto puede aumentar el error.
 
 ******
 # Criterios de evaluación
