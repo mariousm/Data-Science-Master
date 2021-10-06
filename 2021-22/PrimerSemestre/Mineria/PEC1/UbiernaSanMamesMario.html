@@ -17252,7 +17252,8 @@ a.anchor-link {
 <p style="margin: 0; text-align:right; padding-button: 100px;">Estudios de Informática, Multimedia y Telecomunicación</p>
 </div>
 </div>
-<div style="width:100%;">&nbsp;</div><h1 id="PEC-1:-Preparaci%C3%B3n-de-datos">PEC 1: Preparaci&#243;n de datos<a class="anchor-link" href="#PEC-1:-Preparaci%C3%B3n-de-datos">&#182;</a></h1><p>A lo largo de esta práctica veremos como aplicar distintas técnicas para la carga y preparación de datos:</p>
+<div style="width:100%;">&nbsp;</div><h1 id="Autor:-Mario-Ubierna-San-Mam%C3%A9s">Autor: Mario Ubierna San Mam&#233;s<a class="anchor-link" href="#Autor:-Mario-Ubierna-San-Mam%C3%A9s">&#182;</a></h1><hr>
+<h1 id="PEC-1:-Preparaci%C3%B3n-de-datos">PEC 1: Preparaci&#243;n de datos<a class="anchor-link" href="#PEC-1:-Preparaci%C3%B3n-de-datos">&#182;</a></h1><p>A lo largo de esta práctica veremos como aplicar distintas técnicas para la carga y preparación de datos:</p>
 <ol start="1">
   <li>Carga de conjuntos de datos</li>
   <li>Análisis de los datos
@@ -20544,7 +20545,7 @@ La finalidad de este ejercicio es poder observar y analizar las correlaciones de
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;seaborn.axisgrid.PairGrid at 0x1e2b7775940&gt;</pre>
+<pre>&lt;seaborn.axisgrid.PairGrid at 0x1ab766abee0&gt;</pre>
 </div>
 
 </div>
@@ -20893,29 +20894,6 @@ dtype: float64</pre>
 
 </div>
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[23]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Las variables con una correlación superior al 90% son:</span>
-<span class="c1"># - mean radius y mean perimeter.</span>
-<span class="c1"># - mean radius y mean area.</span>
-<span class="c1"># - mean perimeter y mean area.</span>
-<span class="c1"># - mean concavity y mean concave points.</span>
-<span class="c1"># Por lo tanto, nos vamos a quedar solamente con mean radius y mean concavity. Eliminamos mean perimiter,</span>
-<span class="c1"># mean area, mean concave points.</span>
-
-<span class="c1"># df_cancer_clean = df_cancer_disc.drop([&quot;mean perimeter&quot;, &quot;mean area&quot;, &quot;mean concave points&quot;], axis=1)</span>
-<span class="c1"># df_cancer_clean.head()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
@@ -20948,35 +20926,6 @@ dtype: float64</pre>
 </div>
 <div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR
-ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR</p>
-<p>La variables con una correlación más fuertes han sido:</p>
-<ul>
-<li>mean radius con mean perimeter.</li>
-<li>mean radius con mean area.</li>
-<li>mean perimeter con mean area.</li>
-<li>mean concavity con mean concave points.</li>
-</ul>
-<p>En resumen, el radio, perímetro y área están altamente correlacionadas, por otro lado, la concavidad y puntos cóncavos también.</p>
-<p>Se ha decido quedarnos con las variables radius y concavity, es decir:</p>
-<ul>
-<li>Las variables perimeter y area  han sido eliminadas ya que no aportan información al modelo, esto se debe a que dicha información la puede proporcionar el radius.</li>
-<li>La variable concave points ha sido eliminada porque presenta una altísima correlación con otras variables que pertenecen al conjuntos de datos final.</li>
-</ul>
-<p>Eliminar las variables correlacionadas no significa que sea un proceso correcto o no, depende de los objetivos analíticos. Cuando eliminamos variables correlacionadas estamos quitando la redundancia de los datos, esto puede ser muy importante ya que por ejemplo si hacemos un análisis de componentes principales, y no hemos eliminado las variables correlacionadas los resultados del ACP pueden ser cambiantes, es decir, si continuamos con la redundancia de los datos el primer componente principal va a adquirir toda la variabilidad de los datos, desechando así la idea de tener otros componentes principales.</p>
-<p>Otro de los inconvenientes es que puede haber algoritmos que no funcionen bien cuando los datos están altamente correlacionados, aunque hoy en día la gran mayoría de modelos son capaces de identificar y manejar dichos datos.</p>
-<p>Una de las ventajas de eliminar dichas variables es que conseguimos reducir la complejidad del dataset, es decir, al eliminar atributos tenemos menos y ahorramos costes computacionales.</p>
-
-</div>
-</div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <div style="background-color: #EDF7FF; border-color: #7C9DBF; border-left: 5px solid #7C9DBF; padding: 0.5em;">
 <strong>Bonus:</strong>
 <br> - ¿Qué test estadístico podrías usar para comparar las distribuciones de los valores de los atributos cuando los diagnósticos son benignos o malignos? Úsalo para evaluar qué atributos (de entre todos los del conjunto de datos) tienen valores más parecidos en tumores benignos y malignos. Interpreta el resultado.
@@ -20998,7 +20947,7 @@ ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR</p>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[24]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[23]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">ks_2samp</span> <span class="c1"># Importación del estadístico</span>
@@ -21044,7 +20993,7 @@ ELIMINAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR</p>
 <div class="jp-OutputArea-child">
 
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[24]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[23]:</div>
 
 
 
@@ -21174,7 +21123,7 @@ Sugerencia: no es necesario que programéis los algoritmos, podéis hacer uso de
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[25]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[24]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># https://pharos.sh/implementacion-de-pca-en-python-con-scikit-learn/</span>
@@ -21216,7 +21165,7 @@ Sugerencia: no es necesario que programéis los algoritmos, podéis hacer uso de
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[26]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[25]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Definimos el método que nos va a permitir generar los gráficos para los dos casos</span>
@@ -21252,7 +21201,7 @@ Sugerencia: no es necesario que programéis los algoritmos, podéis hacer uso de
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[27]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[26]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">rd_chart</span><span class="p">(</span><span class="n">X_pca_dfOriginal</span><span class="p">,</span> <span class="n">df_cancer_disc</span><span class="p">,</span> <span class="s2">&quot;diagnosis&quot;</span><span class="p">)</span>
@@ -21291,7 +21240,7 @@ Sugerencia: no es necesario que programéis los algoritmos, podéis hacer uso de
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[28]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[27]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">rd_chart</span><span class="p">(</span><span class="n">X_pca_dfClean</span><span class="p">,</span> <span class="n">df_cancer_disc</span><span class="p">,</span> <span class="s2">&quot;diagnosis&quot;</span><span class="p">)</span>
@@ -21667,7 +21616,7 @@ https://towardsdatascience.com/visualizing-decision-trees-with-python-scikit-lea
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[38]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[34]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># DIVIDIMOS el dataset en train y test</span>
@@ -21757,7 +21706,7 @@ La desviación estándar de cross_validation:  0.028262216880493157
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[40]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[35]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># DIVIDIMOS el dataset en train y test</span>
@@ -21869,7 +21818,7 @@ Sugerencia: para calcular la precisión y la matriz de confusión podéis usar l
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[45]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[36]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># PREDICCIÓN</span>
