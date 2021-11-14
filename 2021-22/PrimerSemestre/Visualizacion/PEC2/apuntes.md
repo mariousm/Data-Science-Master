@@ -24,6 +24,10 @@ Despliegue: https://infogram.com/evolucion-compraventa-viviendas-1h7k230romd0v2x
 
 ***
 ## Isotype and unit chart
-https://datos.gob.es/catalogo/ea0010587-evolucion-de-datos-de-ninos-de-10-a-15-anos-2006-2020-por-comunidades-autonomas-principales-variables-y-periodo-identificador-api-t25-p450-base_2011-a2020-l0-06003-px
+https://datos.gob.es/catalogo/ea0010587-evolucion-de-datos-de-personas-2006-2020-por-caracteristicas-socioeconomicas-tipo-de-uso-de-tic-y-periodo-identificador-api-t25-p450-base_2011-a2020-l0-02003-px
 
-a
+¿El uso de internet depende del nivel de estudios?
+
+Proyecto: https://infogram.com/app/#/edit/f4e30682-ae44-420f-9aea-717d3bdfb712  
+
+Despliegue: https://infogram.com/uso-de-internet-segun-el-nivel-de-estudios-1hxr4zx9x35ro6y?live
