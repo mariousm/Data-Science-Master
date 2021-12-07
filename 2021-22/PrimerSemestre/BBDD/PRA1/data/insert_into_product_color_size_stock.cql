@@ -1,0 +1,18 @@
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'L', '843245599300', 'Beach T Shirt', 2);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'XL', '843245599301', 'Beach T Shirt', 1);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'M', '843245599302', 'Beach T Shirt', 2);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'S', '843245599303', 'Beach T Shirt', 1);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'XS', '843245599304', 'Beach T Shirt', 0);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'XXL', '843245599305', 'Beach T Shirt', 1);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('BEATS', 'BL', 'XXS', '843245599306', 'Beach T Shirt', 0);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'CB', '33', '843245599309', 'Casual trousers', 10);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'CB', '34', '843245599310', 'Casual trousers', 15);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'CB', '35', '843245599311', 'Casual trousers', 2);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'WH', '31', '843245599312', 'Casual trousers', 0);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'WH', '32', '843245599313', 'Casual trousers', 0);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'WH', '33', '843245599314', 'Casual trousers', 30);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('CASTR', 'WH', '34', '843245599315', 'Casual trousers', 10);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('RUNTS', 'YE', 'L', '843245599316', 'Running T Shirt', 5);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('RUNTS', 'YE', 'XL', '843245599317', 'Running T Shirt', 7);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('RUNTS', 'YE', 'M', '843245599318', 'Running T Shirt', 8);
+INSERT INTO product_color_size_stock (ProductCode, ColorCode, SizeCode, EAN, ShortDescription, Stock) VALUES ('RUNTS', 'YE', 'S', '843245599319', 'Running T Shirt', 2);

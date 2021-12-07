@@ -1,0 +1,37 @@
+<fulfillmentToken fulfillmentType="loan" auth="user" xmlns="http://ns.adobe.com/adept">
+  <distributor>urn:uuid:9cb786e8-586a-4950-8901-fff8d2ee6025</distributor>
+  <operatorURL>https://acs.ebookcentral.proquest.com/fulfillment</operatorURL>
+  <transaction>4849774_321846483</transaction>
+  <expiration>2021-12-21T18:54:58+00:00</expiration>
+  <resourceItemInfo>
+    <resource>urn:uuid:00000000-0000-0000-0000-000004849774</resource>
+    <resourceItem>0</resourceItem>
+    <metadata>
+      <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">¿Cómo usar una base de datos en grafo?</dc:title>
+      <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Pérez Solà, Cristina; Conesa i Caralt, Jordi; Rodríguez González, M. Elena</dc:creator>
+      <dc:publisher xmlns:dc="http://purl.org/dc/elements/1.1/">Editorial UOC</dc:publisher>
+      <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/">4849774</dc:identifier>
+      <dc:format xmlns:dc="http://purl.org/dc/elements/1.1/">application/pdf</dc:format>
+    </metadata>
+    <licenseToken>
+      <resource>urn:uuid:00000000-0000-0000-0000-000004849774</resource>
+      <permissions>
+        <display>
+          <duration>25919999</duration>
+        </display>
+        <excerpt>
+          <duration>25919999</duration>
+          <count initial="38" max="38" incrementInterval="682105"/>
+        </excerpt>
+        <print>
+          <duration>25919999</duration>
+          <count initial="38" max="38" incrementInterval="682105"/>
+        </print>
+        <play>
+          <duration>25919999</duration>
+        </play>
+      </permissions>
+    </licenseToken>
+  </resourceItemInfo>
+  <hmac>JZSz93qjchFQEWpp3SgHkNLwI4Y=</hmac>
+</fulfillmentToken>
