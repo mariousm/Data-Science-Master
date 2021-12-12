@@ -1,0 +1,11 @@
+db.Desbloqueos.find(
+    {
+        "Usuario_desbloqueador.Email": "jsanzrobles@hotmail.es"
+    },
+    {
+       _id: 0,
+       Identificador: 1,
+       "Usuario_desbloqueado.Nombre": 1,
+       "Usuario_desbloqueado.Email": 1
+    }
+)

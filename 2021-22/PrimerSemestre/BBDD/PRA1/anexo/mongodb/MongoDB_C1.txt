@@ -1,0 +1,17 @@
+db.Contactos.find(
+    {
+        "Contacto.Edad": {$gte: 52}
+    },
+    {
+       _id: 0,
+       Identificador: 1,
+       "Usuario.Nombre": 1,
+       "Usuario.Apellidos": 1,
+       "Contacto.Nombre": 1,
+       "Contacto.Apellidos": 1,
+    }
+).sort(
+    {
+        Identificador: 1
+    }
+)

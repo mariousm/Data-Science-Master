@@ -1,0 +1,15 @@
+db.Usuarios_grupos.aggregate([
+   {
+      $project: {
+          _id: 0,
+          Email: 1,
+          Count: {$size: "$Grupos_propietario"}
+      }
+   },
+   {
+       $sort: {"Count": -1}
+   },
+   {
+       $limit: 3
+   }
+])
