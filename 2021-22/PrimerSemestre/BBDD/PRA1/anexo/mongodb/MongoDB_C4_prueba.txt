@@ -1,0 +1,19 @@
+db.Contactos_usuarios.aggregate([
+    {
+        $match: {"Email": "mgarciasanz@gmail.es"}
+    },
+    {
+        $unwind: "$Contactos"
+    },
+    {
+        $match: {"Contactos.Usuario_contacto.Edad": {$gte: 36}}
+    },
+    {
+        $project: {
+            _id: 0,
+            Email: 1,
+            "Contactos.Usuario_contacto.Email": 1,
+            "Contactos.Usuario_contacto.Edad": 1
+      }
+    }
+])

@@ -1,0 +1,73 @@
+var cursor = db.Contactos_usuarios.find(
+    {
+        "Email": "mgarciasanz@gmail.es",
+    },
+    {
+       _id: 0,
+       Email: 1,
+       "Contactos.Usuario_contacto.Email": 1,
+       "Contactos.Usuario_contacto.Edad": 1
+    }
+)
+
+while (cursor.hasNext()){
+    consulta1 = cursor.next()
+    var contactos = consulta1.Contactos
+
+    for(var i in contactos) {
+        if (contactos[i].Usuario_contacto.Edad >= 36) {
+            print("Email: " + consulta1.Email.toString() + ", EmailContacto: " + contactos[i].Usuario_contacto.Email.toString() + ", EdadContacto: " + contactos[i].Usuario_contacto.Edad.toString())
+        }
+    }
+}
+
+
+print("Email: "consulta1.Email.toString() + ", EmailContacto: " + contactos[i].Usuario_contacto.Email.toString() + ", EdadContacto: " + contactos[i].Usuario_contacto.Edad.toString())
+
+while (cursor.hasNext()){
+    consulta1 = cursor.next()
+
+    var contactos = consulta1.Contactos
+    contactos.forEach(function(valor, indice, array)) {
+        printjson(consulta1.Email)
+    }
+}
+
+var miArray = [ 2, 4, 6, 8, 10 ];
+miArray.forEach( function(valor, indice, array) {
+    console.log("En el índice " + indice + " hay este valor: " + valor);
+});
+
+db.getCollection('Contactos_usuarios').find(
+    {
+        "$and":[
+            {"Email": "mgarciasanz@gmail.es"},
+            {"Contactos.Usuario_contacto.Edad": 36}
+        ]
+    },
+    {
+        _id: 0,
+        Email: 1,
+        "Contactos.Usuario_contacto.Email": 1,
+        "Contactos.Usuario_contacto.Edad": 1
+    }
+)
+
+
+
+db.Contactos_usuarios.aggregate([
+   {
+      $project: {
+          _id: 0,
+          Email: 1,
+          "Contactos.Usuario_contacto.Email": 1,
+          "Contactos.Usuario_contacto.Edad": 1
+      }
+   },
+   {
+       $match: {
+           "Email": "mgarciasanz@gmail.es",
+           "Contactos.Usuario_contacto.Edad": {$gte: 36}
+       }
+   }
+]).pretty()
