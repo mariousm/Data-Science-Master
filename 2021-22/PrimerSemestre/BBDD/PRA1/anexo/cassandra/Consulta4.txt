@@ -1,0 +1,4 @@
+SELECT seasoncode, productcode, shortdescription
+FROM seasons_product_color_size
+GROUP BY seasoncode, productcode
+;

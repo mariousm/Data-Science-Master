@@ -1,3 +1,5 @@
+CREATE INDEX iStock on product_color_size_stock(stock) ;
+
 SELECT productcode, colorcode, sizecode, ean
 FROM product_color_size_stock
 WHERE stock = 0

@@ -1,0 +1,26 @@
+SELECT productcode, colorcode, sizecode, shortdescription
+FROM product_color_size_stock
+WHERE productcode = 'RUNTS'
+;
+
+UPDATE product_color_size_stock
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'S'
+;
+
+UPDATE product_color_size_stock
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'M'
+;
+
+UPDATE product_color_size_stock
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'L'
+;
+
+UPDATE product_color_size_stock
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'XL'
+;
+
+--------------------------------------------------------------------
