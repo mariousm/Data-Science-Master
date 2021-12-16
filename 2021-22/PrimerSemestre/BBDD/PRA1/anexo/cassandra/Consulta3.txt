@@ -1,0 +1,4 @@
+SELECT productcode, colorcode, sizecode, ean
+FROM product_color_size_stock
+WHERE stock = 0
+;

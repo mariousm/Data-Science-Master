@@ -1,0 +1,2 @@
+SELECT SUM(stock) 
+FROM product_color_size_stock  ;

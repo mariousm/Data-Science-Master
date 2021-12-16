@@ -1,0 +1,5 @@
+SELECT productcode, colorcode, SUM(stock)
+FROM product_color_size_stock
+WHERE productcode = 'CASTR'
+GROUP BY colorcode
+;
