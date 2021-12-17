@@ -24,3 +24,30 @@ WHERE productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'XL'
 ;
 
 --------------------------------------------------------------------
+
+SELECT seasoncode, productcode, colorcode, sizecode, shortdescription
+FROM seasons_product_color_size
+WHERE productcode = 'RUNTS'
+;
+
+CREATE INDEX iProductoCode on seasons_product_color_size(productcode) ;
+
+UPDATE seasons_product_color_size
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE seasoncode = 'SU' and productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'S'
+;
+
+UPDATE seasons_product_color_size
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE seasoncode = 'SU' and productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'M'
+;
+
+UPDATE seasons_product_color_size
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE seasoncode = 'SU' and productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'L'
+;
+
+UPDATE seasons_product_color_size
+SET shortdescription = 'Running T-Shirt High Performance'
+WHERE seasoncode = 'SU' and productcode = 'RUNTS' and colorcode = 'YE' and sizecode = 'XL'
+;
