@@ -1,0 +1,62 @@
+{
+    "Config_1": {
+        "lr": 0.001,
+        "BATCH_SIZE": 32,
+        "MAX_EPISODES": 2000, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 1500,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    },
+    "Config_2_BEST": {
+        "lr": 0.001,
+        "BATCH_SIZE": 32,
+        "MAX_EPISODES": 1000, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 100,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    },
+    "Config_3": {
+        "lr": 0.001,
+        "BATCH_SIZE": 64,
+        "MAX_EPISODES": 1500, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 100,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    },
+    "Config_4": {
+        "lr": 0.001,
+        "BATCH_SIZE": 64,
+        "MAX_EPISODES": 1000, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 100,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    },
+    "Config_5": {
+        "lr": 0.001,
+        "BATCH_SIZE": 32,
+        "MAX_EPISODES": 600, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 250,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    }
+}
