@@ -23,7 +23,7 @@
         "EPSILON": 1,          
         "EPSILON_DECAY": 0.99
     },
-    "Config_3": {
+    "Config_3_BEST": {
         "lr": 0.001,
         "BATCH_SIZE": 64,
         "MAX_EPISODES": 1500, 
@@ -54,6 +54,18 @@
         "BURN_IN": 1000,
         "DNN_UPD": 3,
         "DNN_SYNC": 250,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    },
+    "Config_6": {
+        "lr": 0.001,
+        "BATCH_SIZE": 64,
+        "MAX_EPISODES": 1200, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 50,
         "MEMORY_SIZE": 10000,
         "GAMMA": 0.8,
         "EPSILON": 1,          

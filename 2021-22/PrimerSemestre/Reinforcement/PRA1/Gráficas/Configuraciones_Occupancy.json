@@ -1,0 +1,14 @@
+{
+    "Config_1": {
+        "lr": 0.001,
+        "BATCH_SIZE": 64,
+        "MAX_EPISODES": 700, 
+        "BURN_IN": 1000,
+        "DNN_UPD": 3,
+        "DNN_SYNC": 100,
+        "MEMORY_SIZE": 10000,
+        "GAMMA": 0.8,
+        "EPSILON": 1,          
+        "EPSILON_DECAY": 0.99
+    }
+}
