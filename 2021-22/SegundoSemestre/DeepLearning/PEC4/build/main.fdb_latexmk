@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex build/main"] 1654967191 "build/main.aux" "build/main.bbl" "build/main" 1654967523
+["bibtex build/main"] 1654969923 "build/main.aux" "build/main.bbl" "build/main" 1654975016
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/ieeetr.bst" 1291867944 18361 1a00e58565e7f19bf2b3e1bfb82254ae ""
   "bibliografia.bib" 1654965911 2676 97ccc86d20921ca355bbb55ca836fd57 ""
-  "build/main.aux" 1654967523 1265 a17fa4494d5c40ea82dfd1af5eff1f2e "pdflatex"
+  "build/main.aux" 1654975015 1265 dc77332ee4b9eb9b3299f7a40ab5ca0c "pdflatex"
   (generated)
   "build/main.bbl"
   "build/main.blg"
-["pdflatex"] 1654967522 "f:/ADMIN/UOC/Data-Science-Master/2021-22/SegundoSemestre/DeepLearning/PEC4/main.tex" "build/main.pdf" "main" 1654967523
+["pdflatex"] 1654975015 "f:/ADMIN/UOC/Data-Science-Master/2021-22/SegundoSemestre/DeepLearning/PEC4/main.tex" "build/main.pdf" "main" 1654975016
   "C:/Users/mario/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1654882818 80909 eab91d9745dd2edfd62a31d53cd5fe15 ""
   "C:/Users/mario/AppData/Local/MiKTeX/miktex/data/le/pdftex/pdflatex.fmt" 1654880088 10246961 4f5c5e5ba28dee3be94c7a19ad4ebe00 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmbx10.tfm" 1136768653 1328 c834bbb027764024c09d3d2bf908b5f0 ""
@@ -21,6 +21,7 @@
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr6.tfm" 1136768653 1300 b62933e007d01cfd073f79b963c01526 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr8.tfm" 1136768653 1292 21c1c5bfeaebccffdb478fd231a0997d ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmr9.tfm" 1136768653 1292 6b21b9c2c7bebb38aa2273f7ca0fb3af ""
+  "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmsl10.tfm" 1136768653 1508 efecb4a315fe0975509670a272d75ef5 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmss17.tfm" 1136768653 1320 ed93d62c5f2c16343826001f03341dbc ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmssbx10.tfm" 1136768653 1272 e2d13f0df30bf3ad990bb9d028e37f34 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/tfm/public/cm/cmsy10.tfm" 1136768653 1124 6c73e740cf17375f03eec0ee63599741 ""
@@ -33,6 +34,7 @@
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmcsc10.pfb" 1247596667 32001 6aeea3afe875097b1eb0da29acd61e28 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1247596667 35752 024fb6c41858982481f6968b5fc26508 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1247596667 32722 d7379af29a190c3f453aba36302ff5a9 ""
+  "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsl10.pfb" 1247596666 35022 e40946b20bfdcd1099eafb2bcd9f25dd ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmssbx10.pfb" 1247596666 28902 2f5c04fd2884d1878057baa5aad22765 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb" 1247596667 37944 359e864bd06cde3b1cf57bb20757fb06 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb" 1247596667 36118 fad905eba93cff5bce1e185fe980a177 ""
@@ -63,12 +65,12 @@
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/tex/latex/tools/dcolumn.sty" 1636713860 2758 fa75314f660944f1b7aba9a1a491ef26 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/tex/latex/tools/delarray.sty" 1636713860 2157 4342772444d9401ac0f844e1becc8668 ""
   "C:/Users/mario/AppData/Local/Programs/MiKTeX/tex/latex/tools/tabularx.sty" 1636713860 7147 5ac8a9ef36411064b1a501137af0fa54 ""
-  "build/main.aux" 1654967523 1265 a17fa4494d5c40ea82dfd1af5eff1f2e "pdflatex"
-  "build/main.bbl" 1654967192 228 80ee23b34fcf4045707d20f004c1f187 "bibtex build/main"
-  "build/main.toc" 1654967523 575 fe3eb3f52fc3075719ae821c42dc0d3d "pdflatex"
-  "f:/ADMIN/UOC/Data-Science-Master/2021-22/SegundoSemestre/DeepLearning/PEC4/main.tex" 1654967521 2435 29af626ad8532acb226287ccb4463f79 ""
+  "build/main.aux" 1654975015 1265 dc77332ee4b9eb9b3299f7a40ab5ca0c "pdflatex"
+  "build/main.bbl" 1654969924 228 80ee23b34fcf4045707d20f004c1f187 "bibtex build/main"
+  "build/main.toc" 1654975015 575 3cd8d5c52da30b0c80ec541da3314b1b "pdflatex"
+  "f:/ADMIN/UOC/Data-Science-Master/2021-22/SegundoSemestre/DeepLearning/PEC4/main.tex" 1654975014 6364 5d0c6d5ae56075713166ccf73d64bd76 ""
   "img/logo.png" 1654961820 20022 88d0abedab165f70c13152c87632c8c7 ""
-  "main.tex" 1654967521 2435 29af626ad8532acb226287ccb4463f79 ""
+  "main.tex" 1654975014 6364 5d0c6d5ae56075713166ccf73d64bd76 ""
   (generated)
   "build/main.aux"
   "build/main.log"
