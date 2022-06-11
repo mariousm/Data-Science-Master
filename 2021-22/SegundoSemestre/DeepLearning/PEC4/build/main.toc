@@ -1,0 +1,10 @@
+\babel@toc {spanish}{}\relax 
+\babel@toc {spanish}{}\relax 
+\contentsline {chapter}{\'{I}ndice general}{1}{}%
+\contentsline {chapter}{Resumen}{3}{}%
+\contentsline {section}{\numberline {1.1}Referencia del artículo}{3}{}%
+\contentsline {section}{\numberline {1.2}Descripción de la temática}{3}{}%
+\contentsline {section}{\numberline {1.3}Novedades que presenta el artículo}{3}{}%
+\contentsline {section}{\numberline {1.4}Resumen de la parte experimental}{3}{}%
+\contentsline {section}{\numberline {1.5}Conclusiones}{3}{}%
+\contentsline {chapter}{Bibliograf\'{\i }a}{5}{}%

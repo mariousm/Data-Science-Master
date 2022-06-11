@@ -1,0 +1,82 @@
+\documentclass[a4paper, 11pt]{memoir}
+\usepackage[spanish,es-tabla]{babel}
+\selectlanguage{spanish}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\nonzeroparskip
+\usepackage[left=3.50cm, right=3.0cm, top=3.0cm, bottom=3.0cm]{geometry}
+
+% DEFINICIÓN DE COMANDOS
+% Capítulos
+\chapterstyle{bianchi}
+\newcommand{\capitulo}[2]{
+	\setcounter{chapter}{#1}
+	\setcounter{section}{0}
+	\chapter*{#2}
+	\addcontentsline{toc}{chapter}{#2}
+	\markboth{#2}{#2}
+}
+
+% DEFINICIÓN DE LA PORTADA
+% \title{PEC4 - Estado del arte}
+% \author{Mario Ubierna San Mamés}
+% \date{\today}
+% \maketitle % dentro de document
+
+% COMIENZO DEL DOCUMENTO
+\begin{document}
+
+	% PORTADA
+	\begin{titlingpage}
+		\centering
+		{\includegraphics[width=1\textwidth]{img/logo.png}\par}
+		\vspace{1cm}
+		{\bfseries\LARGE Universitat Oberta de Catalunya\par}
+		\vspace{1cm}
+		{\scshape\Large Máster de Ciencia de Datos \par}
+		\vspace{3cm}
+		{\scshape\Huge PEC4 - Estado del arte \par}
+		\vspace{3cm}
+		{\itshape\Large Deep Learning \par}
+		\vfill
+		{\Large Autor: \par}
+		{\Large Mario Ubierna San Mamés \par}
+		\vfill
+		{\Large \today \par}
+	\end{titlingpage}
+
+	\newpage
+
+	% Tabla de contenidos
+	\tableofcontents
+
+	% Resumen
+	\capitulo{1}{Resumen}
+	
+	% 1.1 Referencia del artículo
+	\section{Referencia del artículo}
+	El artículo seleccionado es "\emph{Deep Learning Based Automatic Video Annotation Tool for 
+	Self-Driving Car}", cuyos autores son \emph{N.S.Manikandan, K.Ganesan}. La fecha de 
+	publicación del artículo data del \emph{19 de abril del 2019}, y fue publiacada por el grupo
+	 \emph{TIFAC-CORE in Automotive Infotronics} perteneciente al Instituto Tecnológico de Vellore \cite{manikandan_deep_2019}.
+	
+	% 1.2 Descripción de la temática
+	\section{Descripción de la temática}
+	El \emph{Deep Learning} es un concepto muy usado actualmente, ha tenido un crecimiento
+	exponencial en los últimos años. Es tal el impacto, que se hace uso de este campo para 
+	la detección de diferentes objetos encontrados durante la conducción de coches autodirigidos.
+	
+	% 1.3 Novedades que presenta el artículo
+	\section{Novedades que presenta el artículo}
+	
+	% 1.4 Resumen de la parte experimental
+	\section{Resumen de la parte experimental}
+	
+	% 1.5 Conclusiones
+	\section{Conclusiones}
+
+	% Bibliografia
+	\bibliography{bibliografia.bib}
+	\bibliographystyle{ieeetr}
+
+\end{document}
